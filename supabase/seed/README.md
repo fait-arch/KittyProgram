@@ -1,11 +1,11 @@
 # Seed de pruebas — CacaoResiliente
 
 Datos para **probar la base de datos y el backend** sin esperar al ETL real:
-92 áreas con polígono (Ecuador, 6 provincias de la Costa, 85 cantones), El Niño 1990–2026,
-clima diario 2001–2025 resumido por mes, índices de riesgo, producción, precios, un modelo
+139 áreas con polígono (Ecuador, 12 provincias de Costa y Amazonía, 126 cantones), El Niño 1990–2026,
+clima diario resumido por mes, altitud/pendiente/suelo, índices de riesgo, producción (ESPAC real 2023–2025), precios, un modelo
 **DEMO** y sus predicciones. Qué es real y qué es sintético: [`docs/08-informe-datos.md`](../../docs/08-informe-datos.md).
 
-> ⚠️ Contiene datos **sintéticos** (producción provincial, hectáreas por cantón, modelo y
+> ⚠️ Contiene datos **sintéticos** (producción provincial 2001–2022, hectáreas por cantón, modelo y
 > predicciones demo). Están marcados (`source_id = 'seed_sintetico'`, `notes`, modelo
 > `cacao_loss_demo_sintetico`). **No los presentes como resultados.**
 
@@ -42,12 +42,12 @@ Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.p
 
 | Parte | Tablas | Filas |
 |-------|--------|------:|
-| 01_territorio | `areas`, `area_static_features`, `data_sources` (+4 fuentes) | 92 + 91 + 4 |
+| 01_territorio | `areas`, `area_static_features`, `data_sources` (+6 fuentes) | 139 + 138 + 6 |
 | 02_el_nino | `enso_index`, `enso_events` | 2 209 + 24 |
-| 03_clima | `area_monthly_series`, `area_monthly_hazard` | 11 280 + 2 820 |
-| 04_riesgo_y_escenarios | `disease_risk_monthly`, `area_scenario_climate`, `disease_risk_scenario`, `crop_suitability` | 8 460 + 648 + 648 + 6 |
-| 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 168 + 91 + 309 |
-| 06_modelo_demo_y_observaciones | `model_versions`, `loss_predictions`, `field_observations`, `etl_runs` | 1 + 182 + 12 + 1 |
+| 03_clima | `area_monthly_series`, `area_monthly_hazard` | 30 744 + 7 686 |
+| 04_riesgo_y_escenarios | `disease_risk_monthly`, `area_scenario_climate`, `disease_risk_scenario`, `crop_suitability` | 23 058 + 5 832 + 5 832 + 12 |
+| 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 327 + 138 + 309 |
+| 06_modelo_demo_y_observaciones | `model_versions`, `loss_predictions`, `field_observations`, `etl_runs` | 1 + 276 + 12 + 1 |
 
 ## Probar después de cargar
 
@@ -64,14 +64,16 @@ select area_id, year, yield_t_ha, fav_days_phytophthora, enso_class from public.
 
 ```bash
 cd supabase/seed/tools
-python download_raw.py  <carpeta_raw>              # límites, NOAA, FRED, FAOSTAT, GBIF
-python fetch_weather.py <carpeta_raw>              # clima diario ERA5 (Open-Meteo), ~15 min
+python download_raw.py  <carpeta_raw>              # límites, DPA, NOAA, FRED, FAOSTAT, GBIF, ESPAC 2023-2025
+python fetch_weather.py <carpeta_raw>              # clima diario ERA5 (Open-Meteo), varias horas
+python fetch_static.py  <carpeta_raw>              # altitud/pendiente (SRTM) y suelo (SoilGrids), ~1 h
 python build_seed.py    <carpeta_raw> ../data      # genera los .sql
 python build_seed.py    <carpeta_raw> ../data_muestra --sample   # versión mínima de prueba
 ```
 
-El clima se guarda en caché (`<raw>/weather/`): se puede relanzar sin repetir llamadas.
-Open-Meteo gratuito limita las peticiones; el script espera y reintenta solo.
+Los tres pasos de descarga guardan caché en `<raw>/`: se pueden relanzar sin repetir llamadas.
+**Open-Meteo gratuito tiene un límite diario**: si se agota, `fetch_weather.py` se detiene y se
+retoma al día siguiente. SoilGrids permite ~5 peticiones/min.
 
 ## Cuando lleguen los datos reales
 

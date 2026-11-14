@@ -1,101 +1,99 @@
 # 8. Informe de datos — qué hay cargado, de dónde sale y qué falta
 
-Fecha de generación: 2026-11-14. Archivos: [`supabase/seed/`](../supabase/seed/README.md).
+Actualizado: 2026-11-14 (segunda carga). Archivos: [`supabase/seed/`](../supabase/seed/README.md).
 **Real** = descargado de la fuente oficial. **Sintético** = inventado para probar el sistema.
 
-## 1. Resumen
+## 1. Resumen de lo cargado en Supabase
 
 | Bloque | Estado | Filas |
 |--------|--------|------:|
-| Catálogos (fuentes, variables, cacao, requisitos, enfermedades, umbrales, fenología, escenarios, estrategias) | **Real / referencial** — ya en Supabase (migraciones 0001–0006) | ~90 |
-| Territorio (país, 6 provincias, 85 cantones) | **Real** (geoBoundaries / INEC) | 92 |
-| El Niño (ONI y 4 regiones Niño, 1990–2026) + 24 eventos | **Real** (NOAA CPC) | 2 209 + 24 |
-| Clima mensual y conteos de peligro, 2001–2025 | **Real** (ERA5 vía Open-Meteo) | 11 280 + 2 820 |
-| Riesgo de enfermedad por mes y por escenario | **Calculado** con los umbrales (por validar) | 8 460 + 648 |
-| Aptitud ECOCROP por provincia | **Calculada** (ver aviso de sesgo de lluvia) | 6 |
+| Catálogos (fuentes, variables, cacao, requisitos, enfermedades, umbrales, fenología, escenarios, estrategias) | **Real / referencial** (migraciones 0001–0008) | ~90 |
+| Territorio: Ecuador, **12 provincias** (6 Costa + 6 Amazonía), **126 cantones** | **Real** (geoBoundaries / INEC) | 139 |
+| **Códigos DPA** del INEC: 12/12 provincias, 124/126 cantones | **Real** (HDX COD-AB) | — |
+| El Niño (ONI y regiones Niño 1+2, 3, 3.4, 4, 1990–oct 2026) + 24 eventos | **Real** (NOAA CPC) | 2 209 + 24 |
+| Clima mensual y conteos de peligro | **Real** (ERA5 vía Open-Meteo) | 30 744 + 7 686 |
+| Altitud y pendiente (SRTM 30 m) y suelo (SoilGrids) por área | **Real** | 138 |
+| Riesgo de enfermedad por mes / por escenario | **Calculado** con umbrales por validar | 23 058 + 5 832 |
+| Aptitud ECOCROP (provincias) | **Calculada** (ver aviso de lluvia) | 12 |
 | Producción nacional de cacao 2001–2024 | **Real** (FAOSTAT) | 24 |
-| Producción provincial 2001–2024 | **SINTÉTICA** | 144 |
-| Hectáreas por provincia y cantón | **SINTÉTICAS** | 91 |
-| Precio internacional del cacao, mensual (2001–2026) | **Real** (FMI vía FRED) | 309 |
+| **Producción por provincia 2023, 2024 y 2025** | **Real** (ESPAC, INEC) | 36 + 3 nacionales |
+| Producción por provincia 2001–2022 | **SINTÉTICA** (proporciones ancladas en ESPAC) | 264 |
+| Hectáreas por provincia (2025) | **Real** (ESPAC) | 12 |
+| Hectáreas por cantón | **SINTÉTICAS** (provincia repartida por superficie) | 126 |
+| Precio internacional del cacao, mensual 2001–2026 | **Real** (FMI vía FRED) | 309 |
 | Observaciones de moniliasis / escoba de bruja | **Real** (GBIF) | 12 |
-| Modelo y predicciones de pérdida | **DEMO** (fórmula fija, no entrenado) | 1 + 182 |
+| Modelo y predicciones de pérdida | **DEMO** (fórmula fija, no entrenado) | 1 + 276 |
 
-## 2. Detalle por fuente
+## 2. Fuentes
 
 | Dato | Fuente | Licencia / cita | Cobertura cargada |
 |------|--------|-----------------|-------------------|
-| Límites | geoBoundaries gbOpen ECU ADM1/ADM2 (INEC, OCHA ROLAC), versión 2019, simplificados | CC BY 3.0 IGO | 6 provincias costeras y 85 cantones (se omiten las que no son de la Costa) |
-| El Niño | NOAA CPC: `oni.ascii.txt` y `sstoi.indices` | Dominio público | ONI, Niño 1+2, 3, 3.4 y 4 desde 1990 (último mes: oct-2026) |
-| Clima | Open-Meteo Historical API, modelo `era5_seamless` (ERA5 + ERA5-Land) | CC BY 4.0 + Copernicus | Provincias: diario 2001–2025. Cantones: ene–jun de 2020 (neutro) y 2025 (Niño) |
-| Producción nacional | FAOSTAT `QCL`, *Cocoa beans*, Ecuador | CC BY 4.0 | Área cosechada, producción, rendimiento 2001–2024 |
-| Precio | FRED `PCOCOUSDM` (precio mundial del cacao, USD/t) | FMI | 2001–2026, mensual (309 meses cargados) |
-| Observaciones | GBIF, *Moniliophthora roreri* y *M. perniciosa*, Ecuador, con coordenadas | CC BY / CC0 según registro | 12 de 42 (los demás no traen fecha) |
-
-Variables climáticas guardadas por área y mes: temperatura media, humedad relativa media,
-lluvia total y humedad del suelo (0–7 cm), más los conteos de `area_monthly_hazard`
-(días con lluvia ≥ 1 mm, ≥ 50 mm, racha lluviosa, días húmedos ≥ 80 %, días > 32 °C, días de
-suelo saturado ≥ 0,45 m³/m³).
+| Límites | geoBoundaries gbOpen ECU ADM1/ADM2 (INEC, OCHA ROLAC), v2019, simplificados | CC BY 3.0 IGO | 12 provincias y 126 cantones de Costa y Amazonía |
+| Códigos DPA | HDX COD-AB Ecuador (`ecu_admgz.xlsx`, INEC/OCHA) | CC BY-IGO | 24 provincias, 224 cantones (5 cantones con nombre abreviado en geoBoundaries se asignaron a mano) |
+| El Niño | NOAA CPC `oni.ascii.txt`, `sstoi.indices` | Dominio público | 1990–oct 2026 |
+| Clima | Open-Meteo Historical API, `era5_seamless` (ERA5 + ERA5-Land) | CC BY 4.0 + Copernicus | Provincias: diario 2001–2025. Cantones: ene–jun de 2018, 2020, 2023, 2024, 2025 y 2016 (51 de 126) |
+| Altitud y pendiente | SRTM 30 m vía OpenTopoData | NASA SRTM | 16 puntos por polígono; pendiente con vecinos a ~100 m |
+| Suelo | SoilGrids v2 (ISRIC), 0–30 cm ponderado | CC BY 4.0 | 133 de 138 áreas (5 sin dato: píxeles urbanos o con agua) |
+| Producción provincial | **ESPAC (INEC)**, tabulado T14 "cacao (almendra seca)" 2023, 2024, 2025 (solo + asociado) | INEC | 12 provincias; suman exactamente el total nacional |
+| Producción nacional | FAOSTAT `QCL` *Cocoa beans* | CC BY 4.0 | 2001–2024 (coincide con ESPAC en 2023–2024) |
+| Precio | FRED `PCOCOUSDM` | FMI | 2001–sep 2026 |
+| Observaciones | GBIF, *M. roreri* y *M. perniciosa* | CC BY / CC0 | 12 de 42 (los demás no traen fecha) |
 
 ## 3. Datos sintéticos — cómo se generaron
 
-| Dato | Método | Para qué sirve |
-|------|--------|----------------|
-| Producción provincial | Rendimiento = tendencia lineal nacional (FAOSTAT) × factor de provincia (0,9–1,1) × ruido × (1 − pérdida sembrada), donde la pérdida sembrada crece con el riesgo de enfermedad del año (hasta 40 %). Área cosechada = área nacional × reparto **supuesto** (Guayas 27 %, Los Ríos 22 %, Manabí 21 %, Esmeraldas 10 %, El Oro 5 %, Santo Domingo 4 %) | Probar `v_training_area_year` y el entrenamiento: **la señal clima → pérdida está plantada**, así que el modelo la "encontrará" por construcción |
-| Hectáreas por cantón | Hectáreas de la provincia repartidas por superficie del cantón | Probar `crop_exposure` y el mapa |
-| Modelo demo | `loss = clip(10 + 150 × (riesgo ene–jun − riesgo medio del área), 0, 60)` | Probar `loss_predictions` y `v_loss_map` |
+| Dato | Método |
+|------|--------|
+| Producción provincial 2001–2022 | Rendimiento = tendencia lineal nacional (FAOSTAT) × **proporción real de la provincia** (rendimiento ESPAC de la provincia ÷ nacional, 2023–25) × ruido × (1 − pérdida sembrada), donde la pérdida sembrada crece con el riesgo de enfermedad del año (hasta 40 %). Área cosechada = área nacional × **proporción real de superficie** (ESPAC) |
+| Hectáreas por cantón | Hectáreas reales de la provincia (ESPAC 2025) repartidas por superficie del cantón |
+| Modelo demo | `loss = clip(10 + 150 × (riesgo ene–jun − riesgo medio del área), 0, 60)` |
 
-Se marcan con `source_id = 'seed_sintetico'`, texto "SINTÉTICO" en `notes` y modelo
-`cacao_loss_demo_sintetico`.
+Marcados con `source_id = 'seed_sintetico'`, "SINTÉTICO" en `notes` y el modelo `cacao_loss_demo_sintetico`.
+**La señal clima → pérdida está plantada**: un modelo entrenado con ellos la "encontrará" por construcción.
 
-## 4. Hallazgos de calidad (importantes antes de usar los datos reales)
+## 4. Hallazgos de calidad
 
-1. **El riesgo de moniliasis casi no discrimina.** Con la regla *HR media diaria ≥ 80 % y
-   20–28 °C*, el 58 % de los meses por área tiene índice ≥ 0,95 (media 0,80). En la Costa
-   esa condición se cumple casi todos los días. La mazorca negra sí varía (media 0,59; solo 17 %
-   ≥ 0,95). **Acción:** subir el umbral de HR, usar horas de humedad (ERA5 horario) o contar
-   rachas de días favorables en lugar de días sueltos; validar con el INIAP.
-2. **ERA5 sobreestima la lluvia en la Costa.** Por ejemplo Los Ríos suma ≈ 5 400 mm/año y
-   un punto de Esmeraldas ≈ 7 000 mm, contra el rango óptimo del cacao de 1 200–3 000 mm. Por eso
-   la aptitud sale "marginal" o "no apta" en zonas que sí producen cacao. Para el MVP conviene
-   calibrar con GPM IMERG (NASA) o con estaciones del INAMHI.
-3. **Años Niño 2001–2025 según la regla anual** (ONI ≥ 0,5 o Niño 1+2 ≥ 0,4, promedio ene–jun):
-   2010, 2015, 2016, 2017 (costero), 2019, 2023, 2024, 2025. Niña: 2008, 2011, 2021, 2022. **1997–98
-   no entra** porque el clima empieza en 2001.
-4. **Niño costero:** la regla de eventos solo detectó 2006; 2017 sí aparece como Niño costero en
-   `v_enso_year_class`. Revisar el umbral de duración (4 meses) con un experto.
-5. **Pocos años de entrenamiento:** 24 años × 6 provincias = 144 filas, 8 años Niño. Intervalos amplios.
-6. **GBIF:** solo 12 observaciones con fecha; sirven para validar espacialmente, no para entrenar.
-7. **Elevación:** `elevation_mean_m` es la altitud del punto representativo (la que informa
-   Open-Meteo), no una media del polígono.
-8. **Cantones con solo 2 años:** el escenario `normal`/`nino` de los cantones usa un solo año de
-   cada tipo (2020 y 2025), no un compuesto.
+1. **El riesgo de moniliasis casi no discrimina.** Con *HR media diaria ≥ 80 % y 20–28 °C*, el
+   58 % de los meses por área sale ≥ 0,95. La mazorca negra sí varía. Acción: subir el umbral de HR,
+   usar horas de humedad o rachas de días; validar con el INIAP.
+2. **ERA5 sobreestima la lluvia en la Costa y la Amazonía** (Los Ríos ≈ 5 400 mm/año contra un óptimo
+   de 1 200–3 000). La aptitud sale "marginal/no apta" en zonas que sí producen. Calibrar con GPM IMERG
+   (NASA) o con el INAMHI.
+3. **Años Niño 2001–2025** (ONI ≥ 0,5 o Niño 1+2 ≥ 0,4, promedio ene–jun): 2010, 2015, 2016, 2017
+   (costero), 2019, 2023, 2024, 2025. Niña: 2008, 2011, 2021, 2022. **1997–98 no entra.**
+4. **Cantones con pocos años:** escenario *normal* = 2018 y 2020; *Niño* = 2023, 2024, 2025 (+2016 en
+   51 cantones). **No hay escenario Niña en cantones** (faltan 2022 y 2021). El límite diario de
+   Open-Meteo frenó la descarga; faltan 2016 (75 cantones), 2015, 2022 y 2014.
+5. **Datos reales de producción provincial solo de 3 años** (2023–2025): el modelo real aún no puede
+   entrenarse con datos reales. Los años anteriores a 2023 del ESPAC existen, pero el INEC no los
+   publica en una dirección predecible: hay que bajarlos de su página.
+6. **Altitud:** hay cantones de la Amazonía y de Santo Domingo por encima de 900 m (óptimo máximo del
+   cacao en ECOCROP); la aptitud de cantones no se calculó (solo hay ene–jun).
+7. **Sierra fuera de alcance:** Bolívar, Cañar, Pichincha y Cotopaxi tienen cacao (5 000–11 000 ha)
+   pero no se cargaron; `crop_phenology` solo define Costa y Amazonía.
+8. **Elevación de cantones** = promedio de 16 puntos dentro del polígono (no un modelo digital completo).
+9. **GBIF:** solo 12 observaciones con fecha: sirven para validar, no para entrenar.
 
-## 5. Lo que falta para reemplazar lo sintético y lo referencial
+## 5. Lo que todavía falta
 
 | Pendiente | Cómo | Quién |
 |-----------|------|-------|
-| Producción **real** por provincia (ESPAC) | Descargar los tabulados anuales del INEC → `crop_production_stats` con `source_id = 'espac'` (y rellenar `areas.inec_dpa_code` de cantones) | Datos |
-| Hectáreas reales por cantón | ESPAC (si publica por cantón) o cobertura WorldCover + censo | Datos |
-| Precio **Ecuador** (grano seco) | SIPA / MAG; hoy solo hay el precio internacional | Datos |
-| Códigos DPA de los 85 cantones | Tabla de códigos del INEC | Datos |
-| Clima NASA (GPM, SMAP, MODIS) | ETL con Earth Engine; hoy el clima es ERA5 | Backend |
-| Suelo (pH, arcilla, carbono), pendiente, cobertura | OpenLandMap, SRTM, WorldCover → `area_static_features` | Datos |
-| Proyecciones 2050 | NEX-GDDP-CMIP6 → `area_scenario_climate` (escenarios `ssp245_2050`, `ssp585_2050`) | Fase 2 |
+| ESPAC 2014–2022 por provincia | Descargar los tabulados anuales (T14 cacao) desde la página de ESPAC del INEC y cargarlos como `source_id = 'espac'` | Datos |
+| Clima de cantones restante (2016, 2015, 2022, 2014) | Relanzar `fetch_weather.py` al día siguiente (retoma sin repetir) | Datos |
+| Precio **Ecuador** (grano seco) | SIPA / MAG (sin descarga automática) | Datos |
+| Clima NASA (GPM, SMAP, MODIS) y cobertura (WorldCover) | ETL con Earth Engine (hoy: ERA5) | Backend |
+| Proyecciones 2050 | NEX-GDDP-CMIP6 → `area_scenario_climate` (`ssp245_2050`, `ssp585_2050`) | Fase 2 |
 | Reducciones de las estrategias y costos | Literatura / INIAP → `strategy_effects`, `adaptation_strategies.cost_usd_ha_year` | Agrónomo |
-| Validar umbrales de enfermedad, ventana de riesgo y umbrales de ENSO | INIAP / fitopatólogo / INAMHI → `validated = true` | Agrónomo |
-| Entrenar el modelo real | `ml/train.py` sobre `v_training_area_year` (ver [05](05-modelo-predictivo.md)) | ML |
+| Validar umbrales de enfermedad, ventana de riesgo y umbral de Niño costero | INIAP / fitopatólogo / INAMHI → `validated = true` | Agrónomo |
+| Entrenar el modelo real | `ml/train.py` sobre `v_training_area_year` | ML |
 
-## 6. Cómo se verificó el seed
+## 6. Cómo se verificó
 
-- Los 6 archivos se generan con `build_seed.py` y se revisó a mano una muestra.
-- Una versión mínima (primeras filas de cada tabla) se ejecutó en Supabase dentro de una
-  transacción con *rollback*: **todas las tablas aceptaron las filas**, `v_loss_map`,
-  `v_enso_year_class` y `v_training_area_year` devolvieron datos, y las sentencias de `--reset` son
-  válidas. Esa prueba encontró y corrigió dos fallos del generador (formato del JSON de
-  `top_factors` y una fórmula demo que daba "muy alto" en todas partes).
-- **Carga completa ejecutada el 2026-11-14 en el proyecto de Supabase** con `inject.py`
-  (6 partes en ~6 s). Antes se probó el volumen completo en una transacción con *rollback*, lo
-  que detectó 3 polígonos inválidos (islotes con < 4 puntos) y llevó a reparar la geometría con
-  `st_makevalid` al insertar. Después se probó `--reset` y la recarga (92 áreas, 182 predicciones),
-  se confirmó que `anon` lee pero no escribe, que no quedan filas huérfanas tras el borrado en
-  cascada, y que el revisor de seguridad de Supabase no reporta alertas.
+- **Prueba completa con rollback** (volumen real: ~7 MB de SQL) antes de cargar: las 6 partes entraron,
+  139 polígonos válidos, `v_loss_map` 276 filas, `v_training_area_year` 300 filas completas
+  (12 provincias × 25 años).
+- **Control de ESPAC:** la suma de las provincias coincide con el total nacional en 2023, 2024 y 2025
+  (375 719, 403 699 y 501 244 t). Esa comprobación detectó un error de lectura (filas "Asociado" omitidas)
+  que se corrigió.
+- **Carga real** con `inject.py --reset --yes`: 6 partes en ~9 s; revisor de seguridad de Supabase: 0 alertas.
+- Hallazgos de la primera carga ya corregidos: 3 polígonos inválidos (`st_makevalid`), formato del JSON
+  de `top_factors` y fórmula demo.

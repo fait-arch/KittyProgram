@@ -29,7 +29,12 @@ PROVINCES = {  # nombre normalizado -> (código DPA INEC, región)
     "el oro": ("07", "costa"), "esmeraldas": ("08", "costa"), "guayas": ("09", "costa"),
     "los rios": ("12", "costa"), "manabi": ("13", "costa"),
     "santo domingo de los tsachilas": ("23", "costa"),
+    "morona santiago": ("14", "amazonia"), "napo": ("15", "amazonia"), "pastaza": ("16", "amazonia"),
+    "zamora chinchipe": ("19", "amazonia"), "sucumbios": ("21", "amazonia"), "orellana": ("22", "amazonia"),
 }
+# Años de cantones (ene–jun), en orden de prioridad. Clase ENSO según la regla anual:
+#   Niño: 2025, 2024, 2023, 2016, 2015 · neutro: 2020, 2018, 2014 · Niña: 2022
+CANTON_YEARS = [2025, 2020, 2024, 2023, 2018, 2016, 2015, 2022, 2014]
 DAILY = ("temperature_2m_mean,temperature_2m_max,temperature_2m_min,"
          "relative_humidity_2m_mean,precipitation_sum,soil_moisture_0_to_7cm_mean")
 API = "https://archive-api.open-meteo.com/v1/archive"
@@ -121,33 +126,33 @@ def main() -> None:
     cants = [a for a in areas if a["kind"] == "canton"]
     print(f"{len(provs)} provincias, {len(cants)} cantones", flush=True)
 
+    (RAW / "canton_years.json").write_text(json.dumps(CANTON_YEARS))
     cls = enso_years()
-    nino_y = max(y for y, c in cls.items() if c == "nino" and 2015 <= y <= 2025)
-    neut_y = max(y for y, c in cls.items() if c == "neutral" and 2015 <= y <= 2025)
-    (RAW / "canton_years.json").write_text(json.dumps({"nino": nino_y, "neutral": neut_y}))
-    print("años de cantones:", nino_y, "(Niño)", neut_y, "(neutro)", flush=True)
+    print("años de cantones:", {y: cls.get(y) for y in CANTON_YEARS}, flush=True)
 
     stop = False
     for a in provs:
         for y0 in range(2001, 2026, 5):
             r = fetch(a, f"{y0}-01-01", f"{min(y0 + 4, 2025)}-12-31", pause=14)
-            print(a["key"], y0, r, flush=True)
+            if r != "cache":
+                print(a["key"], y0, r, flush=True)
             if r == "limit":
                 stop = True
                 break
         if stop:
             break
     if not stop:
-        for i, a in enumerate(cants):
-            for y in (nino_y, neut_y):
+        for y in CANTON_YEARS:                      # año por año: una parada por límite deja todo balanceado
+            n = 0
+            for a in cants:
                 r = fetch(a, f"{y}-01-01", f"{y}-06-30", pause=1.6)
+                n += r == "ok"
                 if r == "limit":
                     stop = True
                     break
+            print("cantones año", y, "descargados:", n, flush=True)
             if stop:
                 break
-            if i % 10 == 0:
-                print("cantón", i, a["key"], flush=True)
     print("FIN", "(detenido por límite)" if stop else "(completo)", flush=True)
 
 

@@ -193,11 +193,24 @@ if SAMPLE:
              and list(WX.glob(a["key"] + "_*.json"))][:1]
     areas = [a for a in areas if a["key"] in keep] + cants
 
+import openpyxl
+_wb = openpyxl.load_workbook(RAW / "admgz.xlsx", read_only=True, data_only=True)
+DPA_PROV = {key(r[2]): r[0] for r in list(_wb["eci_admgz_adm1"].iter_rows(values_only=True))[1:] if r[0]}
+DPA_CANT = {(key(r[4]), key(r[2])): r[0] for r in list(_wb["ecu_admgz_adm2"].iter_rows(values_only=True))[1:] if r[0]}
+# geoBoundaries abrevia o recorta algunos nombres; El Piedrero y Manga del Cura son "zonas no delimitadas" sin código
+DPA_ALIAS = {("guayas", key("Alfredo Baquerizo Moreno")): "0902", ("guayas", key("Empalme")): "0908",
+             ("guayas", key("Crnel. Marcelino Maridueña")): "0923", ("guayas", key("Gnral. Antonio Elizalde")): "0927",
+             ("orellana", key("Orellana")): "2201"}
+STATIC = json.loads((RAW / "static.json").read_text(encoding="utf-8")) if (RAW / "static.json").exists() else {}
 for a in areas:
+    a["dpa"] = (DPA_PROV.get(a["name_key"]) if a["kind"] == "province"
+                else DPA_CANT.get((a["province_key"], a["name_key"])) or DPA_ALIAS.get((a["province_key"], a["name_key"])))
     a["id"] = uid(a["key"])
     a["pid"] = uid("p_" + a["province_key"].replace(" ", "_")) if a["province_key"] else None
     a["days"], a["elev"] = load_weather(a)
 areas = [a for a in areas if a["days"]]
+_nodpa = [f'{a["name"]} ({a["province_key"]})' for a in areas if a["dpa"] is None]
+print("sin código DPA:", len(_nodpa), _nodpa[:12], flush=True)
 prov = [a for a in areas if a["kind"] == "province"]
 cant = [a for a in areas if a["kind"] == "canton"]
 print(f"{len(prov)} provincias, {len(cant)} cantones con clima", flush=True)
@@ -272,6 +285,8 @@ parts = defaultdict(list)
 
 # P1: fuentes + áreas + características estáticas
 src = [
+    ["hdx_cod_ecu", "Códigos DPA — COD-AB Ecuador (INEC / OCHA)", "INEC / OCHA ROLAC", "other", "ecu_admgz.xlsx", "static", "2024-01-01", "https://data.humdata.org/dataset/cod-ab-ecu", "CC BY-IGO — INEC, OCHA"],
+    ["opentopodata", "SRTM 30 m vía OpenTopoData", "NASA / OpenTopoData", "other", "api.opentopodata.org/v1/srtm30m", "static", "2000-02-11", "https://www.opentopodata.org", "NASA SRTM; datos servidos por OpenTopoData"],
     ["seed_sintetico", "Datos sintéticos del seed de pruebas", "KittyProgram", "other", "supabase/seed", "static", None, None, "No usar como evidencia: solo para probar el sistema"],
     ["fred", "FRED — Global price of Cocoa (PCOCOUSDM)", "FMI / FRED", "other", "fredgraph.csv?id=PCOCOUSDM", "monthly", "1990-01-01", "https://fred.stlouisfed.org/series/PCOCOUSDM", "IMF Primary Commodity Prices via FRED"],
     ["open_meteo", "Open-Meteo Historical Weather (ERA5 / ERA5-Land)", "Open-Meteo / ECMWF", "other", "archive-api.open-meteo.com/v1/archive", "daily", "1940-01-01", "https://open-meteo.com", "Weather data by Open-Meteo.com (CC BY 4.0); contains modified Copernicus Climate Change Service information"],
@@ -291,13 +306,21 @@ for a in cant:
     pg = adm1[a["province_key"]]
     gg = next((x for x in g if pg.contains(x.representative_point())), g[0])
     a["geom"] = gg
-    arows.append([a["id"], "canton", a["name"], a["pid"], None, a["region"], geom_sql(gg, tol_k)])
+    arows.append([a["id"], "canton", a["name"], a["pid"], a["dpa"], a["region"], geom_sql(gg, tol_k)])
 for a in prov:
     a["geom"] = adm1[a["name_key"]]
 parts[1].append(ins("areas", ["id", "kind", "name", "parent_id", "inec_dpa_code", "region", "geom"], arows))
-parts[1].append(ins("area_static_features", ["area_id", "elevation_mean_m"],
-                    [[a["id"], a["elev"]] for a in areas if a["elev"] is not None],
-                    " on conflict (area_id) do nothing"))
+st_rows = []
+for a in areas:
+    st = STATIC.get(a["key"], {})
+    el = st.get("elevation_mean_m", a["elev"])
+    if el is None and not st:
+        continue
+    st_rows.append([a["id"], el, st.get("slope_mean_deg"), st.get("slope_p90_deg"), st.get("soil_ph"),
+                    st.get("soil_organic_c_gkg"), st.get("clay_pct"), st.get("sand_pct"), st.get("texture_class")])
+parts[1].append(ins("area_static_features", ["area_id", "elevation_mean_m", "slope_mean_deg", "slope_p90_deg", "soil_ph",
+                                             "soil_organic_c_gkg", "clay_pct", "sand_pct", "texture_class"],
+                    st_rows, " on conflict (area_id) do nothing"))
 
 # P2: ENSO
 er = []
@@ -341,7 +364,7 @@ parts[4].append(ins("disease_risk_monthly", ["area_id", "pathogen_id", "month_da
 
 cls_year = {y: enso_class(y) for y in range(YEAR0, YEAR1 + 1)}
 scen_clim, scen_risk = [], []
-for a in prov:
+for a in prov + cant:
     for sc in ("normal", "nino", "nina"):
         yrs = [y for y, c in cls_year.items() if c == ("neutral" if sc == "normal" else sc)]
         if not yrs:
@@ -383,41 +406,99 @@ for a in prov:
     suit.append([a["id"], "cacao", "normal", s, cl, [k for k, v in sc.items() if v < 1], {**{k: round(v, 3) for k, v in sc.items()}, "temp_mean_c": round(t_mean, 2), "rain_annual_mm": round(rain)}])
 parts[4].append(ins("crop_suitability", ["area_id", "crop_id", "scenario_id", "score", "class", "limiting_factors", "details"], suit))
 
-# P5: producción, exposición, precios
-SHARE = {"p_guayas": 0.27, "p_los_rios": 0.22, "p_manabi": 0.21, "p_esmeraldas": 0.10, "p_el_oro": 0.05, "p_santo_domingo_de_los_tsachilas": 0.04}
-FACT = {k: rnd.uniform(0.9, 1.1) for k in SHARE}
+# P5: producción — ESPAC (INEC) real 2023–2025 por provincia, FAOSTAT nacional real, sintética en los demás años
+def parse_espac(year):
+    fp = RAW / f"espac_tab{year}.xlsx"
+    if not fp.exists():
+        return {}
+    wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
+    num = None
+    for r in wb["ÍNDICE"].iter_rows(values_only=True):
+        t = " ".join(str(x) for x in r if x)
+        if "cacao" in t.lower() and "provincia" in t.lower():
+            num = t.split(".")[0].strip()
+            break
+    out, cur = {}, None
+    for r in wb[num].iter_rows(values_only=True):
+        c1 = r[1] if len(r) > 1 and isinstance(r[1], str) else None
+        c2 = r[2] if len(r) > 2 and isinstance(r[2], str) else None
+        if c1 is None and c2 != "Asociado":
+            continue
+        if c1 is not None:
+            up = c1.strip().upper()
+            if up.startswith(("REGIÓN", "REGION", "ZONA", "FUENTE")):
+                cur = None
+                continue
+            cur = "__nacional__" if up == "TOTAL NACIONAL" else key(c1)
+            out.setdefault(cur, [0.0, 0.0, 0.0])
+        if cur is None:
+            continue
+        v = [x if isinstance(x, (int, float)) else 0.0 for x in r[3:7]]   # plantada, cosechada, producción, ventas
+        out[cur][0] += v[0]   # superficie plantada (ha)
+        out[cur][1] += v[1]   # superficie cosechada (ha)
+        out[cur][2] += v[2]   # producción (t)
+    return out
+
+
+espac = {y: parse_espac(y) for y in (2023, 2024, 2025)}
+espac_years = sorted(y for y in espac if espac[y] and "__nacional__" in espac[y])
+for y in espac_years:   # control: las provincias deben sumar ≈ total nacional
+    tot = sum(v[2] for k, v in espac[y].items() if k != "__nacional__")
+    print(f"ESPAC {y}: producción nacional {espac[y]['__nacional__'][2]:,.0f} t; suma de provincias {tot:,.0f} t", flush=True)
+
+for a in prov:
+    ys_, hs_ = [], []
+    for y in espac_years:
+        v = espac[y].get(a["name_key"])
+        n_ = espac[y]["__nacional__"]
+        if v and v[1] > 0 and n_[1] > 0:
+            ys_.append((v[2] / v[1]) / (n_[2] / n_[1]))
+            hs_.append(v[1] / n_[1])
+    a["ratio"] = sum(ys_) / len(ys_) if ys_ else 1.0
+    a["share"] = sum(hs_) / len(hs_) if hs_ else 0.005
+
 prod = []
 cid = uid("country_ecuador")
 for y in fao_years:
-    h, p_ = fao["Area harvested"][y], fao["Production"][y]
-    prod.append([cid, "cacao", y, None, None, h, None, p_, "faostat", "Dato real FAOSTAT (nacional)"])
+    prod.append([cid, "cacao", y, None, None, fao["Area harvested"][y], None, fao["Production"][y], "faostat", "Dato real FAOSTAT (nacional)"])
+for y in espac_years:
+    if y >= YEAR0:
+        n_ = espac[y]["__nacional__"]
+        prod.append([cid, "cacao", y, n_[0], None, n_[1], None, n_[2], "espac", f"ESPAC {y} T14 total nacional (solo + asociado)"])
 for a in prov:
-    ha_series = []
+    base = [sum((MONTHS[(a["key"], yy, m)][1]["monilia"][2] + MONTHS[(a["key"], yy, m)][1]["phytophthora"][2]) / 2
+                for m in range(1, 7) if (a["key"], yy, m) in MONTHS) / 6 for yy in range(YEAR0, YEAR1 + 1)]
+    mean_base = sum(base) / len(base)
     for y in range(YEAR0, YEAR1 + 1):
+        v = espac.get(y, {}).get(a["name_key"]) if y in espac_years else None
+        if v and v[1] > 0:       # dato REAL del INEC
+            prod.append([a["id"], "cacao", y, v[0], None, v[1], None, v[2], "espac", f"ESPAC {y} T14 (solo + asociado)"])
+            a.setdefault("ha", {})[y] = v[1]
+            a.setdefault("yld", {})[y] = v[2] / v[1]
+            continue
         if y not in fao["Area harvested"]:
             continue
         rk = [(MONTHS[(a["key"], y, m)][1]["monilia"][2] + MONTHS[(a["key"], y, m)][1]["phytophthora"][2]) / 2
               for m in range(1, 7) if (a["key"], y, m) in MONTHS]
         if not rk:
             continue
-        ra = sum(rk) / len(rk)
-        base = [sum((MONTHS[(a["key"], yy, m)][1]["monilia"][2] + MONTHS[(a["key"], yy, m)][1]["phytophthora"][2]) / 2
-                    for m in range(1, 7) if (a["key"], yy, m) in MONTHS) / 6 for yy in range(YEAR0, YEAR1 + 1)]
-        loss = max(0.0, min(40.0, 60 * (ra - sum(base) / len(base)))) + abs(rnd.gauss(0, 1.5))
-        yld = base_yield(y) * FACT[a["key"]] * (1 + rnd.gauss(0, 0.04)) * (1 - loss / 100)
-        h = fao["Area harvested"][y] * SHARE[a["key"]]
-        prod.append([a["id"], "cacao", y, h * 1.08, h * 1.02, h, h * loss / 100 * 0.2, yld * h, "seed_sintetico", SYN + f" — pérdida sembrada {loss:.1f}%"])
+        loss = max(0.0, min(40.0, 60 * (sum(rk) / len(rk) - mean_base))) + abs(rnd.gauss(0, 1.5))
+        yld = base_yield(y) * a["ratio"] * (1 + rnd.gauss(0, 0.04)) * (1 - loss / 100)
+        h = fao["Area harvested"][y] * a["share"]
+        prod.append([a["id"], "cacao", y, h * 1.08, h * 1.02, h, h * loss / 100 * 0.2, yld * h, "seed_sintetico",
+                     SYN + f" — pérdida sembrada {loss:.1f}% (proporciones ancladas en ESPAC)"])
         a.setdefault("ha", {})[y] = h
         a.setdefault("yld", {})[y] = yld
 parts[5].append(ins("crop_production_stats", ["area_id", "crop_id", "year", "planted_ha", "productive_ha", "harvested_ha", "lost_ha", "production_t", "source_id", "notes"], prod))
 
 expo = []
-y_ref = max(y for y in fao["Area harvested"] if y <= YEAR1)
+y_ref = max(espac_years) if espac_years else max(y for y in fao["Area harvested"] if y <= YEAR1)
 for a in prov:
     ha = a.get("ha", {}).get(y_ref)
     if not ha:
         continue
-    expo.append([a["id"], "cacao", y_ref, ha, "manual", "seed_sintetico"])
+    real = y_ref in espac_years and a["name_key"] in espac[y_ref]
+    expo.append([a["id"], "cacao", y_ref, ha, "espac_direct" if real else "manual", "espac" if real else "seed_sintetico"])
     kids = [c for c in cant if c["pid"] == a["id"]]
     tot = sum(c["geom"].area for c in kids)
     for c in kids:
@@ -454,19 +535,19 @@ def base_risk(a):
     return sum(allm) / len(allm)
 
 
-cy = json.loads((RAW / "canton_years.json").read_text()) if (RAW / "canton_years.json").exists() else {"nino": 2025, "neutral": 2020}
+prov_by_id = {p["id"]: p for p in prov}
 for a in prov + cant:
-    ha = a.get("ha", {}).get(y_ref) if a["kind"] == "province" else a.get("ha_ref")
-    if not ha:
+    pa = a if a["kind"] == "province" else prov_by_id.get(a["pid"])
+    ha = pa.get("ha", {}).get(y_ref) if a["kind"] == "province" else a.get("ha_ref")
+    ys = [v for y_, v in (pa or {}).get("yld", {}).items() if y_ in espac_years]
+    yld = (sum(ys) / len(ys)) if ys else max((pa or {}).get("yld", {}).values(), default=None)
+    if not ha or not yld:
         continue
-    yld = next((p.get("yld", {}).get(y_ref) for p in prov if p["id"] == (a["id"] if a["kind"] == "province" else a["pid"])), None)
     for sc in ("normal", "nino"):
-        if a["kind"] == "province":
-            yrs = [y for y, c in cls_year.items() if c == ("neutral" if sc == "normal" else "nino")]
-        else:
-            yrs = [cy["neutral" if sc == "normal" else "nino"]]
+        yrs = [y for y, c in cls_year.items() if c == ("neutral" if sc == "normal" else "nino")
+               and any((a["key"], y, m) in MONTHS for m in range(1, 7))]
         wr = window_risk(a, yrs)
-        if not wr or not yld:
+        if not wr:
             continue
         risk, fav = wr
         loss = max(0.0, min(60.0, 10 + 150 * (risk - base_risk(a))))
@@ -474,7 +555,8 @@ for a in prov + cant:
         rc = "bajo" if loss < 5 else "medio" if loss < 15 else "alto" if loss < 30 else "muy_alto"
         pred.append([uid(f"pred_{a['key']}_{sc}"), mv, a["id"], "cacao", sc, loss, loss * 0.7, min(100.0, loss * 1.3), ha, yld, lt, price_now, lt * price_now, rc,
                      [{"feature": "fav_days_monilia", "label": "Días favorables a moniliasis (ene–jun)", "value": round(fav, 1)},
-                      {"feature": "risk_index_mean", "label": "Índice de riesgo medio", "value": round(risk, 3)}]])
+                      {"feature": "risk_index_mean", "label": "Índice de riesgo medio", "value": round(risk, 3)},
+                      {"feature": "n_years", "label": "Años usados en el escenario", "value": len(yrs)}]])
 parts[6].append(ins("loss_predictions", ["id", "model_version_id", "area_id", "crop_id", "scenario_id", "loss_pct", "loss_pct_low", "loss_pct_high",
                                          "exposed_ha", "expected_yield_t_ha", "loss_t", "price_usd_t", "loss_usd", "risk_class", "top_factors"], pred))
 
