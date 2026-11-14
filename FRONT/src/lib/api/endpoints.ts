@@ -4,7 +4,7 @@
  */
 import { apiGet, buildUrl, DATA_MODE } from "./client";
 import { mock } from "./mock";
-import type {
+import type { PointClimate, PointLookup,
   AreaDetail,
   AreaKind,
   AreaRef,
@@ -74,3 +74,11 @@ export function exportUrl(opts: {
 
 /** En modo demostración la exportación se arma en el navegador (GeoJSON + QML / SLD / CSV). */
 export const exportRunsInBrowser = () => DATA_MODE === "mock";
+
+/** ¿En qué cantón cae este punto? (404 si no cae en ninguno) */
+export const lookupPoint = (lat: number, lon: number) =>
+  apiGet<PointLookup>("/areas/lookup", { lat, lon }, () => mock.lookupPoint(lat, lon));
+
+/** Clima de un punto (NASA POWER, celda ~55 km) + chequeo frente a lo que necesita el cacao */
+export const getPointClimate = (lat: number, lon: number) =>
+  apiGet<PointClimate>("/point/climate", { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 }, () => mock.pointClimate(lat, lon));

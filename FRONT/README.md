@@ -62,13 +62,21 @@ El navegador llama a `/api/v1/*` y el proxy `src/app/api/v1/[...path]/route.ts` 
 Con el backend apagado la app lo prueba una vez y lo reintenta cada 30 s; la terminal muestra
 como mucho una línea por minuto.
 
+## Sin conexión (PWA)
+
+`npm run demo` registra el service worker: la app se puede instalar y abre sin internet con los últimos datos vistos.
+En el panel de un cantón, **Guardar sin conexión** descarga sus datos en los 5 escenarios antes de salir al campo.
+Si el backend se cae, la app muestra las últimas respuestas reales guardadas en vez de datos de demostración.
+Detalle en `src/components/README.md`.
+
 ## Pantallas
 
 | Ruta | Pantalla | Endpoints |
 |------|----------|-----------|
-| `/` | Mapa de pérdidas: escenario, provincia, resumen, top 5, leyenda YlOrRd, tabla; panel del cantón (`?canton=`) | `/scenarios`, `/enso/current`, `/areas/geojson`, `/losses`, `/losses/summary`, `/areas/{id}/detail`, `/areas/{id}/strategies`, `/crops/cacao/requirements` |
+| `/` | Mapa de pérdidas: escenario, provincia, resumen, top 5, leyenda de alerta (5 niveles), tabla; panel del cantón (`?canton=`) | `/scenarios`, `/enso/current`, `/areas/geojson`, `/losses`, `/losses/summary`, `/areas/{id}/detail`, `/areas/{id}/strategies`, `/crops/cacao/requirements` |
 | `/comparar` | Fase 2: cuatro climas lado a lado, rango p10–p90 y matriz de zonas 2050 | `/compare`, `/losses`, `/zones` |
-| `/metodologia` | Fuentes, modelo, El Niño (`#enso`) | `/meta`, `/enso/current` |
+| `/metodologia` | Fuentes, modelo, El Niño (`#enso`), qué significa cada color (`#colores`) | `/meta`, `/enso/current` |
+| `/plantillas` | Tarjeta 1080×1080, ficha A4 y portada 1920×1080 del cantón | los del panel del cantón |
 | Diálogo *Exportar* | Capa para QGIS (GeoPackage con estilo, GeoJSON + QML, Shapefile, SLD), PDF y CSV | `/export` |
 
 El estado vive en la URL (`?escenario=nino&canton=los-rios-vinces&provincia=…&capa=zonas`):
@@ -79,17 +87,19 @@ cualquier vista se comparte con un enlace.
 ```
 src/
 ├── app/                 rutas (layout, /, /comparar, /metodologia) y globals.css (tokens M3)
-├── components/
-│   ├── ui/              primitivas M3: Button, SegmentedButton, FilterChip, Dialog, Icon
-│   ├── shell/           TopAppBar, EnsoBanner, NavRail/NavBar, AppShell
-│   ├── map/             LossMap (Leaflet), MapLegend, LossTable, MapScreen
-│   ├── panel/           ControlPanel, ScenarioSelector, SummaryCard, TopCantons
-│   ├── area/            AreaSheet, LossHero, FactorBars, MonthlyRiskChart, RequirementCheck, StrategyCards
-│   ├── compare/         CompareScreen, LossRangeChart, ZoneMatrix
-│   └── export/          ExportDialog
+├── components/          diseño atómico (ver components/README.md)
+│   ├── atoms/           Icon, Button/IconButton, FilterChip, Badge, Swatch, Skeleton, HatchDefs, Logo
+│   ├── molecules/       SegmentedButton, ScenarioSelector, LegendItem, AlertLevelChip, KpiTile,
+│   │                    ClassDistribution, LossInterval, Dialog, CantonSearch, DataSourceChip
+│   ├── organisms/       TopAppBar, EnsoBanner, Navigation, ControlPanel, SummaryCard, TopCantons,
+│   │                    MapLegend, LossMap (Leaflet), LossTable, AreaSheet, LossHero, FactorBars,
+│   │                    MonthlyRiskChart, RequirementCheck, StrategyCards, LossRangeChart,
+│   │                    ZoneMatrix, ExportDialog, AlertScale
+│   ├── templates/       AppShell
+│   └── screens/         MapScreen, CompareScreen, MethodologyScreen
 └── lib/
     ├── api/             types.ts (contrato), client.ts, endpoints.ts, hooks.ts (SWR), mock.ts
-    ├── design/          colors.ts (YlOrRd, zonas, estados), format.ts (es-EC)
+    ├── design/          colors.ts (alerta 5 niveles, zonas, estados), format.ts (es-EC)
     ├── export/qgis.ts   GeoJSON + QML / SLD / CSV en el navegador
     ├── state/           useMapState (estado en la URL)
     └── theme.tsx        tema Misión (oscuro) / Campo (claro)
@@ -103,8 +113,13 @@ public/
 
 - **Tokens** en `src/app/globals.css` (`@theme` de Tailwind 4): roles M3 (`bg-surface-high`,
   `text-on-surface-variant`, `bg-cta`…). Tema Campo con `<html data-theme="campo">`.
-- **Pérdida:** ColorBrewer **YlOrRd, 4 clases** (0–5, 5–15, 15–30, 30–100 %), límite superior
-  inclusivo, borde `#232323`: idéntico a `qgis/estilos/perdida_cacao.qml`.
+  Primario **verde cacao** (`#5BDB87` Misión · `#0A6D37` Campo); Deep Blue en la barra superior
+  y el banner ENSO; Neon Yellow solo en `Badge`.
+- **Pérdida: alerta de 5 niveles** (IPC / SNGR): 0–5 `#b2ffd8`, 5–15 `#fae61e`, 15–30 `#e67800`,
+  30–45 `#c80000`, 45–100 `#640000` con rayado. Límite superior inclusivo, borde `#232323`:
+  idéntico a `qgis/estilos/perdida_cacao.qml`.
+- **Zonas 2050:** segura `#007c83`, manejo `#ebc831`, transición `#de6f00`, crítica `#b7191c`.
+- **Botones con textura** (`.tex-filled`, `.tex-tonal`) y capa de estado M3 (`.state-layer`).
 - **Mapa con patrón QGIS:** grilla de coordenadas, escala gráfica, norte, SRC y atribución. Sin
   teselas de fondo: funciona sin internet.
 - **Nunca solo color:** cada color de dato va con número, nombre o ícono, y hay «Ver como tabla».

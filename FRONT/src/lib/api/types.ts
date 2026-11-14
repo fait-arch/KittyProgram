@@ -6,7 +6,7 @@ import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 
 export type ScenarioId = "normal" | "nino" | "actual" | "ssp245_2050" | "ssp585_2050";
 export type AreaKind = "province" | "canton";
-export type RiskClass = "baja" | "moderada" | "alta" | "muy_alta";
+export type RiskClass = "baja" | "moderada" | "alta" | "muy_alta" | "critica";
 export type Zone = "segura" | "manejo" | "transicion" | "critica";
 export type ExportFormat = "gpkg" | "geojson" | "shp" | "sld";
 
@@ -203,4 +203,29 @@ export interface Meta {
 /** Error estándar de FastAPI */
 export interface ApiErrorBody {
   detail: string | { loc: (string | number)[]; msg: string; type: string }[];
+}
+
+// --- Mi finca (BACK/app/routers: /areas/lookup y /point/climate) ---
+export interface PointLookup {
+  canton: { id: string; name: string };
+  province: { id: string; name: string } | null;
+}
+export interface PointRequirementCheck {
+  parameter: string;
+  label: string;
+  value: number | null;
+  unit: string | null;
+  opt: [number | null, number | null];
+  abs: [number | null, number | null];
+  status: "ok" | "warn" | "out" | "sin_dato";
+}
+export interface PointClimate {
+  point: { lat: number; lon: number };
+  elevation_m: number | null;
+  source: string;
+  resolution_km: number;
+  annual: { t2m: number | null; rh2m: number | null; precip_mm: number | null };
+  precip_mm_month?: Record<string, number>;
+  requirement_check: PointRequirementCheck[];
+  warning?: string;
 }

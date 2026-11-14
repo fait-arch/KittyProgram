@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { AppShell } from "@/components/shell/AppShell";
-import { MapScreen } from "@/components/map/MapScreen";
+import { AppShell } from "@/components/templates/AppShell";
+import { MapScreen } from "@/components/screens/MapScreen";
 
 export default function Home() {
   return (

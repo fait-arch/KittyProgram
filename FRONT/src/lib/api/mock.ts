@@ -5,6 +5,9 @@
  */
 import type {
   AreaDetail,
+  AreaProps,
+  PointClimate,
+  PointLookup,
   AreaKind,
   AreaRef,
   AreasGeoJSON,
@@ -25,6 +28,8 @@ import type {
   ZonesResponse,
 } from "./types";
 import { riskClassOf } from "@/lib/design/colors";
+import { pointInGeometry } from "@/lib/geo/finca";
+import { ApiError } from "./client";
 
 interface MockData {
   note: string;
@@ -90,6 +95,38 @@ export const mock = {
     return { ...g, features: g.features.filter((f) => f.properties.province === province) };
   },
 
+  /** Demo de /areas/lookup: punto en polígono sobre los cantones de demostración */
+  async lookupPoint(lat: number, lon: number): Promise<PointLookup> {
+    const geo = await loadGeo();
+    const f = geo.features.find((x) => pointInGeometry([lon, lat], x.geometry as { type: string; coordinates: unknown }));
+    if (!f) throw new ApiError(404, "El punto no cae en ningún cantón de la Costa cargado");
+    const p = f.properties as AreaProps;
+    return { canton: { id: p.id, name: p.name }, province: { id: p.province.toLowerCase().replace(/\s+/g, "-"), name: p.province } };
+  },
+
+  /** Demo de /point/climate: el clima del cantón que contiene el punto (el real usa NASA POWER) */
+  async pointClimate(lat: number, lon: number): Promise<PointClimate> {
+    const hit = await mock.lookupPoint(lat, lon);
+    const [det, req] = await Promise.all([mock.areaDetail(hit.canton.id, "normal"), mock.requirements()]);
+    const c = det.climate;
+    const val: Record<string, number | null> = { temp_mean: c.temp_mean_c, rain_annual: c.rain_annual_mm, elevation: c.elevation_m, soil_ph: c.soil_ph };
+    return {
+      point: { lat: Math.round(lat * 100) / 100, lon: Math.round(lon * 100) / 100 },
+      elevation_m: c.elevation_m,
+      source: "Demostración (clima del cantón)",
+      resolution_km: 55,
+      annual: { t2m: c.temp_mean_c, rh2m: null, precip_mm: c.rain_annual_mm },
+      requirement_check: req.parameters.map((p) => {
+        const v = val[p.id];
+        const ok = v != null && (p.optimal_min == null || v >= p.optimal_min) && (p.optimal_max == null || v <= p.optimal_max);
+        const out = v != null && ((p.absolute_min != null && v < p.absolute_min) || (p.absolute_max != null && v > p.absolute_max));
+        return { parameter: p.id, label: p.label, value: v, unit: p.unit, opt: [p.optimal_min, p.optimal_max], abs: [p.absolute_min, p.absolute_max],
+          status: v == null ? "sin_dato" : ok ? "ok" : out ? "out" : "warn" };
+      }),
+      warning: "Datos de demostración.",
+    };
+  },
+
   async requirements(): Promise<CropRequirements> {
     return {
       crop: "cacao",
@@ -126,7 +163,7 @@ export const mock = {
       );
     const cur = sum(scenario);
     const nor = sum("normal");
-    const byClass = { baja: 0, moderada: 0, alta: 0, muy_alta: 0 } as Record<RiskClass, number>;
+    const byClass = { baja: 0, moderada: 0, alta: 0, muy_alta: 0, critica: 0 } as Record<RiskClass, number>;
     areas.forEach((a) => byClass[riskClassOf(d.losses[scenario][a.id])]++);
     return {
       scenario,

@@ -23,6 +23,7 @@ export function useMapState() {
   const layer: MapLayer = sp.get("capa") === "zonas" ? "zonas" : "perdida";
   const exportOpen = sp.get("exportar") === "1";
   const tableOpen = sp.get("tabla") === "1";
+  const vista: "2d" | "satelite" = sp.get("vista") === "satelite" ? "satelite" : "2d";
 
   const patch = useCallback(
     (changes: Record<string, string | null | undefined>, path?: string) => {
@@ -44,6 +45,8 @@ export function useMapState() {
     layer,
     exportOpen,
     tableOpen,
+    vista,
+    setVista: (v: "2d" | "satelite") => patch({ vista: v === "2d" ? null : v }),
     setScenario: (s: ScenarioId) => patch({ escenario: s }),
     selectCanton: (id: string | null) => patch({ canton: id }),
     setProvince: (p: string | null) => patch({ provincia: p }),

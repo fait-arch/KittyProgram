@@ -44,6 +44,8 @@ export function buildUrl(path: string, params?: Params): string {
   return `${API_BASE}${path}${q ? `?${q}` : ""}`;
 }
 
+import { markServedFromCache } from "@/lib/offline";
+
 // --- ¿Se están mostrando datos de demostración? (chip en la barra superior) ---
 let usingMock = DATA_MODE === "mock";
 const listeners = new Set<() => void>();
@@ -140,6 +142,7 @@ export async function apiGet<T>(path: string, params: Params | undefined, mock: 
   }
 
   downNotified = false;
+  markServedFromCache(!!res.headers.get("x-cr-offline"));
   try {
     return (await res.json()) as T;
   } catch {
