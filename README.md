@@ -22,4 +22,6 @@ En Supabase → **SQL Editor**, ejecutar en orden:
 
 o con la CLI: `supabase db push`.
 
+- [`BACK/docs/07-datos-nasa-equipo.md`](BACK/docs/07-datos-nasa-equipo.md): cómo sacar los datos NASA (GEE + POWER) a CSV o Python.
+
 Empieza por [`BACK/docs/README.md`](BACK/docs/README.md).
