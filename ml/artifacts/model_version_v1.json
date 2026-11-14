@@ -16,23 +16,23 @@
   },
   "cv_scheme": "leave_one_year_out",
   "metrics": {
-    "mae": 12.044076007762362,
-    "mae_baseline": 12.77673692452329,
-    "rmse": 15.269449729045204,
-    "rmse_baseline": 18.128358838247944,
-    "skill_vs_baseline": 0.1577036914765223,
-    "corr": 0.5421663351595172,
-    "r2_oos": 0.2905369286477224,
+    "mae": 10.51396205347891,
+    "mae_baseline": 12.622514946544477,
+    "rmse": 14.116864272720226,
+    "rmse_baseline": 18.09362605955548,
+    "skill_vs_baseline": 0.21978799460902276,
+    "corr": 0.6367351581148988,
+    "r2_oos": 0.3912692266437896,
     "interval_coverage_p10_p90": 0.7846153846153846,
     "nino_years_hit": {
       "1983": true,
       "1987": false,
-      "1998": true,
-      "2016": false
+      "1992": true,
+      "1998": true
     },
     "best": "ridge",
-    "province_skill": 0.000774191335212504,
-    "permutation_p": null
+    "province_skill": -0.0038627556310140143,
+    "permutation_p": 0.004975124378109453
   },
   "train_start_year": 1961,
   "train_end_year": 2025,

@@ -290,6 +290,8 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
 
     nat_panel = panel[panel.level == "national"]
     yld = panel.assign(**{OUTPUT: panel.yield_t_ha})
+    prod_only = panel.assign(**{OUTPUT: np.where(panel.level == "national", panel.production_t,
+                                                 panel.yield_t_ha)})
     robust = {
         "bloques_3_anios": loyo(panel, partial(RidgeModel, CORE, climate), CORE.columns,
                                 value=OUTPUT, block=3),
@@ -302,6 +304,8 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
         "sin_pesos": cv_of(partial(RidgeModel, CORE, climate, False), CORE.columns),
         "solo_nacional": loyo(nat_panel, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT),
         "target_rendimiento": loyo(yld, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT),
+        "target_solo_produccion": loyo(prod_only, partial(RidgeModel, CORE, climate), CORE.columns,
+                                       value=OUTPUT),
     }
     rob = {k: score(v[v.level == "national"]) for k, v in robust.items()}
     nat_cv = ens[ens.level == "national"]
@@ -312,7 +316,21 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
                    ("eval_desde_1999", zero_nat.year >= 1999)):
         rob[k]["mae_base_normal"] = score(zero_nat[yrs])["mae"]
         rob[k]["rmse_base_normal"] = score(zero_nat[yrs])["rmse"]
+    # Prueba justa del target combinado: ¿predice mejor la PRODUCCIÓN sola (lo que importa)?
+    t_prod = fold_targets(prod_only[prod_only.level == "national"], value=OUTPUT)
+    y_prod = {yr: float(t.set_index("year")[TARGET][yr]) for yr, t in t_prod.items()}
+    for k, cvk in (("eval_vs_produccion", ens), ("eval_vs_produccion_entrenado_produccion",
+                                                 robust["target_solo_produccion"])):
+        n = cvk[cvk.level == "national"].assign(y_cv=lambda d: d.year.map(y_prod)).dropna(subset=["y_cv"])
+        rob[k] = score(n.drop(columns=[c for c in ("p10", "p90") if c in n]))
     no_ext = panel[~panel.year.isin(EXTREME_YEARS)]
+    # Prueba justa del target combinado: ¿predice mejor la PRODUCCIÓN sola (lo que importa)?
+    t_prod = fold_targets(prod_only[prod_only.level == "national"], value=OUTPUT)
+    y_prod = {yr: float(t.set_index("year")[TARGET][yr]) for yr, t in t_prod.items()}
+    for k, cvk in (("eval_vs_produccion", ens), ("eval_vs_produccion_entrenado_produccion",
+                                                 robust["target_solo_produccion"])):
+        n = cvk[cvk.level == "national"].assign(y_cv=lambda d: d.year.map(y_prod)).dropna(subset=["y_cv"])
+        rob[k] = score(n.drop(columns=[c for c in ("p10", "p90") if c in n]))
     no_ext = panel[~panel.year.isin(EXTREME_YEARS)]
     nat_ext = panel[(panel.level == "national") & panel.year.isin(EXTREME_YEARS)]
     pred_ne = RidgeModel(CORE, climate).fit(no_ext[CORE.columns], no_ext[TARGET]).predict(nat_ext[CORE.columns])
@@ -408,6 +426,9 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
             "un escenario 'solo ENSO'; hace falta el clima (observado o pronosticado) de ene–jun.",
             "El intervalo p10–p90 cubre ~80 % en promedio pero casi no es más estrecho que el de "
             "'año normal' (interval_width_vs_normal); en años de pérdida grande cubre peor.",
+            "Target nacional = media geométrica de producción y exportaciones (FAOSTAT): reduce el "
+            "error de medición. Contra la producción sola la mejora es pequeña (eval_vs_produccion "
+            "frente a eval_vs_produccion_entrenado_produccion).",
             "Decisiones tomadas viendo los datos (target producción, umbral, signos, variables): "
             "eligiéndolas dentro de cada pliegue la correlación queda en 0.50–0.56 (auditoría).",
             "La corrección de sesgo climática (quantile mapping, normal 1991–2020) incluye el año "

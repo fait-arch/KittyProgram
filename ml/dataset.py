@@ -12,8 +12,11 @@ R es la columna `output` del panel (ver `OUTPUT_BY_LEVEL`):
     misma muestra, y su cociente es más estable que cada una por separado.
   · nacional   → producción (t): antes de 2002 la superficie cosechada de FAOSTAT son
     estimaciones redondeadas con saltos (163 000 ha en 1964 → 240 000 en 1965; 301 000 en
-    1999 → 403 000 en 2000) que contaminan el rendimiento; la producción (registros de
-    exportación) es el dato fiable. Además es lo que pregunta el proyecto: producción perdida.
+    1999 → 403 000 en 2000) que contaminan el rendimiento; la producción es el dato fiable.
+    Además es lo que pregunta el proyecto: producción perdida.
+    Se usa la MEDIA GEOMÉTRICA de la producción y las exportaciones en equivalente de grano
+    (FAOSTAT comercio, ml/etl/exports.py): dos medidas independientes de la misma cosecha
+    tienen menos error de medición juntas (años sin exportaciones: solo producción).
 """
 from __future__ import annotations
 
@@ -30,7 +33,7 @@ LAG_FEATURES = ["y_anom_prev"]
 FEATURES = CLIMATE_FEATURES + ENSO_FEATURES + LAG_FEATURES
 TARGET = "y_anom_pct"
 OUTPUT = "output"                                    # columna R del target en el panel real
-OUTPUT_BY_LEVEL = {"national": "production_t", "province": "yield_t_ha"}
+OUTPUT_BY_LEVEL = {"national": "sqrt(production_t · export_beq_t)", "province": "yield_t_ha"}
 
 # Ancho de la ventana LOWESS en AÑOS (se convierte a fracción según la longitud de la serie)
 TREND_SPAN_YEARS = 15
@@ -96,8 +99,14 @@ def load_production() -> pd.DataFrame:
     prov = p[(p.level == "province") & p.area_name.isin(PROVINCES)]
     cols = ["area_name", "level", "year", "harvested_ha", "production_t", "yield_t_ha", "source"]
     out = pd.concat([nat, prov])[cols].sort_values(["area_name", "year"]).reset_index(drop=True)
-    out[OUTPUT] = np.where(out.level == "national", out[OUTPUT_BY_LEVEL["national"]],
-                           out[OUTPUT_BY_LEVEL["province"]])
+    path = DATA_PROCESSED / "exports.parquet"
+    if path.exists():
+        out = out.merge(pd.read_parquet(path), on="year", how="left")
+        out.loc[out.level != "national", "export_beq_t"] = np.nan
+    else:
+        out["export_beq_t"] = np.nan
+    nat_value = np.sqrt(out.production_t * out.export_beq_t).fillna(out.production_t)
+    out[OUTPUT] = np.where(out.level == "national", nat_value, out[OUTPUT_BY_LEVEL["province"]])
     return out
 
 

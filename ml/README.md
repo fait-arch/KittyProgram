@@ -30,6 +30,7 @@ ml/.venv/bin/earthengine authenticate      # una vez por máquina
 
 ```bash
 ml/.venv/bin/python -m ml.etl.worldclim   # climatología de referencia + lat/altitud por área
+ml/.venv/bin/python -m ml.etl.exports     # exportaciones FAOSTAT (equivalente de grano)
 ml/.venv/bin/python -m ml.dataset         # → data/processed/training_panel.parquet (+ .csv)
 ml/.venv/bin/python -m pytest ml/tests
 ```
@@ -85,8 +86,10 @@ z_k   = (x_k − μ_a,k) / σ_a,k                    anomalía del área a (norm
 pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_nivel   (conformal)
 ```
 
-- **Target**: anomalía % respecto a la tendencia (LOWESS sin el propio año) de la **producción**
-  (nacional, FAOSTAT 1961–2025) o del **rendimiento** (provincias, ESPAC 2002–2025).
+- **Target**: anomalía % respecto a la tendencia (LOWESS sin el propio año). Nacional: media
+  geométrica de **producción** (FAOSTAT 1961–2025) y **exportaciones** en equivalente de grano
+  (FAOSTAT comercio 1961–2024), dos medidas independientes de la cosecha. Provincias:
+  **rendimiento** (ESPAC 2002–2025).
 - Se compararon líneas base, Ridge, GBR cuantílico y su ensamble (peso anidado): el ensamble no
   mejora al Ridge y el GBR no es monótono con pérdida cuantílica → **modelo final = Ridge**.
 - **Validación leave-one-year-out** (el año de test sale del entrenamiento, de la tendencia del
@@ -94,21 +97,22 @@ pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_ni
 
 | Serie nacional (n = 65) | MAE | RMSE | Correlación | R² fuera de muestra |
 |---|---|---|---|---|
-| "Año normal" (sin clima) | 12,8 | 18,1 | — | 0,00 |
-| Niño sí/no según ONI | 13,0 | 18,2 | 0,01 | −0,01 |
-| Escalón "lluvia > +100 %" | 11,6 | 15,7 | 0,50 | 0,25 |
-| GBR cuantílico | 12,7 | 16,3 | 0,45 | 0,19 |
-| **Ridge (modelo final)** | **12,0** | **15,3** | **0,54** | **0,29** |
+| "Año normal" (sin clima) | 12,6 | 18,1 | — | 0,00 |
+| Niño sí/no según ONI | 12,6 | 17,9 | 0,22 | 0,02 |
+| Escalón "lluvia > +100 %" | 11,3 | 15,2 | 0,54 | 0,30 |
+| GBR cuantílico | 11,8 | 15,5 | 0,52 | 0,26 |
+| **Ridge (modelo final)** | **10,5** | **14,1** | **0,64** | **0,39** |
+| Ridge, evaluado contra la producción sola | 12,1 | 15,1 | 0,56 | 0,31 |
 
-- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −46 %, real −46 %;
-  1998 → −30 %, real −59 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,55.
+- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −44 %, real −50 %;
+  1998 → −36 %, real −64 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,65.
 - **Lo que no** (auditoría independiente, también en la model card):
-  - Es un **detector de lluvia extrema**: sin 1983/1998 la correlación cae a 0,30 y el MAE no mejora
-    a "año normal". Entrenando sin ambos, cada uno se predice en solo −11 / −13 %.
+  - Depende sobre todo de la **lluvia extrema**: sin 1983/1998 la correlación baja a 0,41 (el MAE sí
+    mejora a "año normal": 10,3 vs 11,2). Entrenando sin ambos, cada uno se predice en solo −13 / −15 %.
   - En **provincias no hay skill** (ruido ESPAC 15–31 %): la salida por zona lleva
     `evidence = "indice_subnacional_no_validado"`.
   - El índice Niño 1+2 no aporta una vez conocida la lluvia: hace falta el clima de ene–jun.
-  - El intervalo cubre 78 % (nacional) / 73 % (provincias), pero casi no es más estrecho que el de
+  - El intervalo cubre 78 % (nacional) / 74 % (provincias), pero casi no es más estrecho que el de
     "año normal": transmite sobre todo la incertidumbre.
   - Eligiendo las decisiones de diseño dentro de cada pliegue, la correlación honesta es 0,50–0,56.
 
@@ -172,15 +176,15 @@ de `model_versions`.
 | `normal` | ENSO neutros 2001–2025 | 2 % |
 | `nino` | El Niño (ONI) 2001–2025 | 0 % |
 | `nina` | La Niña 2001–2025 | 2 % |
-| `nino_extremo` | 1983, 1998 | 48 % (27–68) |
-| `actual` | análogos: Niño 1+2 ago–oct previo ≥ +2 °C → 1998, 2016, 2024 | 18 % (11–37) |
+| `nino_extremo` | 1983, 1998 | 52 % |
+| `actual` | análogos: Niño 1+2 ago–oct previo ≥ +2 °C → 1998, 2016, 2024 | 20 % |
 
 - La pérdida de un escenario es la **media de las pérdidas de sus años** (un año promedio no
   existe y diluye los extremos).
 - El "Niño" según el ONI casi no da pérdidas: en 2001–2025 esos años no fueron lluviosos en la
   costa. Lo que daña es el **Niño costero con lluvia extrema** (`nino_extremo`).
 - `actual`: hoy (oct 2026) Niño 1+2 está en +5,3 °C, más que en 1997. De los 3 análogos, uno fue
-  extremo (1998) y dos no (2016, 2024): por eso 18 % con un rango amplio. Se actualiza solo al
+  extremo (1998) y dos no (2016, 2024): por eso 20 % con un rango amplio. Se actualiza solo al
   re-ejecutar con los datos ENSO nuevos.
 - Toneladas y USD: hectáreas y rendimiento de tendencia del último año, precio FAOSTAT del último
   año disponible (2024: 5 602 USD/t, año de precio récord).
@@ -189,10 +193,14 @@ de `model_versions`.
 
 | Intento | Correlación nacional | RMSE | Por qué no |
 |---|---|---|---|
-| Modelo actual | **0,54** | **15,3** | — |
+| Modelo anterior (target = solo producción) | 0,54 | 15,3 | — |
 | + lluvia extrema 1–2 años antes (efecto post-Niño) | 0,45–0,55 | 15,5–16,4 | Las caídas de 2000–2002 coinciden con la crisis de la dolarización y un salto de la superficie FAOSTAT, no con el clima |
 | Lluvia ERA5 calibrada con CHIRPS (en vez de GPM) | 0,54 | 15,3 | Igual: no aporta |
 | Lluvia observada CHIRPS 1981→ | 0,45 | 16,3 | CHIRPS suaviza los extremos (1998: +93 % vs +126 % de GPM) |
+
+| Ventanas de meses (ene–abr, feb–may, mar–jun…) y lluvia oct–dic previa | 0,37–0,55 | 15,3–16,8 | Ninguna supera a ene–jun |
+| Producción o área como target provincial | prov 0,07–0,13 | — | Sin skill provincial igual |
+| **Target nacional = producción + exportaciones (ADOPTADO)** | **0,64** (0,56 vs producción sola) | **14,1** | Dos medidas independientes de la cosecha: menos ruido |
 
 CHIRPS queda en el ETL (`--datasets chirps`) y en `BiasCorrection.fit(rain_ref=…, use_obs=…)` por si
 se quiere revisar. El límite de precisión está en los datos de producción (solo dos Niños extremos y
