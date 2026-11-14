@@ -83,6 +83,7 @@ Los archivos están en `supabase/migrations/` (raíz del repo) y se aplican en o
 | `0001_init.sql` | 13 tablas, PostGIS, RLS, semilla de fuentes y variables NASA |
 | `0002_fk_indexes.sql` | Índices para claves foráneas |
 | `0003_field_rpc.sql` | RPC `create_field` y `update_field_geom` (GeoJSON → PostGIS) |
+| `0004_more_sources.sql` | Fuentes ERA5-Land, GLDAS, HLS, NEX-GDDP-CMIP6, GAEZ y variables nuevas |
 
 Para aplicarlas en un proyecto nuevo: pegarlas en *SQL Editor* de Supabase en ese orden,
 o usar la CLI: `supabase db push`.
