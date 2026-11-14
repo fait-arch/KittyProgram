@@ -7,7 +7,7 @@ DATA_PROCESSED = ROOT / "data" / "processed"
 ARTIFACTS = ROOT / "artifacts"
 
 # Provincias cacaoteras (nombres FAO GAUL nivel 1)
-PROVINCES = ["Los Rios", "Guayas", "Manabi", "Esmeraldas", "El Oro", "Santo Domingo De Los Tsachilas", "Sucumbios"]
+PROVINCES = ["Los Rios", "Guayas", "Manabi", "Esmeraldas", "El Oro", "Santo Domingo de los Tsachilas", "Sucumbios"]
 
 # Rango de años: lo más largo posible (FAOSTAT desde 1961, ERA5-Land desde 1950)
 YEAR_START, YEAR_END = 1961, 2025
