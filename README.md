@@ -42,5 +42,5 @@ Niño 1+2 en octubre 2026 = +5.25 °C).
 ## Aplicar la base de datos
 
 En Supabase → SQL Editor, en orden: `0001_init.sql` → `0002_fk_indexes.sql` →
-`0003_field_rpc.sql` → `0004_more_sources.sql` → `0005_cacaoresiliente.sql`
+`0003_field_rpc.sql` → `0004_more_sources.sql` → `0005_cacaoresiliente.sql` → `0006_revision.sql`
 (o `supabase db push`).
