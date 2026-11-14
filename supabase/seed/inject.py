@@ -28,6 +28,7 @@ DATA = HERE / "data"
 PARTS = {
     1: "01_territorio.sql", 2: "02_el_nino.sql", 3: "03_clima.sql",
     4: "04_riesgo_y_escenarios.sql", 5: "05_produccion_y_precios.sql", 6: "06_modelo_demo_y_observaciones.sql",
+    7: "07_espac_real.sql",   # producción REAL ESPAC 2002–2025 (reemplaza la sintética); tools/espac_to_sql.py
 }
 COUNT_TABLES = [
     "areas", "area_static_features", "enso_index", "enso_events", "area_monthly_series", "area_monthly_hazard",

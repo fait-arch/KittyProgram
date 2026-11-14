@@ -48,6 +48,21 @@ Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.p
 | 04_riesgo_y_escenarios | `disease_risk_monthly`, `area_scenario_climate`, `disease_risk_scenario`, `crop_suitability` | 23 058 + 5 832 + 5 832 + 12 |
 | 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 327 + 138 + 309 |
 | 06_modelo_demo_y_observaciones | `model_versions`, `loss_predictions`, `field_observations`, `etl_runs` | 1 + 276 + 12 + 1 |
+| **07_espac_real** | `crop_production_stats` (reales, `source_id='espac'`) y borra las sintéticas del mismo provincia × año | 220 provinciales + 24 nacionales |
+
+## Producción real ESPAC 2002–2025 (parte 07)
+
+```bash
+# 1. Descargar los 24 tabulados del INEC a supabase/seed/raw/espac/espac_tab<AÑO>.xlsx (URLs en tools/espac_to_sql.py · ml/etl/production.py)
+# 2. Generar CSV + SQL (no toca la base)
+python -I supabase/seed/tools/espac_to_sql.py supabase/seed/raw/espac supabase/seed/data
+# 3. Inyectar solo esta parte (después de 01–06)
+python supabase/seed/inject.py --only 7
+```
+
+Control: provincias + agregados no provinciales (Amazonía 2002–2011 por subregión, zonas no delimitadas)
+= total nacional ±2 % en los 24 años. Las provincias que no están en `areas` (Sierra) quedan en el CSV
+(`raw/espac/espac_cacao_provincias.csv`) y el SQL las omite. **2001 no existe en ESPAC**: sigue sintético por provincia.
 
 ## Probar después de cargar
 

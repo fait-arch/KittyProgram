@@ -30,7 +30,7 @@ Resumen de lo pendiente, de lo más fácil a lo más difícil:
 | # | Falta | Dificultad | Quién |
 |---|-------|-----------|-------|
 | 1 | Clima de cantones: 2016 (75 cantones), 2015, 2022, 2014 | Fácil (solo esperar) | Cualquiera |
-| 2 | Producción real por provincia 2014–2022 (ESPAC) | Media (descarga manual) | Datos |
+| 2 | ~~Producción real por provincia 2014–2022 (ESPAC)~~ ✅ 2002–2025, ver [10](10-espac-produccion-real.md) | Hecho | Datos |
 | 3 | Precio del cacao en Ecuador (SIPA) | Media (descarga manual) | Datos |
 | 4 | Validar umbrales de enfermedad y calendario | Media (requiere un experto) | Agrónomo |
 | 5 | Efecto y costo de cada estrategia | Media (literatura / INIAP) | Agrónomo |
@@ -58,6 +58,10 @@ Comprobar: `select climate_years, count(*) from v_area_coverage where kind='cant
 ---
 
 ## 2. Producción real por provincia 2014–2022 (ESPAC, INEC)
+
+> ✅ **Hecho (2026-11-14):** ESPAC 2002–2025 descargada y convertida a `supabase/seed/data/07_espac_real.sql`
+> (pendiente de inyectar con `inject.py --only 7`). Detalle y aviso de que **2001 no existe en ESPAC**:
+> [10-espac-produccion-real.md](10-espac-produccion-real.md).
 
 **Por qué importa:** hoy solo 2023–2025 son reales (36 filas). Con 2014–2022 habría ~144 filas reales
 y se podría entrenar el modelo de verdad. Es **el dato más valioso que falta**.
