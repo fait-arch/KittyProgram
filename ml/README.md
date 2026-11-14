@@ -25,3 +25,20 @@ ml/.venv/bin/earthengine authenticate      # una vez por máquina
 | `predict.py` | 5 | Escenarios normal / Niño / actual → API |
 | `artifacts/` | 4 | `cacao_loss_vX.joblib`, `.onnx`, `model_card_vX.json` |
 | `data/raw`, `data/processed` | 1–2 | Datos crudos y Parquet procesado (no versionados) |
+
+## Fase 2 — features y panel
+
+```bash
+ml/.venv/bin/python -m ml.etl.worldclim   # climatología de referencia + lat/altitud por área
+ml/.venv/bin/python -m ml.dataset         # → data/processed/training_panel.parquet (+ .csv)
+ml/.venv/bin/python -m pytest ml/tests
+```
+
+- **Corrección de sesgo** (`features.BiasCorrection`, guardada en `artifacts/bias_correction.joblib`):
+  temperatura ERA5-Land + delta mensual WorldClim (1961–1990); lluvia ERA5-Land → GPM con
+  *quantile mapping* por área y mes. Resultado: una serie homogénea 1961–2025.
+- **Features** (ene–jun de cada año): lluvia total / anomalía / extremos, días favorables a
+  moniliasis y mazorca negra, suelo saturado, HR, temperatura, ET0 FAO-56, balance hídrico,
+  aptitud ECOCROP, lluvia oct–dic previa, ENSO (ONI, Niño 1+2, Niño 3.4).
+- **Target**: `y_anom_pct = 100·(R − T)/T`, con T = tendencia LOWESS sin el propio año.
+- **Panel**: 216 filas (nacional 1961–2025 + 7 provincias 2002–2025).
