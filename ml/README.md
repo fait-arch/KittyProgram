@@ -81,7 +81,8 @@ ml/.venv/bin/python -m pytest ml/tests       # 40 tests (~5 min)
 z_k   = (x_k − μ_a,k) / σ_a,k                    anomalía del área a (normal climática 1991–2020)
 ŷ     = b0 + β_sat·z(suelo saturado) + β_fav·z(días favorables a mazorca negra)
            + β_sol·z(radiación solar) + β_llu·z(lluvia) + β_ext·max(0, z(lluvia) − 2)
-        signos fijados por la física (humedad y lluvia ↓, sol ↑), penalización Ridge (λ por GCV),
+           + β_evi·z(verdor MODIS EVI ene–jun)            (sin dato antes de 2000 → z = 0)
+        signos fijados por la física (humedad y lluvia ↓, sol y verdor ↑), penalización Ridge (λ por GCV),
         cada término recortado al rango de entrenamiento (no extrapola)
 pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_nivel   (conformal)
 ```
@@ -100,17 +101,22 @@ pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_ni
 | "Año normal" (sin clima) | 12,6 | 18,1 | — | 0,00 |
 | Niño sí/no según ONI | 12,6 | 17,9 | 0,22 | 0,02 |
 | Escalón "lluvia > +100 %" | 11,3 | 15,2 | 0,54 | 0,30 |
-| GBR cuantílico | 11,8 | 15,5 | 0,52 | 0,26 |
-| **Ridge (modelo final)** | **10,5** | **14,1** | **0,64** | **0,39** |
-| Ridge, evaluado contra la producción sola | 12,1 | 15,1 | 0,56 | 0,31 |
+| GBR cuantílico | 11,4 | 15,2 | 0,55 | 0,30 |
+| **Ridge (modelo final)** | **10,1** | **13,8** | **0,65** | **0,42** |
+| Ridge, evaluado contra la producción sola | 11,8 | 14,7 | 0,58 | 0,34 |
+| Ridge en **provincias** (n = 137) | 18,0 vs 18,5 | 23,5 vs 23,9 | **0,20** | **0,04** |
 
-- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −44 %, real −50 %;
-  1998 → −36 %, real −64 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,65.
+- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −48 %, real −50 %;
+  1998 → −38 %, real −64 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,67.
+- **Provincias**: con el verdor de MODIS aparece por primera vez algo de skill (corr 0,20, R² 0,04;
+  sin MODIS 0,10 y 0,00). Test de permutación provincial: **p = 0,08**, sugerente pero no concluyente.
 - **Lo que no** (auditoría independiente, también en la model card):
-  - Depende sobre todo de la **lluvia extrema**: sin 1983/1998 la correlación baja a 0,41 (el MAE sí
-    mejora a "año normal": 10,3 vs 11,2). Entrenando sin ambos, cada uno se predice en solo −13 / −15 %.
-  - En **provincias no hay skill** (ruido ESPAC 15–31 %): la salida por zona lleva
-    `evidence = "indice_subnacional_no_validado"`.
+  - Depende sobre todo de la **lluvia extrema**: sin 1983/1998 la correlación baja a 0,44 (el MAE sí
+    mejora a "año normal": 10,0 vs 11,2). Entrenando sin ambos, cada uno se predice en solo −18 %.
+  - En **provincias el skill es débil** (R² 0,04, p = 0,08; ruido ESPAC 15–31 %): la salida por zona
+    sigue llevando `evidence = "indice_subnacional_no_validado"`.
+  - El verdor (EVI) se **observa**: sirve para la temporada en curso (desde julio) pero no existe para
+    2050 ni para 1983/1998; ahí entra como "verdor normal".
   - El índice Niño 1+2 no aporta una vez conocida la lluvia: hace falta el clima de ene–jun.
   - El intervalo cubre 78 % (nacional) / 74 % (provincias), pero casi no es más estrecho que el de
     "año normal": transmite sobre todo la incertidumbre.
@@ -176,7 +182,7 @@ de `model_versions`.
 | `normal` | ENSO neutros 2001–2025 | 2 % |
 | `nino` | El Niño (ONI) 2001–2025 | 0 % |
 | `nina` | La Niña 2001–2025 | 2 % |
-| `nino_extremo` | 1983, 1998 | 52 % |
+| `nino_extremo` | 1983, 1998 | 54 % |
 | `actual` | análogos: Niño 1+2 ago–oct previo ≥ +2 °C → 1998, 2016, 2024 | 20 % |
 
 - La pérdida de un escenario es la **media de las pérdidas de sus años** (un año promedio no
@@ -201,6 +207,7 @@ de `model_versions`.
 | Ventanas de meses (ene–abr, feb–may, mar–jun…) y lluvia oct–dic previa | 0,37–0,55 | 15,3–16,8 | Ninguna supera a ene–jun |
 | Producción o área como target provincial | prov 0,07–0,13 | — | Sin skill provincial igual |
 | **Target nacional = producción + exportaciones (ADOPTADO)** | **0,64** (0,56 vs producción sola) | **14,1** | Dos medidas independientes de la cosecha: menos ruido |
+| **+ verdor MODIS EVI ene–jun (ADOPTADO)** | **0,65**; provincias 0,10 → **0,20** | **13,8** | Medida satelital del estado del cultivo, independiente de la encuesta (recurso del reto) |
 
 CHIRPS queda en el ETL (`--datasets chirps`) y en `BiasCorrection.fit(rain_ref=…, use_obs=…)` por si
 se quiere revisar. El límite de precisión está en los datos de producción (solo dos Niños extremos y

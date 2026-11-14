@@ -57,6 +57,7 @@ class FeatureSpec:
     hinges: tuple[tuple[str, float], ...] = ()  # (columna, umbral) → max(0, t − umbral), solo Ridge;
     #                                             t = z si la columna está en `anom`, x si en `raw`
     signs: tuple[tuple[str, int], ...] = ()     # signo físico esperado del efecto (−1 daña, +1 ayuda)
+    fill_zero: tuple[str, ...] = ()             # sin dato → anomalía 0 (= año normal), p. ej. MODIS antes de 2000
 
     @property
     def inputs(self) -> list[str]:
@@ -84,11 +85,21 @@ class FeatureSpec:
 #     de los días favorables (20–30 °C).
 #   · El índice Niño 1+2 NO entra: una vez conocida la lluvia local no aporta nada (su
 #     coeficiente es 0 en la validación). El Niño actúa a través de la lluvia.
-CORE = FeatureSpec(
+CLIMATE_CORE = FeatureSpec(
     anom=("saturated_days", "fav_days_phytophthora", "solar_mean", "rain_total"),
     hinges=(("rain_total", 2.0),),
     signs=(("saturated_days", -1), ("fav_days_phytophthora", -1), ("solar_mean", 1),
            ("rain_total", -1)),
+)
+
+# + verdor de la vegetación medido por satélite (MODIS EVI, ene–jun): medida objetiva del estado
+# del cultivo en cada provincia, independiente de la encuesta ESPAC. Solo existe desde 2000: sin
+# dato (años anteriores, escenarios 2050) se toma anomalía 0 = verdor normal.
+CORE = FeatureSpec(
+    anom=CLIMATE_CORE.anom + ("evi_jan_jun",),
+    hinges=CLIMATE_CORE.hinges,
+    signs=CLIMATE_CORE.signs + (("evi_jan_jun", 1),),
+    fill_zero=("evi_jan_jun",),
 )
 
 # Grupos para explicar el resultado (las variables de humedad están muy correlacionadas:
@@ -100,6 +111,7 @@ FACTOR_GROUPS = {
     "dias_favorables_enfermedad": ["fav_days_phytophthora", "fav_days_monilia", "rh_mean"],
     "temperatura": ["t_mean", "tmax_mean", "tmin_mean"],
     "radiacion_solar": ["solar_mean", "et0_total"],
+    "verdor_satelite": ["evi_jan_jun"],
     "el_nino_oceano": ["nino12_jan_jun", "oni_jan_jun", "nino34_jan_jun", "oni_djf"],
 }
 GROUP_OF = {f: g for g, fs in FACTOR_GROUPS.items() for f in fs}
@@ -168,6 +180,9 @@ class Preprocessor:
         mu = self.mean_.reindex(X.area_name).to_numpy()
         sd = self.sd_.reindex(X.area_name).to_numpy()
         out[anom] = (X[anom].to_numpy(float) - mu) / sd
+        for c in self.spec.fill_zero:
+            if c in out:
+                out[c] = out[c].fillna(0.0)
         for c in self.spec.raw:
             out[c] = X[c].to_numpy(float)
         for c, k in self.spec.hinges:

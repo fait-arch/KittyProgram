@@ -30,7 +30,7 @@ import pandas as pd
 
 from .config import ARTIFACTS, DATA_PROCESSED
 from .dataset import OUTPUT, OUTPUT_BY_LEVEL, TARGET, TREND_SPAN_YEARS
-from .model import (CORE, EXCLUDE_AREAS, FACTOR_GROUPS, CacaoLossModel, FeatureSpec,
+from .model import (CLIMATE_CORE, CORE, EXCLUDE_AREAS, FACTOR_GROUPS, CacaoLossModel, FeatureSpec,
                     QuantileGBR, RidgeModel, hinge_name)
 from .inference import build_bundle
 from .scenarios import load_climate, scenario_features, scenario_years
@@ -195,7 +195,8 @@ def strict_climate(panel: pd.DataFrame, spec: FeatureSpec, years=EXTREME_YEARS) 
         feats = build_features(daily, bc)
         p = panel.drop(columns=[c for c in feats.columns if c not in KEY], errors="ignore") \
                  .merge(feats, on=KEY, how="left")
-        cv = loyo(p, partial(RidgeModel, spec, feats), spec.columns, years=[yr], value=OUTPUT)
+        cv = loyo(p, partial(RidgeModel, spec, feats), spec.columns, years=[yr], value=OUTPUT,
+                  allow_nan=spec.fill_zero)
         rows.append(cv[cv.level == "national"])
     return pd.concat(rows, ignore_index=True)
 
@@ -212,7 +213,7 @@ def permutation_test(panel, climate, spec, targets, n: int, seed: int = 0) -> di
     make = partial(RidgeModel, spec, None)       # normal climática desde las filas de entrenamiento
 
     def stat(p):
-        cv = loyo(p, make, spec.columns, value=OUTPUT, targets=targets)
+        cv = loyo(p, make, spec.columns, value=OUTPUT, targets=targets, allow_nan=spec.fill_zero)
         nat = cv[cv.level == "national"]
         return float(nat.y_cv.corr(nat.pred)) if nat.pred.std() > 0 else 0.0
 
@@ -239,7 +240,7 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
     panel, climate = load_data()
     say = print if verbose else (lambda *a, **k: None)
     targets = fold_targets(panel, value=OUTPUT)
-    cv_of = partial(loyo, panel, value=OUTPUT, targets=targets)
+    cv_of = partial(loyo, panel, value=OUTPUT, targets=targets, allow_nan=CORE.fill_zero)
 
     # 1. Comparación de modelos -------------------------------------------------------
     cvs = {
@@ -286,7 +287,7 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
     # 2. Robustez (solo Ridge: es el que decide) ------------------------------------
     def spec_with(**kw):
         return FeatureSpec(**{**dict(anom=CORE.anom, raw=CORE.raw, hinges=CORE.hinges,
-                                     signs=CORE.signs), **kw})
+                                     signs=CORE.signs, fill_zero=CORE.fill_zero), **kw})
 
     nat_panel = panel[panel.level == "national"]
     yld = panel.assign(**{OUTPUT: panel.yield_t_ha})
@@ -294,20 +295,25 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
                                                  panel.yield_t_ha)})
     robust = {
         "bloques_3_anios": loyo(panel, partial(RidgeModel, CORE, climate), CORE.columns,
-                                value=OUTPUT, block=3),
+                                value=OUTPUT, block=3, allow_nan=CORE.fill_zero),
         "umbral_1.5sd": cv_of(partial(RidgeModel, spec_with(hinges=(("rain_total", 1.5),)), climate),
                               CORE.columns),
         "umbral_2.5sd": cv_of(partial(RidgeModel, spec_with(hinges=(("rain_total", 2.5),)), climate),
                               CORE.columns),
         "sin_umbral": cv_of(partial(RidgeModel, spec_with(hinges=()), climate), CORE.columns),
         "sin_signos": cv_of(partial(RidgeModel, CORE, climate, True, False), CORE.columns),
+        "sin_evi_modis": cv_of(partial(RidgeModel, CLIMATE_CORE, climate), CLIMATE_CORE.columns),
         "sin_pesos": cv_of(partial(RidgeModel, CORE, climate, False), CORE.columns),
-        "solo_nacional": loyo(nat_panel, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT),
-        "target_rendimiento": loyo(yld, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT),
+        "solo_nacional": loyo(nat_panel, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT,
+                              allow_nan=CORE.fill_zero),
+        "target_rendimiento": loyo(yld, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT,
+                              allow_nan=CORE.fill_zero),
         "target_solo_produccion": loyo(prod_only, partial(RidgeModel, CORE, climate), CORE.columns,
-                                       value=OUTPUT),
+                                       value=OUTPUT, allow_nan=CORE.fill_zero),
     }
     rob = {k: score(v[v.level == "national"]) for k, v in robust.items()}
+    rob["provincias_con_evi"] = score(ens[ens.level == "province"].drop(columns=["p10", "p90"]))
+    rob["provincias_sin_evi"] = score(robust["sin_evi_modis"][robust["sin_evi_modis"].level == "province"])
     nat_cv = ens[ens.level == "national"]
     rob["eval_sin_1983_1998"] = score(nat_cv[~nat_cv.year.isin(EXTREME_YEARS)])
     rob["eval_desde_1999"] = score(nat_cv[nat_cv.year >= 1999])
@@ -316,14 +322,6 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
                    ("eval_desde_1999", zero_nat.year >= 1999)):
         rob[k]["mae_base_normal"] = score(zero_nat[yrs])["mae"]
         rob[k]["rmse_base_normal"] = score(zero_nat[yrs])["rmse"]
-    # Prueba justa del target combinado: ¿predice mejor la PRODUCCIÓN sola (lo que importa)?
-    t_prod = fold_targets(prod_only[prod_only.level == "national"], value=OUTPUT)
-    y_prod = {yr: float(t.set_index("year")[TARGET][yr]) for yr, t in t_prod.items()}
-    for k, cvk in (("eval_vs_produccion", ens), ("eval_vs_produccion_entrenado_produccion",
-                                                 robust["target_solo_produccion"])):
-        n = cvk[cvk.level == "national"].assign(y_cv=lambda d: d.year.map(y_prod)).dropna(subset=["y_cv"])
-        rob[k] = score(n.drop(columns=[c for c in ("p10", "p90") if c in n]))
-    no_ext = panel[~panel.year.isin(EXTREME_YEARS)]
     # Prueba justa del target combinado: ¿predice mejor la PRODUCCIÓN sola (lo que importa)?
     t_prod = fold_targets(prod_only[prod_only.level == "national"], value=OUTPUT)
     y_prod = {yr: float(t.set_index("year")[TARGET][yr]) for yr, t in t_prod.items()}
@@ -353,7 +351,7 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
 
     # 3. Modelo final ----------------------------------------------------------------
     cols = CORE.columns
-    train = panel.dropna(subset=cols + [TARGET])
+    train = panel.dropna(subset=[c for c in cols if c not in CORE.fill_zero] + [TARGET])
     final = RidgeModel(CORE, climate).fit(train[cols], train[TARGET])
     scale = _area_scale(ens)
     resid_q = level_q(ens, scale)

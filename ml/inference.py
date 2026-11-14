@@ -136,14 +136,19 @@ def adjust_features(features: dict, adjust: dict, area_ctx: dict | None = None,
 def predict(bundle: dict, features: dict) -> dict:
     """Un vector de features → pérdida (%) con intervalo y factores (formato del backend)."""
     m: CacaoLossModel = bundle["model"]
-    missing = [c for c in m.features if c not in features]
+    optional = set(m.model.spec.fill_zero)                # p. ej. EVI: sin dato = verdor normal
+    missing = [c for c in m.features if c not in features and c not in optional]
     if missing:
         raise ValueError(f"Faltan features: {missing}")
     area = area_key(bundle, features)
-    X = pd.DataFrame([{"area_name": area, "year": 0, **{c: float(features[c]) for c in m.features}}])
+
+    def val(c):
+        v = features.get(c)
+        return np.nan if v is None else float(v)
+    X = pd.DataFrame([{"area_name": area, "year": 0, **{c: val(c) for c in m.features}}])
     r = m.predict(X).iloc[0]
     c = m.model.contributions(X).iloc[0]
-    factors = sorted(({"feature": k, "value": round(float(features[k]), 2),
+    factors = sorted(({"feature": k, "value": None if np.isnan(val(k)) else round(val(k), 2),
                        "contribution_pct": round(float(-v), 2)} for k, v in c.items()),
                      key=lambda d: -abs(d["contribution_pct"]))
     return {

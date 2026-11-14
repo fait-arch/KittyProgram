@@ -46,7 +46,8 @@ def test_bundle_matches_backend_contract(bundle):
     for area, scs in bundle["scenario_features"].items():
         assert set(SCENARIOS) <= set(scs), area
         for v in scs.values():
-            assert set(bundle["features"]) <= set(v) and v["_area"] == area and v["_sens"]
+            required = set(bundle["features"]) - set(bundle["model"].model.spec.fill_zero)
+            assert required <= set(v) and v["_area"] == area and v["_sens"]
 
 
 def test_backend_flow_what_if(bundle):

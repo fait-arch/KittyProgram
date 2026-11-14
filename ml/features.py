@@ -267,6 +267,8 @@ def yearly_features(d: pd.DataFrame, bc: BiasCorrection, months=RAINY_MONTHS) ->
         et0_total=("et0_mm", "sum"),
         solar_mean=("ssrd_mjm2", "mean"),
     )
+    if "modis_evi" in w.columns:                    # MODIS (2000→): verdor medio de la ventana
+        f["evi_jan_jun"] = g.modis_evi.mean() * 1e-4
     f["rain_max_5d"] = g.precip_mm.apply(lambda s: s.rolling(5).sum().max())
     f["max_wet_spell"] = g.wet_day.apply(lambda s: _max_run(s.to_numpy()))
     f["water_balance"] = f.rain_total - f.et0_total

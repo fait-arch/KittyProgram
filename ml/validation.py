@@ -44,7 +44,8 @@ def fold_targets(panel: pd.DataFrame, years: list[int] | None = None, value: str
 
 def loyo(panel: pd.DataFrame, make_model: Callable[[], Model], features: list[str],
          years: list[int] | None = None, retrend: bool = True, value: str = "yield_t_ha",
-         block: int = 1, targets: dict[int, pd.DataFrame] | None = None) -> pd.DataFrame:
+         block: int = 1, targets: dict[int, pd.DataFrame] | None = None,
+         allow_nan: tuple[str, ...] = ()) -> pd.DataFrame:
     """Predicciones fuera de muestra. Devuelve panel con columnas pred, y_cv (target sin fuga)
     y, si el modelo lo permite, p10/p90.
 
@@ -53,7 +54,9 @@ def loyo(panel: pd.DataFrame, make_model: Callable[[], Model], features: list[st
              (block=3 → también t−1 y t+1 salen del entrenamiento y de la tendencia): comprueba
              que el resultado no depende de la autocorrelación entre años vecinos.
     targets: salida de `fold_targets` con los mismos `value` y `block` (evita recalcular).
+    allow_nan: features que pueden venir vacías (el modelo las rellena, p. ej. MODIS antes de 2000).
     """
+    required = [f for f in features if f not in allow_nan]
     years = years or sorted(panel.year.unique())
     half = block // 2
     base = panel.drop(columns=[TARGET, "y_anom_prev"], errors="ignore")
@@ -65,8 +68,8 @@ def loyo(panel: pd.DataFrame, make_model: Callable[[], Model], features: list[st
             df = base.merge(prod, on=["area_name", "year"])
         else:
             df = panel
-        train = df[~df.year.isin(held)].dropna(subset=features + [TARGET])
-        test = df[df.year == yr].dropna(subset=features + [TARGET])
+        train = df[~df.year.isin(held)].dropna(subset=required + [TARGET])
+        test = df[df.year == yr].dropna(subset=required + [TARGET])
         if test.empty:
             continue
         m = make_model().fit(train[features], train[TARGET])

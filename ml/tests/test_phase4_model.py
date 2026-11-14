@@ -15,7 +15,7 @@ import pytest
 
 from ml.config import ARTIFACTS, DATA_PROCESSED
 from ml.dataset import TARGET, add_target
-from ml.model import (CORE, CacaoLossModel, FeatureSpec, Preprocessor, QuantileGBR,
+from ml.model import (CLIMATE_CORE as CORE, CacaoLossModel, FeatureSpec, Preprocessor, QuantileGBR,
                       RidgeModel, hinge_name, risk_class)
 from ml.synthetic import Truth, make_panel
 from ml.train import VERSION, add_conformal, best_weight, nested_ensemble, score
@@ -265,6 +265,8 @@ def test_trained_model_scenarios(trained):
     for k in f["coef"]:
         if k in f["area_normal_mean"]["national"]:
             t[k] = (row[k] - f["area_normal_mean"]["national"][k]) / f["area_normal_sd"]["national"][k]
+            if np.isnan(t[k]):                                   # MODIS sin dato → anomalía 0
+                t[k] = 0.0
     for k in f["coef"]:
         if "_gt" in k:
             col, knot = k.rsplit("_gt", 1)

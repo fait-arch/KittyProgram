@@ -6,6 +6,7 @@ Datasets (area mean per day, masked to cacao-relevant land):
   gldas NASA/GLDAS/V021/NOAH/G025/T3H     2000→   daily mean RootMoist_inst, SoilMoi0_10cm_inst
   smap  NASA/SMAP/SPL4SMGP/008            2015-03→ daily mean sm_surface, sm_rootzone
   chirps UCSB-CHG/CHIRPS/DAILY            1981→   daily precip (satélite + estaciones, ~5 km)
+  modis MODIS/061/MOD13A2 (16 días, 1 km)  2000→   EVI, NDVI (× 0.0001)
 
 Each (dataset, area, year) chunk is one server-side aggregation + getInfo, cached to
 ml/data/raw/gee/{dataset}/{area_slug}_{year}.parquet (reruns skip cached chunks).
@@ -59,8 +60,11 @@ DATASETS = {
                  kind="mean", bands=["sm_surface", "sm_rootzone"]),
     "chirps": dict(collection="UCSB-CHG/CHIRPS/DAILY", first=date(1981, 1, 1), scale=5566,
                    kind="daily_plain", bands=["precipitation"]),
+    # MODIS Terra 16 días, 1 km: verdor de la vegetación (EVI/NDVI × 0.0001); una fila por compuesto
+    "modis": dict(collection="MODIS/061/MOD13A2", first=date(2000, 2, 18), scale=1000,
+                  kind="daily_plain", bands=["EVI", "NDVI"]),
 }
-PRIORITY = ["era5", "gpm", "gldas", "smap", "chirps"]
+PRIORITY = ["era5", "gpm", "gldas", "smap", "chirps", "modis"]
 
 
 def _era5_prep(img: ee.Image) -> ee.Image:
@@ -83,6 +87,7 @@ RENAME = {
     "gldas": {"RootMoist_inst": "gldas_rootmoist_kgm2", "SoilMoi0_10cm_inst": "gldas_sm0_10_kgm2"},
     "smap": {"sm_surface": "smap_sm_surface_m3m3", "sm_rootzone": "smap_sm_rootzone_m3m3"},
     "chirps": {"precipitation": "precip_chirps_mm"},
+    "modis": {"EVI": "modis_evi", "NDVI": "modis_ndvi"},
 }
 
 

@@ -92,7 +92,7 @@ def scenario_features(climate: pd.DataFrame, features: list[str], years: dict[st
             sel = g[g.year.isin(yrs)]
             if sel.empty:
                 continue
-            v = sel[cols].mean().round(4).to_dict()
+            v = sel[cols].mean().round(4).dropna().to_dict()     # sin MODIS antes de 2000: se omite
             v["_area"], v["_years"] = area, [int(y) for y in sel.year]
             out[area][sc] = v
     return out

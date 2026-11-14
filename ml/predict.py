@@ -58,12 +58,13 @@ def predict_scenarios(bundle: dict, climate: pd.DataFrame, areas: list[str]) -> 
     rows = []
     for area in areas:
         for sc, years in bundle["scenario_years"].items():
-            X = climate[(climate.area_name == area) & climate.year.isin(years)][ID_COLS + cols].dropna()
+            X = climate[(climate.area_name == area) & climate.year.isin(years)][ID_COLS + cols]
+            X = X.dropna(subset=[c for c in cols if c not in m.model.spec.fill_zero])
             if X.empty:
                 continue
             out = m.predict(X)
             contrib = m.model.contributions(X.reset_index(drop=True)).mean()
-            mean_x = X[cols].mean()
+            mean_x = X[cols].mean().fillna(0.0)
             factors = sorted(({"feature": k, "value": round(float(mean_x[k]), 2),
                                "contribution_pct": round(float(-v), 2)} for k, v in contrib.items()),
                              key=lambda d: -abs(d["contribution_pct"]))[:5]
