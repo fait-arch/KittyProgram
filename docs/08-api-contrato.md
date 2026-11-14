@@ -13,7 +13,7 @@
 | Formato | JSON, nombres en `snake_case`, porcentajes en 0–100, toneladas de grano seco, dólares USD. |
 | Identificadores | `id` de área es un texto opaco (UUID o slug). El front no lo interpreta. |
 | Escenarios | `normal` · `nino` · `actual` · `ssp245_2050` · `ssp585_2050` |
-| Clases de pérdida | `baja` ≤ 5 % · `moderada` ≤ 15 % · `alta` ≤ 30 % · `muy_alta` > 30 % (límite superior **inclusivo**, igual que QGIS) |
+| Clases de pérdida | `baja` ≤ 5 % · `moderada` ≤ 15 % · `alta` ≤ 30 % · `muy_alta` ≤ 45 % · `critica` > 45 % (límite superior **inclusivo**, igual que QGIS; alerta de 5 niveles IPC/SNGR, ver 07 §5) |
 | Errores | Formato estándar de FastAPI: `{"detail": "…"}` con 404 (área no existe), 422 (parámetro inválido), 503 (datos aún no cargados). |
 | Caché | `Cache-Control: public, max-age=3600` en todo `GET` (los datos cambian por temporada, no por minuto). |
 
@@ -86,7 +86,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 ScenarioId = Literal["normal", "nino", "actual", "ssp245_2050", "ssp585_2050"]
 AreaKind = Literal["province", "canton"]
-RiskClass = Literal["baja", "moderada", "alta", "muy_alta"]
+RiskClass = Literal["baja", "moderada", "alta", "muy_alta", "critica"]
 Zone = Literal["segura", "manejo", "transicion", "critica"]
 
 
@@ -352,7 +352,7 @@ def area_detail(area_id: str, response: Response, scenario: ScenarioId = "nino",
 
 ```python
 def risk_class(pct: float) -> str:
-    return "baja" if pct <= 5 else "moderada" if pct <= 15 else "alta" if pct <= 30 else "muy_alta"
+    return "baja" if pct <= 5 else "moderada" if pct <= 15 else "alta" if pct <= 30 else "muy_alta" if pct <= 45 else "critica"
 ```
 
 ## 6. Exportación para QGIS (`GET /export`)

@@ -6,7 +6,9 @@
 > <https://claude.ai/artifact/4h4wX7wh1Z6DvDD7uPxuFX>
 
 **Base:** estructura, componentes y accesibilidad de **Material Design 3** (Google) +
-color y tipografía de la **guía de marca NASA Space Apps 2026**. No se usa la insignia de la
+color y tipografía de la **guía de marca NASA Space Apps 2026** + **verde cacao** como color
+primario (fase 1 del rediseño, §15). Los componentes siguen **diseño atómico** (átomos →
+moléculas → organismos → plantillas → pantallas) en el código y en Figma. No se usa la insignia de la
 NASA ni el logo de Space Apps: solo su paleta y sus tipografías.
 
 ## 1. Principios
@@ -33,11 +35,11 @@ Campo en móvil (`prefers-color-scheme` como respaldo).
 | Color | Hex | Uso en la app |
 |-------|-----|---------------|
 | Deep Blue | `#07173F` | Fondo Misión; tinta (texto) del tema Campo |
-| Electric Blue | `#0042A6` | Primary en Campo; inicio del degradado oficial |
-| Neon Blue | `#0960E1` | Enlaces; zona "segura" en Campo |
-| Blue Yonder | `#2E96F5` | Primary en Misión; series y barras de datos |
-| Neon Yellow | `#EAFE07` | **Único acento interactivo** (botón clave y enlaces en Misión). Nunca fondo ni titular. |
-| Rocket Red | `#E43700` | Zona «crítica» (Campo) y alertas. Nunca fondo; siempre con texto o ícono. |
+| Electric Blue | `#0042A6` | Inicio del degradado oficial (banner ENSO); botón de exportar en la barra |
+| Neon Blue | `#0960E1` | Serie «moniliasis» en Campo |
+| Blue Yonder | `#2E96F5` | Serie «moniliasis» en Misión; ícono de ENSO neutral |
+| Neon Yellow | `#EAFE07` | Solo etiquetas cortas (`Badge`: FASE 2, RECOMENDADO, F2) y el enlace del banner ENSO. Nunca fondo ni titular. |
+| Rocket Red | `#E43700` | Reservado para alertas de la marca. Nunca fondo; siempre con texto o ícono. |
 | Martian Red | `#8E1100` | `error-container` (Misión) |
 | White | `#FFFFFF` | Superficie de Campo; texto sobre azules |
 
@@ -49,54 +51,70 @@ portadas); regla 60-30-10.
 
 | Rol M3 | Misión (oscuro) | Campo (claro) |
 |--------|-----------------|---------------|
-| `primary` / `on-primary` | `#2E96F5` / `#04122F` | `#0042A6` / `#FFFFFF` |
-| `primary-container` / `on-…` | `#0042A6` / `#DCE8FF` | `#D9E5FF` / `#07173F` |
-| `secondary-container` (selección) | `#1E3A78` | `#DDE6F7` |
-| `tertiary` (acento) | `#EAFE07` | `#0960E1` (enlace) |
-| `surface` | `#07173F` | `#F8FAFF` |
+Primario **verde cacao** (rampa tonal OKLCH, tono ≈ 150°). Deep Blue sigue como ancla de
+marca: barra superior y banner ENSO en ambos temas.
+
+| Rol M3 | Misión (oscuro) | Campo (claro) |
+|--------|-----------------|---------------|
+| `primary` / `on-primary` | `#5BDB87` / `#032110` | `#0A6D37` / `#FFFFFF` |
+| `primary-container` / `on-…` | `#085630` / `#D1F2D7` | `#D1F2D7` / `#012A14` |
+| `secondary-container` (selección) | `#0F3F2E` / `#D1F2D7` | `#D3ECDB` / `#012A14` |
+| `cta` (botón relleno) / `on-cta` | `#6CE98D` / `#032110` | `#006731` / `#FFFFFF` |
+| `link` | `#6CE98D` | `#0A6D37` |
+| `surface` | `#07173F` | `#F8FBF8` |
 | `surface-container-lowest` | `#040C24` | `#FFFFFF` |
-| `surface-container-low` | `#0A1C48` | `#F2F5FC` |
-| `surface-container` | `#0E2252` | `#ECF0F9` |
-| `surface-container-high` | `#13295D` | `#E6EBF5` |
-| `surface-container-highest` | `#1A3268` | `#DFE5F1` |
-| `on-surface` / `on-surface-variant` | `#EAF0FF` / `#B3C1E0` | `#07173F` / `#43506E` |
-| `outline` / `outline-variant` | `#6F82AE` / `#2A3F72` | `#737F9C` / `#C3CCE0` |
+| `surface-container-low` | `#0A1C48` | `#F2F7F2` |
+| `surface-container` | `#0E2252` | `#ECF2EC` |
+| `surface-container-high` | `#13295D` | `#E6EEE6` |
+| `surface-container-highest` | `#1A3268` | `#DEE8DE` |
+| `on-surface` / `on-surface-variant` | `#EAF0FF` / `#B3C1E0` | `#07173F` / `#3F5247` |
+| `outline` / `outline-variant` | `#6F82AE` / `#2A3F72` | `#748677` / `#C2CEC4` |
 | `error` / `error-container` | `#FF8A6B` / `#8E1100` | `#B32C00` / `#FFDAD2` |
 
-Contraste medido (WCAG 2): texto principal 15,3:1 (Misión) y 16,7:1 (Campo); texto
-secundario ≥ 6,7:1; Neon Yellow sobre Deep Blue 15,5:1; Blue Yonder sobre Deep Blue 5,6:1.
+Contraste medido (WCAG 2): `on-primary` sobre `primary` 9,7:1 (Misión); blanco sobre `cta`
+7,0:1 (Campo); texto principal 15,3:1 (Misión) y 16,7:1 (Campo); `on-surface-variant` sobre
+`surface-high` 7,1:1 (Campo); verde `#5BDB87` sobre Deep Blue 9,9:1.
 
 ## 5. Colores de datos
 
-**Pérdida estimada: ColorBrewer YlOrRd, 4 clases (de amarillo a rojo, patrón QGIS):**
+**Pérdida estimada: alerta de 5 niveles (colores con significado):**
 
-| Clase | Rango `loss_pct` | Color (app y QGIS) |
-|-------|------------------|--------------------|
-| Baja | 0 – 5 % | `#ffffb2` |
-| Moderada | 5 – 15 % | `#fecc5c` |
-| Alta | 15 – 30 % | `#fd8d3c` |
-| Muy alta | 30 – 100 % | `#e31a1c` |
+| Nivel | Rango `loss_pct` | Color (app y QGIS) | Referencia | Ícono |
+|-------|------------------|--------------------|------------|-------|
+| Baja | 0 – 5 % | `#B2FFD8` verde menta | IPC fase 1 · sin alerta | `check_circle` |
+| Moderada | 5 – 15 % | `#FAE61E` amarillo | IPC 2 · **alerta amarilla** SNGR | `info` |
+| Alta | 15 – 30 % | `#E67800` naranja | IPC 3 · **alerta naranja** SNGR | `warning` |
+| Muy alta | 30 – 45 % | `#C80000` rojo | IPC 4 · **alerta roja** SNGR | `error` |
+| Crítica | 45 – 100 % | `#640000` + **rayado blanco a 45°** | IPC 5 | `dangerous` |
 
-Es la rampa graduada clásica de QGIS (*Graduado › ColorBrewer › YlOrRd*): la misma en los dos
-temas, en la app, en el `.qml` y en el `.sld`, para que una captura de la app y una lámina de
-QGIS se lean igual. Reglas de QGIS que seguimos: límite superior inclusivo (5,0 % = Baja),
-leyenda ascendente con rótulos `0 – 5`, borde `#232323` de 0,26 mm (el borde oscuro separa la
-clase amarilla de un fondo claro), y en el mapa: grilla de coordenadas, escala gráfica, flecha
-norte y SRC. Selección del cantón: borde blanco (Misión) o Electric Blue (Campo), no amarillo,
-para no confundirse con la rampa. Fuera del alcance (Sierra/Amazonía): superficie neutra.
+Por qué estos colores: son los de la **Clasificación Integrada de Fases (IPC)** que usan la FAO
+y FEWS NET para crisis alimentarias, y coinciden con el **semáforo de alertas de la Secretaría
+de Gestión de Riesgos** de Ecuador (amarilla = amenaza activada, naranja = inminente, roja =
+evento en curso), el mismo que activó la alerta roja nacional por El Niño (agosto 2026). Un
+técnico del MAG o un productor ya los lee sin leyenda. El verde menta de "Baja" (no el verde
+IPC `#CDFACD`) separa mejor la fase 1 de la 2 (ΔE 16,3; con daltonismo 15,9). El nivel
+Crítico lleva rayado, como "hambruna probable" en FEWS NET, porque el rojo oscuro casi no
+contrasta con el fondo azul (1,4:1): así se distingue en pantalla, impreso, en escala de grises
+y en QGIS (`LinePatternFill`, 45°, blanco 70 %).
 
-**Matriz de zonas 2050 (divergente azul ↔ rojo, siempre con nombre + ícono):**
+Reglas de QGIS que seguimos: límite superior inclusivo (5,0 % = Baja), leyenda ascendente con
+rótulos `0 – 5`, borde `#232323` de 0,26 mm, y en el mapa: grilla de coordenadas, escala gráfica,
+flecha norte y SRC. **Selección del cantón:** halo ancho (Misión `#040C24`, Campo blanco) + trazo
+fino (Misión blanco, Campo Deep Blue) en una capa aparte: se ve igual sobre el verde menta y
+sobre el rojo oscuro. Fuera del alcance (Sierra/Amazonía): superficie neutra.
 
-| Zona | Cuadrante | Ícono | Misión | Campo |
-|------|-----------|-------|--------|-------|
-| Segura | aptitud alta · riesgo bajo | `verified` | `#2e96f5` | `#0760e1` |
-| Manejo | aptitud alta · riesgo alto | `handyman` | `#315a97` | `#9dc1ee` |
-| Transición | aptitud baja · riesgo bajo | `swap_horiz` | `#994920` | `#f0ad7f` |
-| Crítica | aptitud baja · riesgo alto | `report` | `#fb784f` | `#e43700` |
+**Matriz de zonas 2050 (semáforo, siempre con nombre + ícono; igual en ambos temas):**
 
-Azul/naranja en vez de verde/rojo: todos los pares se distinguen con protanopía y
-deuteranopía (ΔE ≥ 15). Los tonos medios quedan bajo 3:1 contra el fondo, por eso la capa
-siempre lleva leyenda con nombres y vista de tabla.
+| Zona | Cuadrante | Ícono | Color |
+|------|-----------|-------|-------|
+| Segura | aptitud alta · riesgo bajo | `verified` | `#007C83` verde azulado |
+| Manejo | aptitud alta · riesgo alto | `handyman` | `#EBC831` amarillo |
+| Transición | aptitud baja · riesgo bajo | `swap_horiz` | `#DE6F00` naranja |
+| Crítica | aptitud baja · riesgo alto | `report` | `#B7191C` rojo |
+
+"Segura" es verde azulado y no verde puro: con protanopía un verde se confunde con el amarillo
+de "Manejo" (ΔE 4); el verde azulado pasa (ΔE 14,1). Texto sobre cada color: blanco en Segura y
+Crítica, Deep Blue en Manejo y Transición (≥ 4,9:1).
 
 **Series y estados:** moniliasis `#2E96F5` (Campo `#0960E1`), mazorca negra `#d95926`
 (Campo `#eb6834`). Estados de requerimientos ECOCROP (reservados, nunca como serie):
@@ -223,22 +241,20 @@ con `variable: "--font-fira-sans"` etc.; Material Symbols Rounded con el `<link>
 rápido y funciona sin internet en la demo). Si se agregan teselas, incluir su atribución.
 
 ```ts
-// ColorBrewer YlOrRd · 4 clases: idéntico a qgis/estilos/perdida_cacao.qml
-export const LOSS = ["#ffffb2", "#fecc5c", "#fd8d3c", "#e31a1c"] as const;
-const NO_DATA = { mision: "#0E2252", campo: "#DFE5F1" } as const; // Leaflet escribe atributos SVG: sin var()
+// src/lib/design/colors.ts · alerta de 5 niveles: idéntico a qgis/estilos/perdida_cacao.qml
+export const LOSS_RAMP = ["#b2ffd8", "#fae61e", "#e67800", "#c80000", "#640000"] as const;
 // Límite superior inclusivo, como el renderizador graduado de QGIS
-export const lossClass = (p: number) => (p <= 5 ? 0 : p <= 15 ? 1 : p <= 30 ? 2 : 3);
+export const lossClassIndex = (p: number) => (p <= 5 ? 0 : p <= 15 ? 1 : p <= 30 ? 2 : p <= 45 ? 3 : 4);
+// Crítica: patrón SVG <pattern id="cr-hatch"> montado una vez en el layout (atoms/HatchDefs)
+export const lossFill = (p: number) => (lossClassIndex(p) === 4 ? "url(#cr-hatch)" : LOSS_RAMP[lossClassIndex(p)]);
 
-const style = (f: GeoJSON.Feature) => {
-  const p = lossById.get(f.properties!.id);
-  const selected = f.properties!.id === selectedAreaId;
-  return {
-    fillColor: p == null ? NO_DATA[theme] : LOSS[lossClass(p)],
-    fillOpacity: 1,
-    color: selected ? (theme === "mision" ? "#FFFFFF" : "#0042A6") : (theme === "mision" ? "#040C24" : "#232323"),
-    weight: selected ? 3 : 0.7,
-  };
-};
+const style = (f: GeoJSON.Feature) => ({
+  fillColor: p == null ? NO_DATA[theme] : lossFill(p),   // Leaflet escribe atributos SVG: sin var()
+  fillOpacity: 1,
+  color: theme === "mision" ? "#040C24" : "#232323",
+  weight: 0.7,
+});
+// La selección se dibuja aparte (pane "seleccion"): halo de 6 px + trazo de 2,5 px.
 ```
 
 Escala gráfica y flecha norte: `L.control.scale({ metric: true, imperial: false })` y un control propio
@@ -255,7 +271,7 @@ Todo está en [`qgis/`](../qgis/README.md):
 
 | Archivo | Para qué |
 |---------|----------|
-| `qgis/estilos/perdida_cacao.qml` / `.sld` | Leyenda de pérdida (graduado YlOrRd 4 clases sobre `loss_pct`) |
+| `qgis/estilos/perdida_cacao.qml` / `.sld` | Leyenda de pérdida (graduado sobre `loss_pct`, alerta de 5 niveles; Crítica con `LinePatternFill`) |
 | `qgis/estilos/zonas_2050.qml` / `.sld` | Matriz de zonas (categorizado sobre `zona_2050`) |
 | `qgis/datos/cacao_perdida_EJEMPLO.gpkg` | 6 capas (5 escenarios + zonas) con el estilo guardado en `layer_styles`: QGIS las abre ya coloreadas. Datos ilustrativos. |
 | `qgis/exportar_gpkg.py` | `write_styled_gpkg()` para el endpoint del backend |
@@ -271,6 +287,7 @@ EPSG:32717 (UTM 17S) para medir y maquetar.
 
 - [ ] Contraste ≥ 4,5:1 en texto (≥ 3:1 en controles y bordes).
 - [ ] Cada color de dato con número/nombre/ícono; botón "Ver como tabla" en el mapa.
+- [ ] Nivel Crítico con rayado (no depende del color); `forced-colors` quita texturas de botones.
 - [ ] Mapa navegable con teclado (lista de cantones equivalente) y `aria-label` en controles.
 - [ ] Áreas táctiles ≥ 48 px; hoja inferior arrastrable y también con botón.
 - [ ] Textos para productores en lenguaje simple; términos técnicos en "Ver más".
@@ -283,5 +300,64 @@ EPSG:32717 (UTM 17S) para medir y maquetar.
 | Tema por defecto en la demo | Misión (oscuro) | Equipo front + presentación |
 | Detalle en escritorio | Hoja lateral en vez de panel inferior | Equipo front |
 | Capa "Riesgo de moniliasis" en Fase 1 | Mostrar si `disease_risk_monthly` está listo a tiempo | Datos/ETL |
-| PWA sin conexión para campo | Fase 3 | — |
+| PWA sin conexión para campo | Hecha (fase 4 del rediseño, §15) | — |
 | Endpoint `/export` (GeoPackage con estilo) | Fase 1 si el backend llega; si no, entregar el `.gpkg` estático de la demo | Backend |
+
+## 15. Rediseño por fases (sistema atómico)
+
+**Fase 1 · hecha (código + Figma).** Verde cacao como primario, alerta de 5 niveles IPC/SNGR,
+semáforo de zonas, textura de botones y componentes reorganizados en `FRONT/src/components/`:
+
+| Nivel | Componentes |
+|-------|-------------|
+| Átomos | `Icon`, `Button` (filled · tonal · outlined · text) · `IconButton`, `FilterChip`, `Badge`, `Swatch`, `Skeleton`, `HatchDefs`, `Logo` |
+| Moléculas | `SegmentedButton`, `ScenarioSelector`, `LegendItem`, `AlertLevelChip`, `KpiTile`, `ClassDistribution`, `LossInterval`, `Dialog`, `CantonSearch`, `DataSourceChip` |
+| Organismos | `TopAppBar`, `EnsoBanner`, `Navigation`, `ControlPanel`, `SummaryCard`, `TopCantons`, `MapLegend`, `LossMap`, `LossTable`, `AreaSheet`, `LossHero`, `FactorBars`, `MonthlyRiskChart`, `RequirementCheck`, `StrategyCards`, `LossRangeChart`, `ZoneMatrix`, `ExportDialog`, `AlertScale` |
+| Plantillas / pantallas | `AppShell` / `MapScreen`, `CompareScreen`, `MethodologyScreen` |
+
+**Textura de botones** (`globals.css`): relleno con brillo superior (degradado blanco 22 % → 0),
+borde interior de 1 px arriba y sombra de elevación 1; al presionar el brillo se invierte y la
+sombra pasa a interior. Hover y presionado usan la **capa de estado M3** (`.state-layer`: 8 % y
+12 % del color del texto), no `brightness()`, para que se vean igual en verde, azul o neutro.
+Con `forced-colors` se quitan las texturas y queda un borde.
+
+**Fase 2 · gráficos interactivos (hecha en código; ver FRONT/src/components/README.md).** Apache ECharts 5 (Apache-2.0) con
+`echarts-for-react` (MIT), cargado con `next/dynamic` solo en el panel del cantón y en Comparar.
+Tema ECharts propio generado desde los tokens (verde cacao, series moniliasis/mazorca, escala de
+alerta) en Misión y Campo; tooltip con crosshair, leyenda siempre visible, botón "Ver como tabla"
+y `aria` del componente. Gráficos: riesgo mes a mes (área + línea, bandas de alerta de fondo),
+factores (barras horizontales con valor), rango p10–p90 por escenario (barra de intervalo +
+punto), distribución de cantones por nivel (barra apilada al 100 %), y Niño 1+2 / ONI desde
+NOAA (línea con umbral ±0,5). Datos: la misma API (`/areas/{id}/detail`, `/compare`,
+`/enso/current`) — no se llama a servicios externos desde el navegador.
+
+**Fase 3 · plantillas (hecha en código: `/plantillas`).** Tarjetas para compartir (PNG 1080×1080 del cantón con su nivel de
+alerta), ficha imprimible A4 para el técnico y portada del video, con la misma paleta; se pueden
+armar como plantillas de marca en Canva a partir de las variables de Figma.
+
+**Fase 4 · modo Campo sin conexión (hecha).** PWA instalable con service worker propio: páginas y
+estáticos guardados, la API con «red primero y copia guardada», botón «Guardar sin conexión» por cantón
+(5 escenarios) y aviso claro cuando se muestran datos guardados (sin red o con el backend caído). Detalle
+en `FRONT/src/components/README.md`.
+
+**Fase 5 · Mi finca (hecha).** Punto «Finca individual» de 06-fases: dibujar el lote, GPS o coordenadas →
+hectáreas, cantón (`/areas/lookup`), pérdida del cantón llevada a la finca y clima del punto (`/point/climate`,
+NASA POWER). Pendientes de esa lista (requieren datos/backend): observaciones de campo (`/observations` ya existe
+en BACK), GBIF, ECOSTRESS y el asistente (`/areas/{id}/insights` y `/ask` ya existen en BACK).
+
+**Ajuste de paleta (después de la fase 5).** Las superficies dejan el azul marino: **Misión = verde bosque
+nocturno** (`surface #0B1F17`, `lowest #07120D`, `high #1A3528`, texto crema `#F2F5EC`) y **Campo = crema cálido**
+(`surface #FAF7EF`, `high #E6E0D0`, tinta `#14261C`). Barra superior y banner ENSO en verde profundo
+(Misión `#06140E`, Campo `#0B3D25`); el azul NASA queda solo en el logo y en la serie «moniliasis». Nuevo terciario
+cacao (`#E39A6F` / `#9A4E24`). Contrastes: texto ≥ 4,7:1, texto principal 15,6:1 (Misión) y 14,8:1 (Campo).
+Maqueta de referencia en Canva: https://canva.link/tmyze3o1uo8rgbr
+
+**Mapa satelital 3D (hecho).** Vista «Satélite 3D» con MapLibre GL JS 5: globo terráqueo, fondos Sentinel-2 sin nubes
+2024 (EOX/Copernicus), VIIRS del día y Blue Marble (NASA GIBS, la fuente de Worldview), relieve 3D (AWS Terrain
+Tiles), columnas 3D de pérdida y mazorcas de cacao donde la aptitud es alta, coloreadas por zona 2050. Detalle y
+licencias en `FRONT/src/components/README.md`.
+
+**Rediseño con la plantilla Harvest + capas tipo Google Maps (hecho).** Paleta verde agrícola de TooEzra/green-tech,
+encabezado claro, barra lateral con nombres, pantalla `/panel` y menos ruido visual (una fila de controles, menús en
+vez de botones sueltos). En «Satélite 3D», botón *Capas* como Google Maps: tipo de mapa, detalles (lluvia,
+vegetación, incendios, temperatura, aire de NASA GIBS) y herramienta *Medir*. Detalle en FRONT/src/components/README.md.
