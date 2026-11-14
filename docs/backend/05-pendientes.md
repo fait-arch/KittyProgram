@@ -19,6 +19,45 @@ Revisión del repo al 2026-11-14 (ramas `diego/supabase-docs` y `beltranfuego`).
 | I11 | Nombres de provincias | GAUL los guarda sin tildes (`Los Rios`, `Manabi`). | La API acepta nombre o uuid; el front muestra `name` tal cual o mapea a tildes. | Front |
 | I12 | Repo | `main` no tiene commits; `origin/HEAD` apunta a `diego/supabase-docs`. | Unir `diego/supabase-docs` a `main` y abrir PRs contra `main`. | Diego |
 
+| I13 | `ml/features.py` (Arthur) vs `disease_thresholds` (BD) | Umbrales distintos: moniliasis HR ≥ **85 %** y 22–30 °C en ML vs **80 %** y 20–28 °C en la BD; mazorca negra HR ≥ 90 % y lluvia ≥ 10 mm vs 85 % y ≥ 1 mm; aguacero ≥ 30 mm sobre la media del área vs ≥ 50 mm. | Acordar **una** fuente de verdad (la BD) o documentar por qué el modelo usa otros. El backend muestra los de la BD. | Datos + ML |
+| I14 | Nombres de features | ML usa `nino12_jan_jun`, `suitability`, `rain_total`, `y_anom_prev`; la vista `v_training_area_year` usa `nino12_anom_jan_jun`, `suitability_now`, `precip_total_mm`. | El backend acepta ambos (alias en `predictor.py`, etiquetas en `labels.py`). Ideal: unificar. | ML + Datos |
+| I15 | Clases de riesgo | `bajo < 5 % · medio 5–15 · alto 15–30 · muy_alto > 30` están propuestas, **sin validar**. | Validar los cortes con INIAP; viven en `labels.RISK_CLASSES`. | Todos |
+| I16 | Supabase | ✅ Resuelto: el proyecto correcto es `chjgktgkilxjuwuuekah`. | — |
+
+## ⚠ Supuestos del backend: porcentajes y costos de las estrategias
+
+`strategy_effects.reduction_pct_low/high` y `adaptation_strategies.cost_usd_ha_year` están
+**vacíos** en la BD. Mientras Datos no los llene, el backend usa estos valores, que **no salen
+de ninguna fuente**: los puse yo como orden de magnitud para que la herramienta funcione. Todas
+las respuestas los marcan con `"validated": false` y `"source": "supuesto del backend (por validar)"`.
+
+| Estrategia | Objetivo | Reducción supuesta | Costo supuesto (USD/ha/año) |
+|------------|----------|-------------------|-----------------------------|
+| Manejo sanitario | moniliasis | 25–50 % | 120 |
+| | mazorca negra | 20–40 % | |
+| | escoba de bruja | 20–40 % | |
+| Drenaje + sombra | mazorca negra | 15–35 % | 180 |
+| | encharcamiento | 30–60 % | |
+| | calor | 20–40 % | |
+| Diversificación | ingreso protegido | 15–30 % | 90 |
+| Manejo actual | — | 0 % | 0 |
+
+Otros supuestos del mismo cálculo:
+
+- **Peso de problemas no fúngicos en la pérdida:** encharcamiento 15 %, calor 5 %. El 80 %
+  restante se reparte entre patógenos según su riesgo en la ventana de cultivo del cantón.
+- **Atributos para el ranking por prioridades** (0–1): ver la tabla de D3 arriba.
+
+**Por qué importa:** con estos costos, en los datos de prueba ninguna estrategia sale con
+beneficio neto positivo en un solo año Niño. El resultado depende casi por completo de estos
+números. **Antes de la demo hay que reemplazarlos** con literatura o INIAP.
+
+**Cómo reemplazarlos (sin tocar código):** llenar en Supabase `strategy_effects.reduction_pct_low/high`
+(+ `source_ref`, `validated`) y `adaptation_strategies.cost_usd_ha_year`. El backend usa
+automáticamente los de la BD cuando existen y luego hay que llamar a `POST /api/v1/admin/cache/clear`.
+Los valores por defecto están en `BACK/app/services/strategies.py` (`DEFAULT_EFFECTS`,
+`DEFAULT_COST_USD_HA`, `NON_DISEASE_WEIGHT`, `ATTRIBUTES`).
+
 ## Riesgo con el reto
 
 El reto *Field Shift* pide explorar **rotaciones de cultivos** y comparar **≥ 3 estrategias
@@ -35,7 +74,8 @@ incluida la actual**. El cacao es perenne, así que "rotación" pesa poco. Cubri
 | # | Decisión | Resultado |
 |---|----------|-----------|
 | D1 | Cultivo | ✅ **Cacao**. La API sigue siendo agnóstica (`crop`). |
-| D2 | ¿Quién evalúa las estrategias? | ✅ **Backend**, al vuelo, con `strategy_effects`. Además, **insights y recomendaciones con IA** (Claude) por cantón. |
+| D2 | ¿Quién evalúa las estrategias? | ✅ **Backend**, al vuelo, con `strategy_effects`. Además, **insights y recomendaciones con IA** por cantón. |
+| D8 | Proveedor de IA | ✅ **DeepSeek** (`AI_PROVIDER=deepseek`); Claude queda como alternativa (`AI_PROVIDER=anthropic`). |
 | D3 | Ranking por prioridades | ✅ Ponderado en vivo (fórmula abajo). Los atributos de cada estrategia viven en el código del backend (no se toca la BD). |
 | D4 | Código base | ✅ **Desde cero**. `BACK/docs/` (v1) no se usa. |
 | D5 | ¿Dónde corre la demo? | Local con `--host 0.0.0.0` (pendiente decidir hosting). |
@@ -69,18 +109,22 @@ score(e) = w_ingreso · norm(avoided_loss_usd)       # cuánto dinero salva
 
 ### Backend (nosotros)
 
-| # | Tarea | Hecho cuando |
-|---|-------|--------------|
-| B1 | Esqueleto FastAPI (`core/`, `/health`, CORS, errores, caché) | `/health` responde |
-| B2 | Mocks JSON de `/losses`, `/detail`, `/strategies`, `/enso/current` | El front puede trabajar sin BD |
-| B3 | Catálogos + ENSO + escenarios (#2–#10) | Datos reales de 0005 |
-| B4 | Áreas + GeoJSON + lookup (#11–#14) | Mapa de cantones dibuja |
-| B5 | Pérdidas + resumen + detalle (#20–#22) | Panel del cantón con datos reales |
-| B6 | Job `evaluate_strategies` + endpoint #23 con prioridades | 4 estrategias por cantón |
-| B7 | `/predict` what-if (#24) | Slider cambia la pérdida |
-| B8 | `/point/climate` POWER (#27) | Clic libre en el mapa |
-| B9 | Admin (#32–#34) | ML puede limpiar caché |
-| B10 | F2: `/compare`, `/zones` | — |
+| # | Tarea | Estado |
+|---|-------|--------|
+| B1 | Esqueleto FastAPI (`core/`, `/health`, CORS, errores, caché) | ✅ |
+| B2 | Fuente mock con el mismo contrato | ✅ |
+| B3 | Catálogos + ENSO (con respaldo NOAA en vivo) + escenarios | ✅ |
+| B4 | Áreas + GeoJSON + lookup por punto | ✅ |
+| B5 | Pérdidas + mapa GeoJSON + resumen + detalle | ✅ |
+| B6 | Estrategias al vuelo + ranking por prioridades | ✅ |
+| B7 | `/predict` what-if con el `.joblib` | ✅ (falta el modelo real de ML) |
+| B8 | `/point/climate` NASA POWER | ✅ (probado en vivo) |
+| B9 | Admin (caché, recarga de modelo) | ✅ |
+| B10 | F2: `/compare`, `/zones` | ✅ |
+| B11 | Insights y preguntas con IA (DeepSeek por defecto, Claude opcional) | ✅ (probado con API simulada; falta `DEEPSEEK_API_KEY`) |
+| B12 | Probar contra Supabase real | ✅ Todas las rutas responden contra `chjgktgkilxjuwuuekah` (catálogos con datos; territorio, ENSO y pérdidas vacíos hasta el ETL). Falta la key publishable |
+| B14 | Integrar el bundle de Arthur (`ml/artifacts/`) | ⏳ backend listo (alias + `area_means`), falta el `.joblib` |
+| B13 | Hosting de la demo | ⏳ |
 
 ### Datos (Diego)
 
@@ -95,6 +139,6 @@ score(e) = w_ingreso · norm(avoided_loss_usd)       # cuánto dinero salva
 
 ### Front
 
-- Consumir [02-endpoints.md](02-endpoints.md); empezar con `USE_MOCKS=true`.
+- Consumir [02-endpoints.md](02-endpoints.md) contra el backend en `DATA_SOURCE=mock` (ya funciona).
 - Capas raster NASA (NDVI MODIS, lluvia IMERG) directo de **GIBS WMTS** (sin key):
   `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/{Layer}/default/{Time}/GoogleMapsCompatible_Level{N}/{z}/{y}/{x}.png`

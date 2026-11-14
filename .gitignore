@@ -109,3 +109,7 @@ logs/
 *.tmp
 *.temp
 *.bak
+
+# ── Backend: artefactos del modelo y caché ──────────────────
+BACK/models/*.joblib
+BACK/.model_cache/

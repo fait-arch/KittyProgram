@@ -15,58 +15,82 @@ meses `YYYY-MM`. Cifras en unidades SI; el front formatea con `es-EC`.
 Leyenda: **F1/F2/F3** = fase del proyecto · 🔒 = requiere `Authorization: Bearer <jwt Supabase>` ·
 🛠 = admin (`ADMIN_EMAILS` o cabecera `X-Admin-Key`).
 
-## Resumen
+## Qué dato se muestra y de dónde sale (lista acordada con Datos)
+
+| Dato | Endpoint | Campo |
+|------|----------|-------|
+| Temperatura óptima / absoluta, pH, altitud, suelo (ECOCROP) | `/crops/cacao/requirements` · `/areas/{id}/detail` | `numeric`, `categorical` · `requirement_check` (ok / warn / bad) |
+| Lluvia anual, altitud del área | `/areas/{id}/detail` | `climate.precip.annual`, `static.elevation_mean_m` |
+| Etapa del cultivo por región | `/crops/cacao/phenology` | `stage`, `months`, `is_risk_window` |
+| Precipitación, días lluviosos (≥ 1 mm), lluvia intensa (≥ 50 mm), HR (días ≥ 80 %), días > 32 °C, racha lluviosa, suelo saturado | `/areas/{id}/hazards` (mensual) · `/areas/{id}/climate` (escenario) | `precip_total_mm`, `wet_days`, `heavy_rain_days`, `humid_days`, `hot_days`, `max_consecutive_wet_days`, `saturated_days` |
+| Moniliasis, mazorca negra, escoba de bruja | `/crops/cacao/pathogens` · `/areas/{id}/risk` | `rule_text`, riesgo 0–1 por mes |
+| ONI, Niño 1+2, Niño / Niña / neutral / Niño costero | `/enso/current` · `/enso/history` · `/enso/years` | `phase`, `enso_class`, `is_coastal_nino` |
+| Ha plantadas / productivas / cosechadas / perdidas, producción, rendimiento | *(entrenamiento del modelo; la API muestra `exposed_ha`)* | — |
+| Precio por tonelada | `/areas/{id}/detail` vía pérdida | `loss_usd` = `loss_t` × precio |
+| Pérdida %, límites, ha expuestas, t perdidas, USD, factores | `/losses` · `/losses/geojson` · `/areas/{id}/detail` | `loss_pct`, `loss_pct_low/high`, `exposed_ha`, `loss_t`, `loss_usd`, `top_factors` |
+| Clases de riesgo | todas las de pérdida | `risk_class` (cortes en `classes`; **por validar**) |
+| 6 escenarios | `/scenarios` | `available` = ya hay predicción |
+
+## Resumen (implementado en `BACK/app/routers/`)
 
 | # | Método | Ruta | Fase | Lee de |
 |---|--------|------|------|--------|
 | **Sistema** |||||
-| 1 | GET | `/health` *(sin prefijo)* | F1 | Supabase ping, modelo en memoria |
+| 1 | GET | `/health` *(sin prefijo)* | F1 | BD, modelo en memoria, IA configurada |
 | 2 | GET | `/meta` | F1 | `data_sources`, `variables`, `model_versions` |
 | **Catálogos** |||||
 | 3 | GET | `/crops` | F1 | `crops` |
 | 4 | GET | `/crops/{crop}/requirements` | F1 | `crop_requirements` |
 | 5 | GET | `/crops/{crop}/pathogens` | F1 | `pathogens` + `disease_thresholds` |
-| 6 | GET | `/scenarios` | F1 | `scenarios` |
-| 7 | GET | `/strategies` | F1 | `adaptation_strategies` |
+| 5b | GET | `/crops/{crop}/phenology` | F1 | `crop_phenology` |
+| 6 | GET | `/scenarios` | F1 | `scenarios` + `v_loss_map` (`available`) |
+| 7 | GET | `/strategies` | F1 | `adaptation_strategies` + `strategy_effects` (+ supuestos) |
 | **El Niño** |||||
-| 8 | GET | `/enso/current` | F1 | `enso_index`, `enso_events` |
-| 9 | GET | `/enso/history` | F1 | `enso_index` |
+| 8 | GET | `/enso/current` | F1 | `enso_index`, `enso_events` → si vacío, **NOAA CPC en vivo** |
+| 9 | GET | `/enso/history` | F1 | `enso_index` (→ NOAA en vivo) |
 | 10 | GET | `/enso/events` | F1 | `enso_events` |
+| 10b | GET | `/enso/years` | F1 | `v_enso_year_class` (→ misma regla sobre NOAA en vivo) |
 | **Territorio** |||||
-| 11 | GET | `/areas` | F1 | `areas` |
+| 11 | GET | `/areas` | F1 | `areas` (+ `crop_exposure` con `has_crop`) |
 | 12 | GET | `/areas/geojson` | F1 | `areas.geom_simplified` |
 | 13 | GET | `/areas/lookup` | F1 | `areas.geom_simplified` + shapely |
 | 14 | GET | `/areas/{id}` | F1 | `areas`, `area_static_features`, `crop_exposure` |
 | **Clima y riesgo por área** |||||
 | 15 | GET | `/areas/{id}/climate` | F1 | `area_scenario_climate` |
 | 16 | GET | `/areas/{id}/series` | F1 | `area_monthly_series` |
-| 17 | GET | `/areas/{id}/risk` | F1 | `disease_risk_scenario` |
+| 16b | GET | `/areas/{id}/hazards` | F1 | `area_monthly_hazard` |
+| 17 | GET | `/areas/{id}/risk` | F1 | `disease_risk_scenario` + `crop_phenology` |
 | 18 | GET | `/areas/{id}/risk/history` | F1 | `disease_risk_monthly` + `enso_index` |
 | 19 | GET | `/areas/{id}/suitability` | F1 | `crop_suitability` |
 | **Pérdidas (núcleo)** |||||
 | 20 | GET | `/losses` | F1 | `v_loss_map` (modelo activo) |
-| 21 | GET | `/losses/summary` | F1 | `loss_predictions` agregado |
-| 22 | GET | `/areas/{id}/detail` | F1 | 7 tablas (ver [01](01-arquitectura.md)) |
-| 23 | GET | `/areas/{id}/strategies` | F1 | Calculado al vuelo: pérdida + riesgo + `strategy_effects` |
-| 23b | GET | `/areas/{id}/insights` | F1 | IA (Claude) sobre detalle + estrategias |
-| 23c | POST | `/areas/{id}/ask` | F1 | IA (Claude): pregunta libre sobre el cantón |
-| 24 | POST | `/predict` | F1.5 | Modelo en memoria + features del área |
+| 20b | GET | `/losses/geojson` | F1 | `v_loss_map` + geometría: **el mapa en una llamada** |
+| 21 | GET | `/losses/summary` | F1 | `v_loss_map` agregado |
+| 22 | GET | `/areas/{id}/detail` | F1 | 8 tablas (ver [01](01-arquitectura.md)) |
+| **Recomendaciones** |||||
+| 23 | GET | `/areas/{id}/strategies` | F1 | Calculado al vuelo: `loss_predictions` + riesgo + `strategy_effects` |
+| 23b | GET | `/areas/{id}/insights` | F1 | **IA (DeepSeek / Claude)** sobre detalle + estrategias + ENSO |
+| 23c | POST | `/areas/{id}/ask` | F1 | **IA**: pregunta libre sobre el cantón |
+| 24 | POST | `/predict` | F1.5 | Modelo `.joblib` en memoria |
 | **Fase 2** |||||
 | 25 | GET | `/compare` | F2 | igual que 22, varios escenarios |
 | 26 | GET | `/zones` | F2 | `zone_classification` |
 | **Punto libre** |||||
-| 27 | GET | `/point/climate` | F1 | NASA POWER (proxy + caché) + lookup |
+| 27 | GET | `/point/climate` | F1 | NASA POWER en vivo (caché 24 h) + lookup |
 | **Validación en campo** |||||
 | 28 | GET | `/observations` | F3 | `field_observations` |
-| 29 | POST | `/observations` 🔒 | F3 | `field_observations` |
-| 30 | GET | `/evaluations/{id}/reviews` | F3 | `strategy_reviews` |
-| 31 | POST | `/evaluations/{id}/reviews` 🔒 | F3 | `strategy_reviews` |
-| **Admin** |||||
-| 32 | POST | `/admin/cache/clear` 🛠 | F1 | — |
-| 33 | POST | `/admin/model/reload` 🛠 | F1.5 | `model_versions` + Storage |
-| 34 | POST | `/admin/enso/refresh` 🛠 | F1 | NOAA CPC → `enso_index` |
+| 29 | POST | `/observations` 🔒 | F3 | `field_observations` (como el usuario, RLS) |
+| **Admin** 🛠 |||||
+| 32 | POST | `/admin/cache/clear` | F1 | — |
+| 33 | POST | `/admin/model/reload` | F1.5 | `BACK/models/*.joblib` |
 
-**Mínimo para la demo de Fase 1:** 1, 2, 6, 8, 12, 20, 21, 22, 23. El resto suma.
+> No implementado: reseñas de estrategias (`strategy_reviews` apunta a `strategy_evaluations`,
+> que el backend no escribe) y refresco de ENSO a la BD (el backend no escribe en el esquema; si
+> `enso_index` está vacío, consulta NOAA en vivo).
+
+**Mínimo para la demo de Fase 1:** 1, 6, 8, 20b, 21, 22, 23, 23b. El resto suma.
+
+Todas las respuestas llevan la cabecera `X-Data-Source: mock|supabase`.
 
 ---
 
@@ -322,7 +346,7 @@ Estrategias evaluadas para ese cantón (≥ 3 + la actual, como pide el reto).
 { "area_id":"uuid","scenario":"nino","baseline_loss_pct":22.4,
   "priorities_applied":{"ingreso":5,"costo":4,"suelo":2},
   "items":[{
-     "rank":1,"strategy_id":"sanitario","name_es":"Manejo sanitario","evaluation_id":"uuid",
+     "rank":1,"strategy_id":"sanitario","name_es":"Manejo sanitario","is_current":false,
      "expected_loss_pct":13.4,"avoided_loss_usd":1800000,"net_benefit_usd":1250000,
      "cost_usd_ha_year":36,
      "why":"La moniliasis domina el riesgo de este cantón en ene–mar.",
@@ -330,14 +354,55 @@ Estrategias evaluadas para ese cantón (≥ 3 + la actual, como pide el reto).
      "benefits":["Reduce inóculo de moniliasis y mazorca negra"],
      "data_gaps":["Reducción de pérdida tomada de literatura, no medida en Vinces"],
      "risks":["Requiere mano de obra semanal en época lluviosa"],
-     "validated":false, "reviews":{"count":0,"agree":0}
+     "loss_reduction_pct":23.0, "income_protected_usd":0, "cost_total_usd":1572000,
+     "targets":[{"target":"monilia","reduction_pct":[25,50],"weight":0.31,"source":"supuesto del backend (por validar)","validated":false}],
+     "attributes":{"soil":0.2,"water":0.0,"labor":0.8}, "validated":false
   }, {"rank":4,"strategy_id":"actual","name_es":"Manejo actual","is_current":true, "…":"…"}] }
 ```
 
-- Sin `priorities` → orden de `strategy_evaluations.rank` (beneficio neto).
+- Se calcula **al vuelo** (no se lee `strategy_evaluations`): reducción por objetivo de
+  `strategy_effects` × peso del patógeno en el riesgo del cantón. Si `strategy_effects` no tiene
+  valores, usa supuestos de `BACK/app/services/strategies.py` marcados `validated: false`.
+- `actual` **siempre al final** (es la referencia).
+- Sin `priorities` → orden por `net_benefit_usd`.
 - Con `priorities` (`ingreso`, `costo`, `suelo`, `agua`, `mano_obra`; 0–5) → el backend
   **reordena en vivo** con un puntaje ponderado (fórmula en [05](05-pendientes.md) § D3).
   Responde a "farmer priorities" del reto sin recalcular nada.
+
+### 23b. `GET /areas/{id}/insights?scenario=nino&crop=cacao&priorities=ingreso:5`
+
+La IA (`AI_PROVIDER=deepseek` → `deepseek-chat` por defecto; o `anthropic` → `claude-opus-5-5`)
+recibe el detalle del cantón, las estrategias evaluadas y el estado ENSO, y devuelve JSON con este
+esquema (validado con Pydantic; con DeepSeek se usa modo JSON y se reintenta una vez si no cumple):
+
+```json
+{ "area_id":"uuid","area_name":"Vinces","scenario":"nino","priorities":{"ingreso":5},
+  "resumen":"Vinces tiene riesgo alto de moniliasis en un año Niño…",
+  "nivel_alerta":"alto",
+  "hallazgos":[{"titulo":"…","detalle":"…","evidencia":"ERA5-Land: 120 días favorables en ene–jun"}],
+  "recomendaciones":[{"accion":"Cosecha sanitaria semanal","por_que":"…","cuando":"enero a abril",
+                      "prioridad":"alta","estrategia_id":"sanitario"}],
+  "meses_criticos":[1,2,3], "vacios_de_datos":["…"], "validar_con_experto":["…"],
+  "model":"deepseek-chat","provider":"deepseek","generated_by":"ia","disclaimer":"…" }
+```
+
+- La IA **no calcula**: solo interpreta números que ya devolvió la API (se le prohíbe inventar).
+- Caché 6 h por (área, escenario, prioridades). Tarda 10–40 s la primera vez → mostrar *loading*.
+- Errores: `503 ai_not_configured` (falta la key del proveedor), `429 ai_rate_limited`,
+  `502 ai_refused | ai_truncated | ai_bad_output | ai_no_balance | ai_error | ai_unreachable`.
+- Con Claude se activa *server-side fallback* si el modelo rechaza la solicitud.
+
+### 23c. `POST /areas/{id}/ask`
+
+```json
+// request
+{ "question":"¿Cuándo debo hacer la poda?", "scenario":"nino",
+  "history":[{"role":"user","content":"…"},{"role":"assistant","content":"…"}] }
+// response
+{ "area_id":"uuid","scenario":"nino","answer":"…","model":"deepseek-chat","provider":"deepseek","disclaimer":"…" }
+```
+
+Sin caché. `history` máx. 20 turnos (se envían los últimos 10).
 
 ### 24. `POST /predict` (what-if) — F1.5
 
@@ -361,7 +426,9 @@ Sliders del reto ("scenario sliders that adjust rainfall or temperature").
 ```
 
 Cómo se recalculan las features con los ajustes: ver [03-integracion-ml.md](03-integracion-ml.md) § 4.
-`503` si el modelo no está cargado. Límite: `temp_delta_c` −3…+4, `rain_delta_pct` −50…+100.
+`503 model_not_loaded` si no hay `.joblib` (en `DATA_SOURCE=mock` responde con un predictor
+sintético y `"synthetic": true`). Límites: `temp_delta_c` −3…+4, `rain_delta_pct` −50…+100,
+`nino12_anom` −3…+6, `oni` −3…+3.5 → `400 adjust_out_of_limits`.
 
 ---
 
@@ -405,12 +472,8 @@ cantón (que es la fuente principal).
 
 `GET ?area_id=&pathogen=&source=gbif` → lista (pública).
 `POST` 🔒 `{ "pathogen_id":"monilia","observed_on":"2026-11-10","lat":-1.55,"lon":-79.75,"pods_total":50,"pods_diseased":12,"severity":3,"notes":"…" }`
-→ `area_id` lo resuelve el backend con `area_at_point`; `source` = `agricultor` o `tecnico`
-según el rol; `observer_id` = usuario. Se escribe con el **cliente de usuario** (RLS).
-
-### 30–31. `/evaluations/{id}/reviews`
-
-`POST` 🔒 `{ "reviewer_role":"agronomo","verdict":"parcial","comment":"…" }`.
+(+ `"role": "agricultor"|"tecnico"`) → `area_id` lo resuelve el backend con el lookup por punto;
+`source` = `role`; `observer_id` = usuario. Se escribe con el **cliente de usuario** (RLS).
 
 ---
 
@@ -418,8 +481,7 @@ según el rol; `observer_id` = usuario. Se escribe con el **cliente de usuario**
 
 | Ruta | Hace |
 |------|------|
-| `POST /admin/cache/clear` | Vacía la caché en memoria. Lo llama ML al terminar `predict.py`. |
-| `POST /admin/model/reload` | Vuelve a leer `model_versions` activo y descarga el artefacto. |
-| `POST /admin/enso/refresh` | Descarga ONI y Niño 1+2 de NOAA y hace *upsert* en `enso_index` (rápido, sin GEE). |
+| `POST /admin/cache/clear` | Vacía la caché en memoria. Llamarlo cuando ETL/ML actualicen datos. |
+| `POST /admin/model/reload` | Vuelve a cargar `MODEL_PATH` (el `.joblib`) sin reiniciar. |
 
 Protegidos por `X-Admin-Key: <ADMIN_API_KEY>` (scripts) o JWT de un email en `ADMIN_EMAILS`.

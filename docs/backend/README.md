@@ -57,16 +57,26 @@ defecto) por si el equipo agrega otros cultivos sin rehacer la API.
 |-------|--------|
 | Contrato de endpoints | 📝 Este documento |
 | Esquema Supabase (0001–0006) | ✅ Desplegado (Diego) |
-| Código FastAPI (`BACK/app/`) | 🚧 En construcción (rama `emilio/backend`) |
-| Insights y recomendaciones con IA (Claude) | 🚧 En construcción |
+| Código FastAPI (`BACK/app/`), 36 rutas | ✅ Funciona en `DATA_SOURCE=mock`; 50 tests |
+| Insights y recomendaciones con IA (DeepSeek) | ✅ Implementado; falta `DEEPSEEK_API_KEY` |
+| Conexión a Supabase real (`chjgktgkilxjuwuuekah`) | ✅ Probada: catálogos con datos; territorio, ENSO y pérdidas vacíos hasta el ETL (ENSO cae a NOAA en vivo) |
+| Porcentajes/costos de estrategias | ⚠ **Supuestos por validar**: ver [05 § Supuestos](05-pendientes.md) |
 | ETL que llena tablas | ⏳ Datos |
 | Modelo y `loss_predictions` | ⏳ ML |
+
+## Arrancar en 1 minuto
+
+```bash
+cd BACK && uv venv --python 3.12 venv && uv pip install --python venv/bin/python -r requirements.txt
+cp .env.example .env && venv/bin/uvicorn run:app --reload --host 0.0.0.0 --port 8000
+# http://localhost:8000/docs
+```
 
 ## Reglas del backend
 
 1. **La API no calcula en vivo con GEE.** Todo lo pesado está precalculado en Supabase.
 2. Lo único "en vivo": NASA POWER por punto (con caché), el *what-if* con el modelo cargado
    en memoria (milisegundos), las estrategias (se calculan al vuelo con `strategy_effects`) y
-   los insights de IA (Claude, con caché).
+   los insights de IA (DeepSeek, con caché).
 3. Toda respuesta con resultados lleva `disclaimer` y la versión del modelo usada.
 4. Secretos solo en `BACK/.env` (nunca en el repo). Ver [04](04-supabase-config.md).

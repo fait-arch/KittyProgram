@@ -3,20 +3,29 @@
 Base: [docs/05-modelo-predictivo.md](../05-modelo-predictivo.md). Aquí está el **contrato** entre
 el modelo y el backend, para que cada uno trabaje sin bloquear al otro.
 
-## 1. Dos modos de integración (ambos soportados)
+## 1. Dos modos de integración
 
 | Modo | Cómo | Cuándo |
 |------|------|--------|
-| **A. Batch (principal)** | ML corre `predict.py` y escribe `loss_predictions` + `strategy_evaluations`. El backend solo lee. | Siempre. Es lo que pinta el mapa. |
-| **B. En vivo (what-if)** | El backend carga el artefacto del modelo activo y predice al vuelo en `POST /predict`. | Sliders de lluvia/temperatura/Niño. |
+| **A. Batch (principal)** | ML corre `predict.py` y escribe `loss_predictions` (+ `model_versions`). El backend solo lee `v_loss_map`. | Siempre. Es lo que pinta el mapa. |
+| **B. En vivo (what-if)** | **El modelo vive dentro del backend**: ML entrega el `.joblib` y se copia a `BACK/models/cacao_loss.joblib`. `POST /predict` lo usa en memoria. | Sliders de lluvia/temperatura/Niño. |
 
-Variable `PREDICTOR_MODE` en `.env`:
+`PREDICTOR_MODE=local` (defecto) o `off`. Recarga sin reiniciar: `POST /api/v1/admin/model/reload`.
+Código: `BACK/app/services/predictor.py`. Ver [`BACK/models/README.md`](../../BACK/models/README.md).
 
-| Valor | Efecto |
-|-------|--------|
-| `local` | El backend importa el paquete `ml` y carga el `.joblib` (defecto) |
-| `remote` | El backend reenvía a `ML_SERVICE_URL/predict` (si ML prefiere su propio servicio) |
-| `off` | `/predict` responde `503`; el resto funciona |
+### Con el paquete `ml/` de Arthur (rama `beltranfuego`)
+
+| Tema | Cómo lo maneja el backend |
+|------|---------------------------|
+| Artefacto en `ml/artifacts/cacao_loss_vX.joblib` | `MODEL_PATH=../ml/artifacts/cacao_loss_v1.joblib` (o copiarlo a `BACK/models/`) |
+| Features como **anomalías dentro del área** (`dataset.area_anomalies`) | El bundle debe traer `area_means = {area_name o area_id: {feature: media}}`; el backend resta antes de predecir |
+| Nombres propios (`nino12_jan_jun`, `suitability`, `rain_total`, `y_anom_prev`…) | Alias en `predictor.ALIASES` + etiquetas en `labels.FEATURES` |
+| Lógica propia de ajuste/predicción | Si existe `ml/inference.py` con `adjust_features` y `predict`, el backend la importa (`ML_INFERENCE_MODULE=ml.inference`, raíz del repo en `sys.path`) |
+| Features que el backend no puede reconstruir (`rain_max_5d`, `et0_total`, `rain_prev_ond`…) | Recomendado: `scenario_features` en el bundle. Si falta, se usa 0 = media del área |
+
+**Lo más simple para Arthur:** guardar en el bundle `scenario_features` (vector por área × escenario,
+ya en anomalía o absoluto + `area_means`) y escribir `ml/inference.py`. Así el backend no
+reimplementa ninguna fórmula.
 
 ## 2. Contrato del modo batch (tablas)
 
@@ -32,7 +41,7 @@ Variable `PREDICTOR_MODE` en `.env`:
   "best": "ridge" }
 ```
 
-- `artifact_path`: ruta en Supabase Storage, bucket `models`, p. ej. `cacao/cacao_loss_v1.joblib`.
+- `artifact_path`: informativo (el backend carga el archivo local `MODEL_PATH`).
 
 ### `loss_predictions`
 
@@ -122,6 +131,10 @@ def predict(bundle: dict, features: dict) -> dict:
     """→ {"loss_pct", "loss_pct_low", "loss_pct_high", "top_factors": [...], "out_of_range": bool}"""
 ```
 
+Si `ml/inference.py` no existe, el backend usa su propia lógica genérica: ajusta las features
+con reglas simples (lluvia escala aguaceros/saturación; temperatura reduce días favorables) y
+calcula contribuciones como *pred(x) − pred(x con la feature en su media)*.
+
 El backend completa `loss_t`, `loss_usd` y `risk_class` con `exposed_ha`,
 `expected_yield_t_ha` y `price_usd_t` de la fila base de `loss_predictions`
 (misma fórmula que §6 de 05-modelo-predictivo).
@@ -129,14 +142,10 @@ El backend completa `loss_t`, `loss_usd` y `risk_class` con `exposed_ha`,
 **Requisito:** misma versión de `scikit-learn` en `ml/requirements.txt` y `BACK/requirements.txt`
 (se fija en ambos; si no, `joblib.load` puede fallar).
 
-### Modo `remote` (si ML levanta su propio servicio)
-
-`POST {ML_SERVICE_URL}/predict` con `{"features": {...}}` → misma respuesta que `predict()`.
-El backend sigue siendo quien habla con el front.
-
 ## 5. Mientras el modelo no exista
 
-- `USE_MOCKS=true` → `/losses`, `/detail`, `/strategies` devuelven `BACK/app/mocks/*.json`.
+- `DATA_SOURCE=mock` → toda la API responde con datos sintéticos del mismo formato y `/predict`
+  usa un predictor sintético (`"synthetic": true`).
 - Línea base del propio doc de ML (pérdida media Niño vs no-Niño) puede escribirse en
   `loss_predictions` con `model_versions.algorithm = 'baseline'` para tener datos reales
   mínimos antes del modelo final.
@@ -145,6 +154,7 @@ El backend sigue siendo quien habla con el front.
 
 - [ ] `model_versions` con `is_active`, `features`, `metrics` (claves § 2), `artifact_path`
 - [ ] `loss_predictions` para `normal`, `nino`, `actual` × cantones y provincias, con `features` y `top_factors`
-- [ ] Artefacto `.joblib` (formato § 4) subido al bucket `models`
+- [ ] Artefacto `.joblib` (formato § 4) entregado → `BACK/models/cacao_loss.joblib` (incluir `scenario_features`)
 - [ ] `ml/inference.py` con `adjust_features` y `predict`
-- [ ] Llamar `/admin/cache/clear` al terminar
+- [ ] Misma versión de `scikit-learn` que `BACK/requirements.txt` (1.5.2)
+- [ ] Llamar `/admin/cache/clear` al terminar `predict.py`

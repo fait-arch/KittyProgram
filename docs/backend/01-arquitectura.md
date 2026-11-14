@@ -14,37 +14,39 @@
 
 ```
 BACK/
-├── run.py                      # app = create_app()
-├── requirements.txt
-├── .env.example
+├── run.py                      # app = create_app()  →  uvicorn run:app
+├── requirements.txt · .env.example
+├── models/                     # aquí ML deja cacao_loss.joblib (no se versiona)
+├── tests/                      # pytest: contrato en modo mock, IA simulada, bundles sklearn reales
 └── app/
-    ├── main.py                 # create_app(): CORS, routers, handlers de error, lifespan
+    ├── main.py                 # create_app(): CORS, routers, errores, /health, cabecera X-Data-Source
     ├── core/
-    │   ├── config.py           # Settings (pydantic-settings) desde .env
-    │   ├── supabase.py         # anon_client() · service_client() · user_client(token)
-    │   ├── auth.py             # get_current_user (JWT Supabase), require_admin
-    │   ├── cache.py            # TTLCache en memoria por clave de consulta
-    │   └── errors.py           # PostgREST → HTTP
-    ├── schemas/                # Pydantic de respuesta (el contrato de 02-endpoints.md)
-    │   ├── common.py           # Disclaimer, ModelInfo, Paginated
-    │   ├── catalog.py · enso.py · areas.py · losses.py · strategies.py · predict.py
-    ├── repositories/           # SOLO consultas a Supabase, una función por consulta
-    │   ├── catalog_repo.py · enso_repo.py · areas_repo.py · climate_repo.py
-    │   ├── risk_repo.py · losses_repo.py · strategies_repo.py · model_repo.py
-    ├── services/               # lógica: agregar, combinar, reordenar
-    │   ├── detail_service.py   # arma /areas/{id}/detail (varias tablas → 1 respuesta)
-    │   ├── strategy_service.py # reordena estrategias por prioridades del agricultor
-    │   ├── predictor.py        # carga el modelo activo y hace what-if
-    │   ├── power_service.py    # proxy NASA POWER con caché
-    │   └── enso_service.py     # fase ENSO actual + refresco NOAA
-    ├── routers/                # HTTP: validar params, llamar service/repo, devolver schema
-    │   ├── system.py · catalog.py · enso.py · areas.py · losses.py
-    │   ├── strategies.py · predict.py · point.py · field.py · admin.py
-    └── mocks/                  # JSON de ejemplo con el formato real (USE_MOCKS=true)
+    │   ├── config.py           # Settings (pydantic-settings) desde BACK/.env
+    │   ├── supabase.py         # anon_client() · user_client(jwt)
+    │   ├── auth.py             # get_current_user (JWT Supabase), require_admin (X-Admin-Key)
+    │   ├── cache.py            # @cached(ttl): TTLCache en memoria + clear_all()
+    │   └── errors.py           # ApiError(status, code, detail) → {"detail","code"}
+    ├── data/                   # ÚNICO lugar que sabe de dónde vienen los datos
+    │   ├── supabase_source.py  # lecturas PostgREST (paginadas), usa v_loss_map, geom_simplified…
+    │   ├── mock_source.py      # misma interfaz, datos sintéticos (DATA_SOURCE=mock)
+    │   └── common.py           # name_key (sin tildes), GeoJSON/WKB, uuid
+    ├── services/               # lógica: no saben si la fuente es mock o Supabase
+    │   ├── territory.py        # provincias, GeoJSON, lookup por punto (shapely STRtree)
+    │   ├── enso.py             # fase actual; NOAA CPC en vivo si la BD está vacía
+    │   ├── climate.py          # climatología, ventana de riesgo, riesgo por patógeno, chequeo ECOCROP
+    │   ├── losses.py           # mapa, resumen, fila completa del modelo activo
+    │   ├── detail.py           # panel del cantón (una llamada)
+    │   ├── strategies.py       # evaluación al vuelo + ranking por prioridades (+ supuestos por validar)
+    │   ├── predictor.py        # carga el .joblib y hace el what-if
+    │   ├── insights.py         # IA: insights estructurados y preguntas libres
+    │   ├── ai_providers.py     # DeepSeek (por defecto) o Claude, misma interfaz
+    │   ├── power.py            # NASA POWER por punto (caché 24 h)
+    │   └── labels.py           # textos para agricultor, disclaimer, atribución, etiquetas de features
+    └── routers/                # HTTP: catalog · enso · areas · losses · advice · misc
 ```
 
-> Endpoints con `def` (no `async def`): `supabase-py` es síncrono y FastAPI los corre en un
-> *thread pool*. Para `httpx` (POWER) se usa el cliente síncrono también, para no mezclar.
+> Endpoints con `def` (no `async def`): `supabase-py` y el SDK de Anthropic se usan en modo
+> síncrono y FastAPI los corre en un *thread pool*.
 
 ## Qué es precalculado y qué es en vivo
 
@@ -54,6 +56,8 @@ BACK/
 | GeoJSON de cantones | RPC PostGIS simplificada | < 500 ms primera vez, luego caché |
 | ENSO actual | Supabase (`enso_index`); refresco NOAA por `/admin` | < 100 ms |
 | Clima de un punto cualquiera | NASA POWER en vivo | 1–5 s primera vez, luego caché 24 h |
+| Estrategias | Calculadas al vuelo (pérdida × efectos) | < 50 ms |
+| Insights IA | DeepSeek / Claude (JSON validado) | 10–40 s primera vez, luego caché 6 h |
 | What-if (sliders de lluvia/temperatura/Niño) | Modelo en memoria | < 50 ms |
 | Capas raster (NDVI, lluvia) en el mapa | **El front pide directo a NASA GIBS (WMTS, sin key)** | — |
 
@@ -63,7 +67,8 @@ BACK/
   - Catálogos, escenarios, GeoJSON: TTL 24 h.
   - Pérdidas/detalle/estrategias: TTL 1 h (cambian solo cuando ML vuelve a predecir).
   - POWER por punto: TTL 24 h, coordenadas redondeadas a 2 decimales (~1 km).
-- **Invalidación:** `POST /api/v1/admin/cache/clear` (lo llama el ML al terminar `predict.py`).
+  - Insights IA: TTL 6 h por (área, escenario, prioridades).
+- **Invalidación:** `POST /api/v1/admin/cache/clear` (llamarlo cuando ETL/ML actualicen la BD).
 - Cabecera `Cache-Control: public, max-age=300` en respuestas de lectura.
 
 ## Flujo de una petición típica: clic en un cantón
