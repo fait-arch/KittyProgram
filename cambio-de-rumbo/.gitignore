@@ -1,0 +1,3 @@
+BACK/cache/
+BACK/data/raw/**/*
+!BACK/data/raw/**/.gitkeep
