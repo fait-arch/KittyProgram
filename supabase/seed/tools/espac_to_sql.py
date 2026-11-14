@@ -10,7 +10,8 @@ nacional (±2 %). El lector sigue la lógica de ml/etl/production.py (rama beltr
     python -I supabase/seed/tools/espac_to_sql.py supabase/seed/raw/espac supabase/seed/data
 
 Salidas:
-  <raw>/espac_cacao_provincias.csv     todas las provincias y años (incluye las no cargadas en areas)
+  <data>/espac_cacao_provincias.csv    todas las provincias y años (incluye las no cargadas en areas)
+  <data>/espac_cacao_nacional.csv      total nacional por año
   <data>/07_espac_real.sql             upsert en crop_production_stats (source_id = 'espac') y
                                        borrado de las filas sintéticas del mismo área × año.
 
@@ -167,12 +168,12 @@ def main() -> int:
             nat_rows.append({"year": y, "planted_ha": national[0], "harvested_ha": national[1],
                              "production_t": national[2], "year_ok": ok})
 
-    csv_path = RAW / "espac_cacao_provincias.csv"
+    csv_path = OUT / "espac_cacao_provincias.csv"   # versionado (data/)
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader()
         w.writerows(rows)
-    with open(RAW / "espac_cacao_nacional.csv", "w", newline="", encoding="utf-8") as f:
+    with open(OUT / "espac_cacao_nacional.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(nat_rows[0]))
         w.writeheader()
         w.writerows(nat_rows)

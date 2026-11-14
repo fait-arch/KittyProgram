@@ -81,8 +81,16 @@ Archivo: [`supabase/seed/data/07_espac_real.sql`](../supabase/seed/data/07_espac
 **220 filas provinciales + 24 nacionales.** Las provincias de la Sierra (Bolívar, Cotopaxi,
 Pichincha, Cañar…) están en el CSV pero **no se cargan** porque no existen en `areas` (ver [08](08-informe-datos.md) § 4.7).
 
-Datos locales completos (todas las provincias): `supabase/seed/raw/espac/espac_cacao_provincias.csv`
-(478 filas) y `espac_cacao_nacional.csv`.
+Datos completos (todas las provincias, incluida la Sierra), **versionados**:
+[`supabase/seed/data/espac_cacao_provincias.csv`](../supabase/seed/data/espac_cacao_provincias.csv) (478 filas, 54 KB) y
+[`espac_cacao_nacional.csv`](../supabase/seed/data/espac_cacao_nacional.csv). Columnas: `year, province, name_key, dpa,
+planted_ha, harvested_ha, production_t, sales_t, yield_t_ha, hidden_values, year_ok, sheet`.
+Los Excel originales (91 MB) no se versionan: están en `supabase/seed/raw/espac/` y se regeneran con las URLs de arriba.
+
+```python
+import pandas as pd
+df = pd.read_csv("supabase/seed/data/espac_cacao_provincias.csv")   # para ML, sin pasar por Supabase
+```
 
 ## Cómo inyectar (no se ha ejecutado todavía)
 
