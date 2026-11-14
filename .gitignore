@@ -1,0 +1,111 @@
+# ==============================================================
+#  AgriculturalUIDE — .gitignore
+# ==============================================================
+
+# ── SECRETOS — nunca subir ────────────────────────────────────
+# Credenciales de Google Earth Engine / Google Cloud
+gee-key.json
+*-key.json
+*service-account*.json
+credentials.json
+client_secret*.json
+.gee-key.json
+
+# Variables de entorno (el .env.example SI se versiona, ver excepcion abajo)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Claves y certificados
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ── Python / FastAPI ──────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.ipynb_checkpoints/
+
+# ── Node / Next.js ────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+.next/
+out/
+build/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Lockfile espurio en la raiz (no hay package.json aqui; el bueno es front/)
+/package-lock.json
+
+# ── Datos pesados y salidas de analisis ───────────────────────
+# Descomenta si empiezas a generar rasters/exports desde GEE
+# *.tif
+# *.tiff
+# *.geotiff
+# data/raw/
+# exports/
+
+# ── Docker ────────────────────────────────────────────────────
+.docker/
+docker-compose.override.yml
+
+# ── Editores / IDE ────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+
+# ── Sistema operativo ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Carpetas basura pendientes de borrar ──────────────────────
+# Red de seguridad para que un `git add -A` no las suba por error.
+_to_delete/
+/Escritorio/
+
+# ── Temporales y logs ─────────────────────────────────────────
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
