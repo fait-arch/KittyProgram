@@ -19,6 +19,7 @@ En Supabase → **SQL Editor**, ejecutar en orden:
 1. `supabase/migrations/0001_init.sql`
 2. `supabase/migrations/0002_fk_indexes.sql`
 3. `supabase/migrations/0003_field_rpc.sql`
+4. `supabase/migrations/0004_more_sources.sql`
 
 o con la CLI: `supabase db push`.
 

@@ -36,9 +36,10 @@ climate_repo.get(area_id, variables) ──► ¿todas las variables en caché y
 | `ndvi` | GEE `MODIS/061/MOD13Q1` | `NDVI × 0.0001`, media mensual |
 | `lst_day` | GEE `MODIS/061/MOD11A2` | `LST_Day_1km × 0.02 − 273.15` |
 | `et_actual` | GEE `MODIS/061/MOD16A2GF` | `ET × 0.1` (mm/8 días) → mm/mes |
-| `t2m`, `t2m_max`, `t2m_min`, `rh2m`, `solar_rad` | NASA POWER (punto = centroide) | API `climatology/point`, comunidad `AG` |
-| `et0` | FAO-56 Penman-Monteith calculado con datos POWER (`T2M_MAX`, `T2M_MIN`, `RH2M`, `WS2M`, `ALLSKY_SFC_SW_DWN`) | mm/mes. **No usar `EVPTRNS`**: es evapotranspiración *real* del modelo (p. ej. 0.06 mm/día en noviembre en Babahoyo), no la de referencia |
-| `frost_days` | NASA POWER diario | Días con `T2M_MIN` < 2 °C |
+| `t2m`, `t2m_max`, `t2m_min` | GEE `ECMWF/ERA5_LAND/DAILY_AGGR` (respaldo: NASA POWER) | Media mensual; ver [07-extraccion-datos.md](07-extraccion-datos.md) |
+| `rh2m`, `solar_rad` | NASA POWER (punto = centroide) | API `climatology/point`, comunidad `AG` |
+| `et0` | FAO-56 Penman-Monteith calculado con ERA5-Land diario (respaldo: datos POWER (`T2M_MAX`, `T2M_MIN`, `RH2M`, `WS2M`, `ALLSKY_SFC_SW_DWN`)) | mm/mes. **No usar `EVPTRNS`**: es evapotranspiración *real* del modelo (p. ej. 0.06 mm/día en noviembre en Babahoyo), no la de referencia |
+| `frost_days` | ERA5-Land diario (respaldo: POWER) | Días con `temperature_2m_min` < 2 °C |
 | `water_balance` | Derivado | `precip − et0` |
 | Estáticos | GEE SRTM, OpenLandMap, WorldCover, GRACE | Media/percentil sobre el polígono |
 
