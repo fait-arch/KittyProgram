@@ -5,6 +5,7 @@ Datasets (area mean per day, masked to cacao-relevant land):
   gpm   NASA/GPM_L3/IMERG_V07 (30 min)    1998→   daily precip = Σ(mm/h) × 0.5, UTC days
   gldas NASA/GLDAS/V021/NOAH/G025/T3H     2000→   daily mean RootMoist_inst, SoilMoi0_10cm_inst
   smap  NASA/SMAP/SPL4SMGP/008            2015-03→ daily mean sm_surface, sm_rootzone
+  chirps UCSB-CHG/CHIRPS/DAILY            1981→   daily precip (satélite + estaciones, ~5 km)
 
 Each (dataset, area, year) chunk is one server-side aggregation + getInfo, cached to
 ml/data/raw/gee/{dataset}/{area_slug}_{year}.parquet (reruns skip cached chunks).
@@ -56,8 +57,10 @@ DATASETS = {
                   kind="mean", bands=["RootMoist_inst", "SoilMoi0_10cm_inst"]),
     "smap": dict(collection="NASA/SMAP/SPL4SMGP/008", first=date(2015, 3, 31), scale=11000,
                  kind="mean", bands=["sm_surface", "sm_rootzone"]),
+    "chirps": dict(collection="UCSB-CHG/CHIRPS/DAILY", first=date(1981, 1, 1), scale=5566,
+                   kind="daily_plain", bands=["precipitation"]),
 }
-PRIORITY = ["era5", "gpm", "gldas", "smap"]
+PRIORITY = ["era5", "gpm", "gldas", "smap", "chirps"]
 
 
 def _era5_prep(img: ee.Image) -> ee.Image:
@@ -79,6 +82,7 @@ RENAME = {
     "gpm": {"precipitation": "precip_gpm_mm"},
     "gldas": {"RootMoist_inst": "gldas_rootmoist_kgm2", "SoilMoi0_10cm_inst": "gldas_sm0_10_kgm2"},
     "smap": {"sm_surface": "smap_sm_surface_m3m3", "sm_rootzone": "smap_sm_rootzone_m3m3"},
+    "chirps": {"precipitation": "precip_chirps_mm"},
 }
 
 
@@ -98,6 +102,10 @@ def _fc_for_range(ds: str, geom: ee.Geometry, mask: ee.Image, start: date, end: 
     if spec["kind"] == "daily":
         col = col.filterDate(start.isoformat(), end.isoformat())
         return col.map(lambda img: reduce(_era5_prep(img), img.date()))
+    if spec["kind"] == "daily_plain":
+        names = list(RENAME[ds].values())
+        col = col.filterDate(start.isoformat(), end.isoformat())
+        return col.map(lambda img: reduce(img.rename(names), img.date()))
 
     s = ee.Date(start.isoformat())
     n = (end - start).days
@@ -276,7 +284,7 @@ def main():
         ds = [d.strip() for d in a.datasets.split(",") if d.strip()]
         areas = [x.strip() for x in a.areas.split(",") if x.strip()]
         run(ds, areas, a.start_year, min(a.end_year, date.today().year), min(a.workers, 8))
-    combine(a.start_year, a.end_year)
+    combine()            # siempre la serie completa: una descarga parcial no recorta el archivo
 
 
 if __name__ == "__main__":

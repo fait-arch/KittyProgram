@@ -112,17 +112,24 @@ class BiasCorrection:
     qm[area][mes]               -> (cuantiles ERA5, cuantiles GPM) para mapear lluvia
     thresholds[area][nombre]    -> percentiles de referencia (lluvia p95, suelo p90)
     meta[area]                  -> lat, elev_m
+    rain_ref                    -> columna de lluvia de referencia del quantile mapping
+                                   (precip_gpm_mm 1998→ o precip_chirps_mm 1981→)
+    use_obs                     -> True: donde hay dato de `rain_ref` se usa tal cual y el
+                                   quantile mapping de ERA5 solo rellena los años anteriores
     """
     temp_delta: dict = field(default_factory=dict)
     qm: dict = field(default_factory=dict)
     thresholds: dict = field(default_factory=dict)
     meta: dict = field(default_factory=dict)
+    rain_ref: str = "precip_gpm_mm"
+    use_obs: bool = False
 
     # ---- ajuste -------------------------------------------------------------------
     @classmethod
     def fit(cls, daily: pd.DataFrame, worldclim: pd.DataFrame, area_meta: pd.DataFrame,
-            qm_years: tuple[int, int] | None = None) -> "BiasCorrection":
-        bc = cls()
+            qm_years: tuple[int, int] | None = None, rain_ref: str = "precip_gpm_mm",
+            use_obs: bool = False) -> "BiasCorrection":
+        bc = cls(rain_ref=rain_ref, use_obs=use_obs)
         daily = daily.assign(month=daily.date.dt.month, year=daily.date.dt.year)
         for area, g in daily.groupby("area_name"):
             m = area_meta.set_index("area_name").loc[area]
@@ -138,15 +145,15 @@ class BiasCorrection:
                 "t2m_max_c": (wc.wc_tmax_c - ref.t2m_max_c).to_dict(),
             }
 
-            # Lluvia: quantile mapping empírico ERA5 -> GPM en el periodo común
-            both = g.dropna(subset=["precip_gpm_mm", "precip_era5_mm"])
+            # Lluvia: quantile mapping empírico ERA5 -> referencia (GPM o CHIRPS), periodo común
+            both = g.dropna(subset=[rain_ref, "precip_era5_mm"])
             if qm_years:
                 both = both[both.year.between(*qm_years)]
             bc.qm[area] = {}
             for month in range(1, 13):
                 s = both[both.month.isin(_season(month))]
                 bc.qm[area][month] = (np.quantile(s.precip_era5_mm, QM_QUANTILES),
-                                      np.quantile(s.precip_gpm_mm, QM_QUANTILES))
+                                      np.quantile(s[rain_ref], QM_QUANTILES))
         # Umbrales de referencia (sobre datos ya corregidos)
         corrected = bc.apply(daily.drop(columns=["month", "year"]))
         ref = corrected[corrected.date.dt.year.between(*REF_PERIOD)]
@@ -175,6 +182,8 @@ class BiasCorrection:
                 sel = (month == mth).to_numpy()
                 if sel.any():
                     g.loc[sel, "precip_mm"] = _qmap(g.precip_era5_mm.to_numpy()[sel], *self.qm[area][mth])
+            if self.use_obs and self.rain_ref in g.columns:
+                g["precip_mm"] = g[self.rain_ref].where(g[self.rain_ref].notna(), g.precip_mm)
             out.append(g)
         return pd.concat(out).sort_values(["area_name", "date"]).reset_index(drop=True)
 

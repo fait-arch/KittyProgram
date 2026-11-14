@@ -184,3 +184,16 @@ de `model_versions`.
   re-ejecutar con los datos ENSO nuevos.
 - Toneladas y USD: hectáreas y rendimiento de tendencia del último año, precio FAOSTAT del último
   año disponible (2024: 5 602 USD/t, año de precio récord).
+
+### Intentos de mejora que NO se adoptaron (validados igual: leave-one-year-out y bloques de 3 años)
+
+| Intento | Correlación nacional | RMSE | Por qué no |
+|---|---|---|---|
+| Modelo actual | **0,54** | **15,3** | — |
+| + lluvia extrema 1–2 años antes (efecto post-Niño) | 0,45–0,55 | 15,5–16,4 | Las caídas de 2000–2002 coinciden con la crisis de la dolarización y un salto de la superficie FAOSTAT, no con el clima |
+| Lluvia ERA5 calibrada con CHIRPS (en vez de GPM) | 0,54 | 15,3 | Igual: no aporta |
+| Lluvia observada CHIRPS 1981→ | 0,45 | 16,3 | CHIRPS suaviza los extremos (1998: +93 % vs +126 % de GPM) |
+
+CHIRPS queda en el ETL (`--datasets chirps`) y en `BiasCorrection.fit(rain_ref=…, use_obs=…)` por si
+se quiere revisar. El límite de precisión está en los datos de producción (solo dos Niños extremos y
+estadísticas provinciales ruidosas), no en el modelo.
