@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/*
+ * CacaoResiliente · tokens de diseño
+ * Material Design 3 (roles) × paleta NASA Space Apps 2026.
+ * Fuente de verdad: docs/07-propuesta-ui.md. Tema por defecto: Misión (oscuro).
+ * El tema Campo (claro) se activa con <html data-theme="campo">.
+ */
+
+@theme {
+  --font-display: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Overpass", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+
+  /* Forma M3 */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
+
+  /* Marca Space Apps (fijos en ambos temas) */
+  --color-deep-blue: #07173f;
+  --color-electric-blue: #0042a6;
+  --color-neon-blue: #0960e1;
+  --color-blue-yonder: #2e96f5;
+  --color-neon-yellow: #eafe07;
+  --color-rocket-red: #e43700;
+  --color-martian-red: #8e1100;
+
+  /* Barra superior: siempre Deep Blue (ancla de marca) */
+  --color-appbar: #07173f;
+  --color-on-appbar: #ffffff;
+
+  /* Roles M3 · Misión (oscuro) */
+  --color-primary: #2e96f5;
+  --color-on-primary: #04122f;
+  --color-primary-container: #0042a6;
+  --color-on-primary-container: #dce8ff;
+  --color-secondary-container: #1e3a78;
+  --color-on-secondary-container: #dce8ff;
+  --color-cta: #eafe07; /* botón relleno / acción clave */
+  --color-on-cta: #07173f;
+  --color-link: #eafe07;
+  --color-surface: #07173f;
+  --color-surface-lowest: #040c24;
+  --color-surface-low: #0a1c48;
+  --color-surface-container: #0e2252;
+  --color-surface-high: #13295d;
+  --color-surface-highest: #1a3268;
+  --color-on-surface: #eaf0ff;
+  --color-on-surface-variant: #b3c1e0;
+  --color-on-surface-muted: #8fa0c8;
+  --color-outline: #6f82ae;
+  --color-outline-variant: #2a3f72;
+  --color-error: #ff8a6b;
+  --color-error-container: #8e1100;
+  --color-on-error-container: #ffdad2;
+
+  /* Datos: pérdida (ColorBrewer YlOrRd, 4 clases, igual que qgis/estilos) */
+  --color-loss-0: #ffffb2;
+  --color-loss-1: #fecc5c;
+  --color-loss-2: #fd8d3c;
+  --color-loss-3: #e31a1c;
+  --color-loss-outline: #232323;
+
+  /* Estados (requerimientos ECOCROP): siempre con ícono + texto */
+  --color-status-ok: #0ca30c;
+  --color-status-warn: #fab219;
+  --color-status-marginal: #ec835a;
+  --color-status-out: #d03b3b;
+
+  /* Series */
+  --color-series-monilia: #2e96f5;
+  --color-series-phyto: #d95926;
+}
+
+/* Roles M3 · Campo (claro, móvil a pleno sol) */
+[data-theme="campo"] {
+  --color-primary: #0042a6;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #d9e5ff;
+  --color-on-primary-container: #07173f;
+  --color-secondary-container: #dde6f7;
+  --color-on-secondary-container: #0e2252;
+  --color-cta: #0042a6;
+  --color-on-cta: #ffffff;
+  --color-link: #0042a6;
+  --color-surface: #f8faff;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #f2f5fc;
+  --color-surface-container: #ecf0f9;
+  --color-surface-high: #e6ebf5;
+  --color-surface-highest: #dfe5f1;
+  --color-on-surface: #07173f;
+  --color-on-surface-variant: #43506e;
+  --color-on-surface-muted: #5b6785;
+  --color-outline: #737f9c;
+  --color-outline-variant: #c3cce0;
+  --color-error: #b32c00;
+  --color-error-container: #ffdad2;
+  --color-on-error-container: #5c1300;
+  --color-series-monilia: #0960e1;
+  --color-series-phyto: #eb6834;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  html[data-theme="campo"] {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-surface-lowest text-on-surface font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Material Symbols Rounded (cargado en layout.tsx) */
+.ms {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+  /* Si la fuente de íconos no carga, no se ve el nombre del ícono como texto */
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+}
+html:not(.ms-ready) .ms {
+  visibility: hidden;
+}
+.ms-fill {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* Leaflet con tokens M3 */
+.leaflet-container.leaflet-container {
+  background: var(--color-surface-lowest);
+  font-family: var(--font-sans);
+}
+.leaflet-tooltip.cr-tooltip {
+  background: var(--color-surface-highest);
+  color: var(--color-on-surface);
+  border: 0;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.leaflet-tooltip.cr-tooltip::before {
+  display: none;
+}
+.leaflet-control-scale-line {
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-on-surface);
+  border-color: var(--color-on-surface);
+  font: 600 11px/1.4 var(--font-sans);
+}
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent) !important;
+  color: var(--color-on-surface-muted) !important;
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: var(--color-on-surface-variant) !important;
+}
+.cr-grat-label {
+  color: var(--color-on-surface-muted);
+  font: 600 10px/1 var(--font-sans);
+  white-space: nowrap;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Grilla del mapa: el color sigue el tema */
+.leaflet-pane path.cr-grat {
+  stroke: var(--grat, #2a3f72);
+}

@@ -1,0 +1,206 @@
+/**
+ * Contrato con el backend FastAPI (/api/v1). Espejo de los modelos Pydantic de
+ * docs/08-api-contrato.md: si cambia uno, cambia el otro.
+ */
+import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
+
+export type ScenarioId = "normal" | "nino" | "actual" | "ssp245_2050" | "ssp585_2050";
+export type AreaKind = "province" | "canton";
+export type RiskClass = "baja" | "moderada" | "alta" | "muy_alta";
+export type Zone = "segura" | "manejo" | "transicion" | "critica";
+export type ExportFormat = "gpkg" | "geojson" | "shp" | "sld";
+
+export interface Scenario {
+  id: ScenarioId;
+  label: string;
+  group: "hoy" | "2050";
+  phase: 1 | 2;
+  description: string;
+  available: boolean;
+  /** true si el modelo se aplica fuera del clima con que se entrenó (2050) */
+  extrapolation: boolean;
+}
+
+export interface EnsoCurrent {
+  phase: "nino" | "nina" | "neutro";
+  strength: "debil" | "moderado" | "fuerte" | "muy_fuerte" | null;
+  oni: { value: number; season: string; year: number };
+  nino12: { anomaly_c: number; month: string };
+  event_in_progress: boolean;
+  source: string;
+  updated_at: string;
+}
+
+export interface AreaRef {
+  id: string;
+  name: string;
+  province: string;
+  kind: AreaKind;
+  cacao_ha: number | null;
+}
+
+export interface AreaProps {
+  id: string;
+  name: string;
+  province: string;
+  kind: AreaKind;
+}
+export type AreasGeoJSON = FeatureCollection<Polygon | MultiPolygon, AreaProps>;
+
+export interface LossItem {
+  area_id: string;
+  loss_pct: number;
+  loss_pct_low: number;
+  loss_pct_high: number;
+  loss_t: number | null;
+  loss_usd: number | null;
+  risk_class: RiskClass;
+}
+
+export interface LossesResponse {
+  scenario: ScenarioId;
+  kind: AreaKind;
+  model: string;
+  items: LossItem[];
+}
+
+export interface LossSummary {
+  scenario: ScenarioId;
+  province: string | null;
+  loss_t: number;
+  loss_usd: number;
+  vs_normal: { loss_t: number; loss_usd: number } | null;
+  n_areas: number;
+  areas_by_class: Record<RiskClass, number>;
+}
+
+export interface Factor {
+  feature: string;
+  /** Texto para productores ("Días húmedos y templados…") */
+  label: string;
+  value: number;
+  unit: string;
+  /** Puntos porcentuales de pérdida que aporta (SHAP o coeficiente × desvío) */
+  contribution_pct: number;
+  source: string;
+}
+
+export interface MonthlyRisk {
+  month: number; // 1–12
+  monilia: number; // 0–1
+  phytophthora: number; // 0–1
+}
+
+export interface Suitability {
+  score: number; // 0–1 (ECOCROP)
+  class: "apta" | "marginal" | "no_apta";
+  limiting_factors: string[];
+}
+
+export interface AreaClimate {
+  temp_mean_c: number;
+  rain_annual_mm: number;
+  elevation_m: number;
+  soil_ph: number | null;
+}
+
+export interface AreaDetail {
+  area: AreaRef;
+  scenario: ScenarioId;
+  loss: LossItem & {
+    vs_normal: { loss_pct: number; delta_pct: number; delta_usd: number } | null;
+  };
+  top_factors: Factor[];
+  monthly_risk: MonthlyRisk[];
+  suitability: Suitability;
+  climate: AreaClimate;
+  model: { name: string; mae: number; trained_years: [number, number] };
+  disclaimer: string;
+}
+
+export interface RequirementParam {
+  id: "temp_mean" | "rain_annual" | "elevation" | "soil_ph";
+  label: string;
+  unit: string;
+  optimal_min: number | null;
+  optimal_max: number | null;
+  absolute_min: number | null;
+  absolute_max: number | null;
+}
+
+export interface CropRequirements {
+  crop: "cacao";
+  source: string;
+  parameters: RequirementParam[];
+}
+
+export interface Strategy {
+  id: "sanitario" | "drenaje_sombra" | "diversificacion";
+  rank: number;
+  name: string;
+  summary: string;
+  expected_loss_pct: number;
+  avoided_loss_t: number | null;
+  avoided_loss_usd: number | null;
+  protects_income: boolean;
+  why: string;
+  evidence: string;
+  data_gaps: string;
+  risks: string;
+}
+
+export interface StrategiesResponse {
+  area_id: string;
+  scenario: ScenarioId;
+  baseline_loss_pct: number;
+  items: Strategy[];
+}
+
+export interface CompareItem {
+  scenario: ScenarioId;
+  loss: LossItem;
+  suitability: Suitability;
+  extrapolation: boolean;
+}
+
+export interface CompareResponse {
+  area: AreaRef;
+  items: CompareItem[];
+}
+
+export interface ZoneItem {
+  area_id: string;
+  zone: Zone;
+  suitability_score: number;
+  risk_index: number;
+}
+
+export interface ZonesResponse {
+  future: ScenarioId;
+  counts: Record<Zone, number>;
+  items: ZoneItem[];
+}
+
+export interface DataSource {
+  id: string;
+  name: string;
+  provider: string;
+  use: string;
+}
+
+export interface Meta {
+  sources: DataSource[];
+  model: {
+    name: string;
+    mae: number;
+    skill_vs_baseline: number;
+    interval_coverage: number;
+    trained_years: [number, number];
+  };
+  updated_at: string;
+}
+
+/** Error estándar de FastAPI */
+export interface ApiErrorBody {
+  detail: string | { loc: (string | number)[]; msg: string; type: string }[];
+}

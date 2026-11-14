@@ -11,6 +11,8 @@
 | 4 | [Frontend](04-frontend.md) | Pantallas, componentes, qué endpoint usa cada uno |
 | 5 | [Modelo predictivo](05-modelo-predictivo.md) | Target, features, modelos, validación, incertidumbre, código |
 | 6 | [Fases y tareas](06-fases.md) | Fase 1 (El Niño hoy) → Fase 2 (2050) → Fase 3 (extras) |
+| 7 | [Propuesta UI/UX](07-propuesta-ui.md) | Material 3 × paleta NASA Space Apps: temas, tokens, colores de datos, pantallas, guion de demo |
+| 8 | [Contrato de la API](08-api-contrato.md) | FastAPI ↔ Next.js: endpoints, modelos Pydantic, errores, caché, CORS, exportación QGIS |
 | — | [**APIs y fuentes de datos**](APIS-DATOS.md) | Endpoints, IDs de Earth Engine y código para sacar cada dato |
 
 Migración de base de datos: [`supabase/migrations/0005_cacaoresiliente.sql`](../supabase/migrations/0005_cacaoresiliente.sql).
