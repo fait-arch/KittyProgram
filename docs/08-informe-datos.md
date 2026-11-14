@@ -16,7 +16,7 @@ Fecha de generación: 2026-11-14. Archivos: [`supabase/seed/`](../supabase/seed/
 | Producción nacional de cacao 2001–2024 | **Real** (FAOSTAT) | 24 |
 | Producción provincial 2001–2024 | **SINTÉTICA** | 144 |
 | Hectáreas por provincia y cantón | **SINTÉTICAS** | 91 |
-| Precio internacional del cacao, mensual | **Real** (FMI vía FRED) | 417 |
+| Precio internacional del cacao, mensual (2001–2026) | **Real** (FMI vía FRED) | 309 |
 | Observaciones de moniliasis / escoba de bruja | **Real** (GBIF) | 12 |
 | Modelo y predicciones de pérdida | **DEMO** (fórmula fija, no entrenado) | 1 + 182 |
 
@@ -28,7 +28,7 @@ Fecha de generación: 2026-11-14. Archivos: [`supabase/seed/`](../supabase/seed/
 | El Niño | NOAA CPC: `oni.ascii.txt` y `sstoi.indices` | Dominio público | ONI, Niño 1+2, 3, 3.4 y 4 desde 1990 (último mes: oct-2026) |
 | Clima | Open-Meteo Historical API, modelo `era5_seamless` (ERA5 + ERA5-Land) | CC BY 4.0 + Copernicus | Provincias: diario 2001–2025. Cantones: ene–jun de 2020 (neutro) y 2025 (Niño) |
 | Producción nacional | FAOSTAT `QCL`, *Cocoa beans*, Ecuador | CC BY 4.0 | Área cosechada, producción, rendimiento 2001–2024 |
-| Precio | FRED `PCOCOUSDM` (precio mundial del cacao, USD/t) | FMI | 2001–2026, mensual |
+| Precio | FRED `PCOCOUSDM` (precio mundial del cacao, USD/t) | FMI | 2001–2026, mensual (309 meses cargados) |
 | Observaciones | GBIF, *Moniliophthora roreri* y *M. perniciosa*, Ecuador, con coordenadas | CC BY / CC0 según registro | 12 de 42 (los demás no traen fecha) |
 
 Variables climáticas guardadas por área y mes: temperatura media, humedad relativa media,
@@ -93,5 +93,9 @@ Se marcan con `source_id = 'seed_sintetico'`, texto "SINTÉTICO" en `notes` y mo
   `v_enso_year_class` y `v_training_area_year` devolvieron datos, y las sentencias de `--reset` son
   válidas. Esa prueba encontró y corrigió dos fallos del generador (formato del JSON de
   `top_factors` y una fórmula demo que daba "muy alto" en todas partes).
-- **No se ejecutó la carga completa** (hace falta la contraseña de la base): el primer
-  `inject.py` real es la primera prueba de volumen.
+- **Carga completa ejecutada el 2026-11-14 en el proyecto de Supabase** con `inject.py`
+  (6 partes en ~6 s). Antes se probó el volumen completo en una transacción con *rollback*, lo
+  que detectó 3 polígonos inválidos (islotes con < 4 puntos) y llevó a reparar la geometría con
+  `st_makevalid` al insertar. Después se probó `--reset` y la recarga (92 áreas, 182 predicciones),
+  se confirmó que `anon` lee pero no escribe, que no quedan filas huérfanas tras el borrado en
+  cascada, y que el revisor de seguridad de Supabase no reporta alertas.

@@ -46,7 +46,7 @@ Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.p
 | 02_el_nino | `enso_index`, `enso_events` | 2 209 + 24 |
 | 03_clima | `area_monthly_series`, `area_monthly_hazard` | 11 280 + 2 820 |
 | 04_riesgo_y_escenarios | `disease_risk_monthly`, `area_scenario_climate`, `disease_risk_scenario`, `crop_suitability` | 8 460 + 648 + 648 + 6 |
-| 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 168 + 91 + 417 |
+| 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 168 + 91 + 309 |
 | 06_modelo_demo_y_observaciones | `model_versions`, `loss_predictions`, `field_observations`, `etl_runs` | 1 + 182 + 12 + 1 |
 
 ## Probar después de cargar

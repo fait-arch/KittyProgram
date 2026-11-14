@@ -24,6 +24,7 @@ from pathlib import Path
 
 from shapely.geometry import mapping, shape
 from shapely.ops import unary_union
+from shapely.validation import make_valid
 
 RAW = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
@@ -85,10 +86,19 @@ def round_coords(c, nd=4):
 
 def geom_sql(g, tol: float) -> Raw:
     g = g.simplify(tol, preserve_topology=True)
+    if not g.is_valid:  # el redondeo a 4 decimales puede crear autointersecciones
+        g = make_valid(g)
+    g = unary_union([x for x in getattr(g, "geoms", [g]) if x.geom_type in ("Polygon", "MultiPolygon")])
+    gj0 = mapping(g)
+    g = shape({"type": gj0["type"], "coordinates": round_coords(gj0["coordinates"])})
+    if not g.is_valid:
+        g = unary_union([x for x in getattr(make_valid(g), "geoms", [make_valid(g)]) if x.geom_type in ("Polygon", "MultiPolygon")])
     gj = mapping(g)
     gj = {"type": gj["type"], "coordinates": round_coords(gj["coordinates"])}
     txt = json.dumps(gj).replace("'", "''")
-    return Raw("extensions.st_multi(extensions.st_setsrid(extensions.st_geomfromgeojson('" + txt + "'),4326))")
+    # st_makevalid + collectionextract(…,3): la base elimina islotes degenerados (<4 puntos) tras el redondeo
+    return Raw("extensions.st_multi(extensions.st_collectionextract(extensions.st_makevalid("
+               "extensions.st_setsrid(extensions.st_geomfromgeojson('" + txt + "'),4326)),3))")
 
 
 # ── ENSO ────────────────────────────────────────────────────────────────
