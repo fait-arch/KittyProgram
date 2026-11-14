@@ -35,7 +35,10 @@ Niño 1+2 en octubre 2026 = +5.25 °C).
 |------|--------|
 | [`docs/`](docs/README.md) | **Plan del proyecto**: propuesta, base de datos, backend, frontend, modelo, fases |
 | [`docs/APIS-DATOS.md`](docs/APIS-DATOS.md) | **APIs para sacar los datos** (probadas) |
+| [`docs/backend/`](docs/backend/README.md) | **Backend integrador**: endpoints, contrato con ML, Supabase, pendientes |
 | [`supabase/migrations/`](supabase/migrations) | Esquema Supabase. `0005_cacaoresiliente.sql` = esquema del proyecto |
+| [`FRONT/`](FRONT/README.md) | **Front Next.js 16** (Material 3 × NASA Space Apps): mapa, panel del cantón, comparar 2050, exportar a QGIS |
+| [`qgis/`](qgis/README.md) | Estilos QGIS (.qml/.sld), GeoPackage de ejemplo y exportador |
 | [`BACK/docs/`](BACK/docs/README.md) | Documentación técnica base del backend (v1) |
 | [`BACK/.env.example`](BACK/.env.example) | Variables de entorno (sin secretos) |
 

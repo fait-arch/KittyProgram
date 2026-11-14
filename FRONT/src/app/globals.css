@@ -1,0 +1,393 @@
+@import "tailwindcss";
+
+/*
+ * CacaoResiliente · tokens de diseño (sistema atómico, fase 1)
+ * Material Design 3 (roles) × marca NASA Space Apps 2026 × verde cacao.
+ *  - Primario verde cacao: botones, selección, foco y gráficos.
+ *  - Paleta guiada por la plantilla Harvest (TooEzra/green-tech): verde agrícola OKLCH h≈142.
+ *    Misión = verde casi negro; Campo = blanco verdoso. Encabezado claro como tarjeta; banner ENSO en verde profundo.
+ *  - El azul NASA queda solo en el logo y en la serie «moniliasis».
+ *  - Datos de pérdida: escala de alerta de 5 niveles (FAO IPC + alertas SNGR Ecuador).
+ * Fuente de verdad: docs/07-propuesta-ui.md. Tema por defecto: Misión (oscuro).
+ * El tema Campo (claro) se activa con <html data-theme="campo">.
+ */
+
+@theme {
+  --font-display: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Overpass", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+
+  /* Forma M3 */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
+
+  /* Marca Space Apps (fijos en ambos temas) */
+  --color-deep-blue: #07173f;
+  --color-electric-blue: #0042a6;
+  --color-neon-blue: #0960e1;
+  --color-blue-yonder: #2e96f5;
+  --color-neon-yellow: #eafe07;
+  --color-rocket-red: #e43700;
+  --color-martian-red: #8e1100;
+
+  /* Barra superior y banner: verde profundo (el azul NASA queda solo en el logo) */
+  --color-appbar: #0a150b;
+  --color-on-appbar: #edf4ee;
+  --color-on-appbar-variant: #bcc8bd;
+  --color-appbar-outline: #1f2d20;
+  --color-appbar-container: #1b381c;
+  --color-on-banner: #ffffff;
+  --color-on-banner-variant: #c9e3cb;
+  --color-banner-from: #1b4d22;
+  --color-banner-to: #0a2410;
+  /* Terciario: cacao (mazorca madura) para acentos y la serie de mazorca negra */
+  --color-tertiary: #e39a6f;
+
+  /* Verde cacao (rampa tonal, OKLCH h≈150) */
+  --color-cacao-10: #012a14;
+  --color-cacao-20: #032110;
+  --color-cacao-30: #085630;
+  --color-cacao-40: #0a6d37;
+  --color-cacao-50: #006731;
+  --color-cacao-80: #5bdb87;
+  --color-cacao-85: #6ce98d;
+  --color-cacao-95: #d1f2d7;
+
+  /* Roles M3 · Misión (oscuro) */
+  --color-primary: #64bd5b;
+  --color-on-primary: #0b1a10;
+  --color-primary-container: #18421c;
+  --color-on-primary-container: #d4f1d4;
+  --color-secondary-container: #1b381c;
+  --color-on-secondary-container: #d8efd8;
+  --color-cta: #65c55b; /* botón relleno / acción clave */
+  --color-on-cta: #0b1a10;
+  --color-link: #64bd5b;
+  --color-surface: #081109;
+  --color-surface-lowest: #050c06;
+  --color-surface-low: #0a150b;
+  --color-surface-container: #0e1b10;
+  --color-surface-high: #122014;
+  --color-surface-highest: #18271a;
+  --color-on-surface: #edf4ee;
+  --color-on-surface-variant: #bcc8bd;
+  --color-on-surface-muted: #9da89e;
+  --color-outline: #667768;
+  --color-outline-variant: #1f2d20;
+  --color-error: #ff8a6b;
+  --color-error-container: #8e1100;
+  --color-on-error-container: #ffdad2;
+
+  /* Datos: pérdida · alerta de 5 niveles (= qgis/estilos/perdida_cacao.qml)
+     IPC fase 1-5 (FEWS NET) y semáforo SNGR (amarilla · naranja · roja). */
+  --color-loss-0: #b2ffd8; /* Baja      ≤ 5 %  · sin alerta      */
+  --color-loss-1: #fae61e; /* Moderada  ≤ 15 % · alerta amarilla */
+  --color-loss-2: #e67800; /* Alta      ≤ 30 % · alerta naranja  */
+  --color-loss-3: #c80000; /* Muy alta  ≤ 45 % · alerta roja     */
+  --color-loss-4: #640000; /* Crítica   > 45 % · + rayado blanco */
+  --color-loss-outline: #232323;
+
+  /* Datos: matriz de zonas 2050 (igual en ambos temas y en QGIS) */
+  --color-zone-segura: #007c83;
+  --color-zone-manejo: #ebc831;
+  --color-zone-transicion: #de6f00;
+  --color-zone-critica: #b7191c;
+
+  /* Textura de botones: brillo superior + borde interior (ver .tex-*) */
+  --shadow-btn: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 3px 1px rgb(0 0 0 / 0.15);
+  --shadow-btn-hover: 0 2px 4px rgb(0 0 0 / 0.35), 0 3px 8px 2px rgb(0 0 0 / 0.15);
+
+  /* Estados (requerimientos ECOCROP): siempre con ícono + texto */
+  --color-status-ok: #0ca30c;
+  --color-status-warn: #fab219;
+  --color-status-marginal: #ec835a;
+  --color-status-out: #d03b3b;
+
+  /* Series */
+  --color-series-monilia: #2e96f5;
+  --color-series-phyto: #d95926;
+}
+
+:root {
+  --tex-sheen: rgb(255 255 255 / 0.22);
+  --tex-edge: rgb(255 255 255 / 0.16);
+}
+
+/* Roles M3 · Campo (claro, móvil a pleno sol) */
+[data-theme="campo"] {
+  --color-primary: #027300;
+  --color-on-primary: #ffffff;
+  --color-on-appbar: #131e14;
+  --color-appbar: #fcfefb;
+  --color-on-appbar-variant: #3d4c3f;
+  --color-appbar-outline: #d1e0cd;
+  --color-appbar-container: #c8e5be;
+  --color-banner-from: #1f5a26;
+  --color-banner-to: #0f3a16;
+  --color-tertiary: #9a4e24;
+  --color-primary-container: #d0efc9;
+  --color-on-primary-container: #112812;
+  --color-secondary-container: #c8e5be;
+  --color-on-secondary-container: #182619;
+  --color-cta: #006c00;
+  --color-on-cta: #ffffff;
+  --color-link: #027300;
+  --color-surface: #f1faf0;
+  --color-surface-lowest: #fcfefb;
+  --color-surface-low: #ebf5e9;
+  --color-surface-container: #e6f0e4;
+  --color-surface-high: #ddebda;
+  --color-surface-highest: #d1e0cd;
+  --color-on-surface: #131e14;
+  --color-on-surface-variant: #3d4c3f;
+  --color-on-surface-muted: #4d5d4f;
+  --color-outline: #7b8b7b;
+  --color-outline-variant: #d1e0cd;
+  --shadow-btn: 0 1px 2px rgb(20 38 28 / 0.25), 0 1px 3px 1px rgb(20 38 28 / 0.12);
+  --shadow-btn-hover: 0 2px 4px rgb(20 38 28 / 0.25), 0 3px 8px 2px rgb(20 38 28 / 0.12);
+  --tex-sheen: rgb(255 255 255 / 0.18);
+  --tex-edge: rgb(255 255 255 / 0.12);
+  --color-error: #b32c00;
+  --color-error-container: #ffdad2;
+  --color-on-error-container: #5c1300;
+  --color-series-monilia: #0960e1;
+  --color-series-phyto: #eb6834;
+}
+
+
+/* Misión forzado dentro de un elemento (plantillas oscuras aunque la app esté en Campo).
+   Mismos valores que @theme; generado desde ahí. */
+[data-theme="mision"] {
+  --color-appbar: #0a150b;
+  --color-on-appbar: #edf4ee;
+  --color-on-appbar-variant: #bcc8bd;
+  --color-appbar-outline: #1f2d20;
+  --color-appbar-container: #1b381c;
+  --color-banner-from: #1b4d22;
+  --color-banner-to: #0a2410;
+  --color-tertiary: #e39a6f;
+  --color-primary: #64bd5b;
+  --color-on-primary: #0b1a10;
+  --color-primary-container: #18421c;
+  --color-on-primary-container: #d4f1d4;
+  --color-secondary-container: #1b381c;
+  --color-on-secondary-container: #d8efd8;
+  --color-cta: #65c55b;
+  --color-on-cta: #0b1a10;
+  --color-link: #64bd5b;
+  --color-surface: #081109;
+  --color-surface-lowest: #050c06;
+  --color-surface-low: #0a150b;
+  --color-surface-container: #0e1b10;
+  --color-surface-high: #122014;
+  --color-surface-highest: #18271a;
+  --color-on-surface: #edf4ee;
+  --color-on-surface-variant: #bcc8bd;
+  --color-on-surface-muted: #9da89e;
+  --color-outline: #667768;
+  --color-outline-variant: #1f2d20;
+  --color-error: #ff8a6b;
+  --color-error-container: #8e1100;
+  --color-on-error-container: #ffdad2;
+  --color-series-monilia: #2e96f5;
+  --color-series-phyto: #d95926;
+  --shadow-btn: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 3px 1px rgb(0 0 0 / 0.15);
+  --shadow-btn-hover: 0 2px 4px rgb(0 0 0 / 0.35), 0 3px 8px 2px rgb(0 0 0 / 0.15);
+  --tex-sheen: rgb(255 255 255 / 0.22);
+  --tex-edge: rgb(255 255 255 / 0.16);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  html[data-theme="campo"] {
+    color-scheme: light;
+  }
+  body {
+    @apply bg-surface-lowest text-on-surface font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Material Symbols Rounded (cargado en layout.tsx) */
+.ms {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+  /* Si la fuente de íconos no carga, no se ve el nombre del ícono como texto */
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+}
+html:not(.ms-ready) .ms {
+  visibility: hidden;
+}
+.ms-fill {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* Leaflet con tokens M3 */
+.leaflet-container.leaflet-container {
+  background: var(--color-surface-lowest);
+  font-family: var(--font-sans);
+}
+.leaflet-tooltip.cr-tooltip {
+  background: var(--color-surface-highest);
+  color: var(--color-on-surface);
+  border: 0;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 18px;
+}
+.leaflet-tooltip.cr-tooltip::before {
+  display: none;
+}
+.leaflet-control-scale-line {
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  color: var(--color-on-surface);
+  border-color: var(--color-on-surface);
+  font: 600 11px/1.4 var(--font-sans);
+}
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent) !important;
+  color: var(--color-on-surface-muted) !important;
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: var(--color-on-surface-variant) !important;
+}
+.cr-grat-label {
+  color: var(--color-on-surface-muted);
+  font: 600 10px/1 var(--font-sans);
+  white-space: nowrap;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .print-area {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Grilla del mapa: el color sigue el tema */
+.leaflet-pane path.cr-grat {
+  stroke: var(--grat, #2c4537);
+}
+
+/* ---------- Átomos: textura y patrones ---------- */
+
+/* Rayado del nivel Crítico (IPC 5): líneas blancas a 45°, igual que LinePatternFill de QGIS */
+.hatch-critica {
+  background-color: var(--color-loss-4);
+  background-image: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.7) 0 1.25px, transparent 1.25px 4.5px);
+}
+
+/* Textura de botón relleno: brillo superior suave + borde interior + elevación 1 */
+.tex-filled {
+  background-image: linear-gradient(180deg, var(--tex-sheen), transparent 60%);
+  box-shadow: inset 0 1px 0 var(--tex-edge), inset 0 -1px 0 rgb(0 0 0 / 0.12), var(--shadow-btn);
+}
+.tex-filled:hover {
+  box-shadow: inset 0 1px 0 var(--tex-edge), inset 0 -1px 0 rgb(0 0 0 / 0.12), var(--shadow-btn-hover);
+}
+.tex-filled:active {
+  background-image: linear-gradient(0deg, var(--tex-sheen), transparent 70%);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.25);
+}
+/* Tonal: solo borde interior, sin sombra (M3 elevación 0) */
+.tex-tonal {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent 70%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+}
+[data-theme="campo"] .tex-tonal {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.55), transparent 70%);
+  box-shadow: inset 0 0 0 1px rgb(1 42 20 / 0.06);
+}
+/* Capa de estado M3 (hover 8 %, presionado 12 %) sin alterar el color base */
+.state-layer {
+  position: relative;
+  isolation: isolate;
+}
+.state-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.state-layer:hover::after {
+  opacity: 0.08;
+}
+.state-layer:active::after {
+  opacity: 0.12;
+}
+.state-layer:disabled::after {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .state-layer::after {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .tex-filled,
+  .tex-tonal {
+    background-image: none;
+    border: 1px solid ButtonText;
+  }
+}
+
+/* Popup de MapLibre con tokens M3 */
+.maplibregl-popup.cr-popup .maplibregl-popup-content {
+  background: var(--color-surface-highest);
+  color: var(--color-on-surface);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+  padding: 8px 12px;
+  font: 13px/18px var(--font-sans);
+}
+.maplibregl-popup.cr-popup .maplibregl-popup-tip {
+  display: none;
+}
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+}

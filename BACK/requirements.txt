@@ -1,0 +1,19 @@
+# Backend integrador CacaoResiliente — Python 3.12
+fastapi==0.163.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+pydantic-settings==2.16.3
+supabase==2.34.1
+httpx==0.28.1
+cachetools==8.0.0
+shapely==2.2.0
+anthropic==2.8.0
+
+# Modelo ML dentro del backend: MISMA versión de scikit-learn que use ML al entrenar
+scikit-learn==1.5.2
+joblib==1.6.0
+numpy==2.5.4
+pandas==3.1.1
+
+# Tests
+pytest==9.2.0
