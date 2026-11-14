@@ -1,10 +1,10 @@
 # 2. Base de datos — diccionario de datos
 
 Supabase · Postgres 17 + PostGIS · proyecto `chjgktgkilxjuwuuekah`.
-Estado desplegado el 2026-11-14: **38 tablas, 3 vistas, 47 políticas RLS, 0 alertas de seguridad.**
+Estado desplegado el 2026-11-14: **32 tablas, 3 vistas, 0 alertas de seguridad.** Con datos de prueba cargados (ver [08-informe-datos.md](08-informe-datos.md)).
 
 Migraciones aplicadas, en orden: `0001_init` → `0002_fk_indexes` → `0003_field_rpc` →
-`0004_more_sources` → `0005_cacaoresiliente` → `0006_revision`.
+`0004_more_sources` → `0005_cacaoresiliente` → `0006_revision` → `0007_limpieza` → `0008_politicas_internas`.
 
 Principio: **guardar valores agregados (área × mes / año / escenario), nunca imágenes.**
 Todo se lee públicamente; escribe solo el backend (`service_role`), salvo las observaciones y
@@ -276,15 +276,6 @@ Un día es favorable para un patógeno si cumple **todas** sus reglas.
 | `saturated_days` | smallint | Días con suelo saturado (SMAP) |
 | `n_days_with_data` | smallint | Días con dato válido (control de calidad) |
 | `computed_at` | timestamptz | Cuándo se calculó |
-
-### `area_climatology` ⬜ *(v1)* — promedio histórico por mes
-
-| Columna | Tipo | Significado |
-|---|---|---|
-| `area_id`, `variable_id`, `month` PK | — | Área, variable, mes |
-| `mean`, `p10`, `p90` | numeric | Media y percentiles 10 / 90 (año seco / húmedo típico) |
-| `n_years`, `period_start`, `period_end` | smallint | Años usados |
-| `computed_at` | timestamptz | — |
 
 ---
 
@@ -567,20 +558,15 @@ Solo incluye el modelo activo.
 
 ---
 
-## M. Tablas heredadas de v1 (rotación de cultivos)
+## M. Tablas de la v1 (rotación de cultivos)
 
-No las usa CacaoResiliente en Fase 1–2; `field_*` servirán en Fase 3 (fincas individuales).
+Se **eliminaron** en la migración `0007_limpieza` (estaban vacías): `analysis_runs`,
+`rotation_strategies`, `expert_reviews`, `area_climatology`, `field_current_rotation` y
+`field_priorities`. Las reemplazan `loss_predictions`, `strategy_evaluations`, `strategy_reviews`,
+`area_scenario_climate` y `area_monthly_series`.
 
-| Tabla | Columnas | Uso |
-|---|---|---|
-| `field_profiles` | `area_id` PK, `irrigation`, `water_source`, `soil_texture_obs`, `soil_ph_obs`, `equipment[]`, `market_access`, `notes`, `updated_at` | Datos de la finca que da el agricultor |
-| `field_priorities` | `area_id` PK, `water_saving`, `income`, `soil_health`, `erosion_control`, `pest_break`, `forage` (0–5), `excluded_crops[]`, `updated_at` | Prioridades del agricultor |
-| `field_current_rotation` | `id`, `area_id`, `position`, `crop_id`, `start_month`, `months` | Rotación actual |
-| `analysis_runs` | `id`, `area_id`, `kind`, `requested_by`, `params`, `temp_delta_c`, `rain_delta_pct`, `stats`, `monthly_calendar`, `status`, `error`, `created_at` | Corridas de análisis v1 |
-| `rotation_strategies` | `id`, `run_id`, `rank`, `name`, `is_current`, `sequence`, `score_*`, `why`, `evidence`, `benefits[]`, `data_gaps[]`, `risks[]` | Estrategias de rotación v1 |
-| `expert_reviews` | `id`, `strategy_id`, `reviewer_id`, `reviewer_role`, `verdict`, `comment`, `created_at` | Revisión v1 |
-
-Se pueden eliminar más adelante con una migración `drop table`.
+Se conserva `field_profiles` (datos de la finca que da el agricultor: `irrigation`, `water_source`,
+`soil_texture_obs`, `soil_ph_obs`, `equipment[]`, `market_access`, `notes`) para la Fase 3.
 
 ---
 
@@ -595,8 +581,9 @@ Se pueden eliminar más adelante con una migración `drop table`.
 
 | Tablas | Lectura | Escritura |
 |---|---|---|
-| Catálogos, clima, índices, modelo, predicciones, estrategias, `etl_runs` | Pública | Solo backend (`service_role`) |
-| `areas` tipo `field` y `field_*` | Solo el dueño | Solo el dueño |
+| Catálogos, clima, índices, modelo, predicciones, estrategias | Pública | Solo backend (`service_role`) |
+| `etl_runs`, `training_samples` (internas) | **Nadie** (privilegios revocados + política `solo backend`) | Solo backend |
+| `areas` tipo `field` y `field_profiles` | Solo el dueño | Solo el dueño |
 | `field_observations`, `strategy_reviews` | Pública | Cada usuario autenticado crea y edita las suyas |
 
 ## Pendientes de contenido (no de estructura)
