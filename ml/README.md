@@ -21,7 +21,7 @@ ml/.venv/bin/earthengine authenticate      # una vez por máquina
 | `etl/` | 1 | Descarga: ENSO (NOAA), clima GEE, producción FAOSTAT/ESPAC |
 | `features.py`, `dataset.py` | 2 | Fórmulas de features y panel área × año |
 | `synthetic.py`, `tests/` | 3 | Datos falsos con verdad conocida + tests |
-| `train.py` | 4 | Ridge + GBR cuantílico + ensamble, leave-one-year-out |
+| `model.py`, `train.py` | 4 | Ridge con signos físicos + GBR cuantílico + ensamble, validación leave-one-year-out |
 | `predict.py` | 5 | Escenarios normal / Niño / actual → API |
 | `artifacts/` | 4 | `cacao_loss_vX.joblib`, `.onnx`, `model_card_vX.json` |
 | `data/raw`, `data/processed` | 1–2 | Datos crudos y Parquet procesado (no versionados) |
@@ -40,7 +40,7 @@ ml/.venv/bin/python -m pytest ml/tests
 - **Features** (ene–jun de cada año): lluvia total / anomalía / extremos, días favorables a
   moniliasis y mazorca negra, suelo saturado, HR, temperatura, ET0 FAO-56, balance hídrico,
   aptitud ECOCROP, lluvia oct–dic previa, ENSO (ONI, Niño 1+2, Niño 3.4).
-- **Target**: `y_anom_pct = 100·(R − T)/T`, con T = tendencia LOWESS sin el propio año.
+- **Target**: `y_anom_pct = 100·(R − T)/T`, con T = tendencia LOWESS sin el propio año; R = producción (nacional) o rendimiento (provincias), ver Fase 4.
 - **Panel**: 216 filas (nacional 1961–2025 + 7 provincias 2002–2025).
 
 ## Fase 3 — datos sintéticos y validación
@@ -66,3 +66,65 @@ ml/.venv/bin/python -m pytest ml/tests       # 23 tests (~3 min)
 | No lineal | Ridge | 0.22 | 0.90 | — | 0.88 |
 | No lineal | GBR | 0.28 | 0.92 | 0.73 | 0.82 |
 | **Nula** | Ridge / GBR | **0.01 / 0.00** | 0.01 / 0.03 | 0.74 | 0 |
+
+## Fase 4 — modelo, validación y artefactos
+
+```bash
+ml/.venv/bin/python -m ml.train --perm 200   # compara modelos, valida y guarda artefactos (~6 min)
+ml/.venv/bin/python -m pytest ml/tests       # 40 tests (~5 min)
+```
+
+**Modelo final (v1)** — `ml/model.py`, Ridge con signos físicos:
+
+```
+z_k   = (x_k − μ_a,k) / σ_a,k                    anomalía del área a (normal climática 1991–2020)
+ŷ     = b0 + β_sat·z(suelo saturado) + β_fav·z(días favorables a mazorca negra)
+           + β_sol·z(radiación solar) + β_llu·z(lluvia) + β_ext·max(0, z(lluvia) − 2)
+        signos fijados por la física (humedad y lluvia ↓, sol ↑), penalización Ridge (λ por GCV),
+        cada término recortado al rango de entrenamiento (no extrapola)
+pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_nivel   (conformal)
+```
+
+- **Target**: anomalía % respecto a la tendencia (LOWESS sin el propio año) de la **producción**
+  (nacional, FAOSTAT 1961–2025) o del **rendimiento** (provincias, ESPAC 2002–2025).
+- Se compararon líneas base, Ridge, GBR cuantílico y su ensamble (peso anidado): el ensamble no
+  mejora al Ridge y el GBR no es monótono con pérdida cuantílica → **modelo final = Ridge**.
+- **Validación leave-one-year-out** (el año de test sale del entrenamiento, de la tendencia del
+  target y de la normal climática):
+
+| Serie nacional (n = 65) | MAE | RMSE | Correlación | R² fuera de muestra |
+|---|---|---|---|---|
+| "Año normal" (sin clima) | 12,8 | 18,1 | — | 0,00 |
+| Niño sí/no según ONI | 13,0 | 18,2 | 0,01 | −0,01 |
+| Escalón "lluvia > +100 %" | 11,6 | 15,7 | 0,50 | 0,25 |
+| GBR cuantílico | 12,7 | 16,3 | 0,45 | 0,19 |
+| **Ridge (modelo final)** | **12,0** | **15,3** | **0,54** | **0,29** |
+
+- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −46 %, real −46 %;
+  1998 → −30 %, real −59 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,55.
+- **Lo que no** (auditoría independiente, también en la model card):
+  - Es un **detector de lluvia extrema**: sin 1983/1998 la correlación cae a 0,30 y el MAE no mejora
+    a "año normal". Entrenando sin ambos, cada uno se predice en solo −11 / −13 %.
+  - En **provincias no hay skill** (ruido ESPAC 15–31 %): la salida por zona lleva
+    `evidence = "indice_subnacional_no_validado"`.
+  - El índice Niño 1+2 no aporta una vez conocida la lluvia: hace falta el clima de ene–jun.
+  - El intervalo cubre 78 % (nacional) / 73 % (provincias), pero casi no es más estrecho que el de
+    "año normal": transmite sobre todo la incertidumbre.
+  - Eligiendo las decisiones de diseño dentro de cada pliegue, la correlación honesta es 0,50–0,56.
+
+**Artefactos** (`ml/artifacts/`):
+
+| Archivo | Qué es |
+|---|---|
+| `cacao_loss_v1.joblib` | `CacaoLossModel` para la API (no versionado; se regenera con `ml.train`) |
+| `model_card_v1.json` | Fórmula con todos sus números (reproducible sin Python), métricas, límites |
+| `cv_predictions_v1.csv` | Predicción fuera de muestra, p10 y p90 de cada área-año |
+
+```python
+import joblib
+model = joblib.load("ml/artifacts/cacao_loss_v1.joblib")
+model.predict(df)   # df: area_name, year, saturated_days, fav_days_phytophthora, solar_mean, rain_total
+# → y_anom_pct, y_anom_p10/p90, loss_pct, loss_p10/p90, risk_class, top_factors,
+#   extrapolated, evidence, model_version
+model.model.pre_.add_area("Vinces", historial_features)   # cantón nuevo: necesita ≥10 años 1991–2020
+```

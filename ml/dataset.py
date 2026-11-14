@@ -4,8 +4,16 @@
 
 Target (docs/05-modelo-predictivo.md):
     y = 100 · (R − T) / T
-R = rendimiento (t/ha); T = tendencia del área estimada SIN el propio año (LOWESS sobre
-log-rendimiento, dejando un año fuera). pérdida % = max(0, −y).
+R = resultado del año; T = tendencia del área estimada SIN el propio año (LOWESS sobre
+log R, dejando un año fuera). pérdida % = max(0, −y).
+
+R es la columna `output` del panel (ver `OUTPUT_BY_LEVEL`):
+  · provincias → rendimiento (t/ha): en la encuesta ESPAC producción y superficie salen de la
+    misma muestra, y su cociente es más estable que cada una por separado.
+  · nacional   → producción (t): antes de 2002 la superficie cosechada de FAOSTAT son
+    estimaciones redondeadas con saltos (163 000 ha en 1964 → 240 000 en 1965; 301 000 en
+    1999 → 403 000 en 2000) que contaminan el rendimiento; la producción (registros de
+    exportación) es el dato fiable. Además es lo que pregunta el proyecto: producción perdida.
 """
 from __future__ import annotations
 
@@ -21,6 +29,8 @@ ENSO_FEATURES = ["oni_jan_jun", "nino12_jan_jun", "nino34_jan_jun", "oni_djf", "
 LAG_FEATURES = ["y_anom_prev"]
 FEATURES = CLIMATE_FEATURES + ENSO_FEATURES + LAG_FEATURES
 TARGET = "y_anom_pct"
+OUTPUT = "output"                                    # columna R del target en el panel real
+OUTPUT_BY_LEVEL = {"national": "production_t", "province": "yield_t_ha"}
 
 # Ancho de la ventana LOWESS en AÑOS (se convierte a fracción según la longitud de la serie)
 TREND_SPAN_YEARS = 15
@@ -60,13 +70,16 @@ def loo_trend(years: np.ndarray, yields: np.ndarray, exclude: set[int] | None = 
     return np.exp(out)
 
 
-def add_target(prod: pd.DataFrame, exclude: set[int] | None = None) -> pd.DataFrame:
-    """Añade yield_trend, y_anom_pct, loss_pct e y_anom_prev por área."""
+def add_target(prod: pd.DataFrame, exclude: set[int] | None = None,
+               value: str = "yield_t_ha") -> pd.DataFrame:
+    """Añade trend, y_anom_pct, loss_pct e y_anom_prev por área. `value` = columna R."""
     out = []
     for _, g in prod.groupby("area_name"):
         g = g.sort_values("year").copy()
-        g["yield_trend"] = loo_trend(g.year.to_numpy(), g.yield_t_ha.to_numpy(), exclude)
-        g[TARGET] = 100 * (g.yield_t_ha - g.yield_trend) / g.yield_trend
+        g["trend"] = loo_trend(g.year.to_numpy(), g[value].to_numpy(), exclude)
+        if value == "yield_t_ha":
+            g["yield_trend"] = g.trend
+        g[TARGET] = 100 * (g[value] - g.trend) / g.trend
         g["loss_pct"] = (-g[TARGET]).clip(lower=0)
         prev = g.set_index("year")[TARGET]
         g["y_anom_prev"] = (g.year - 1).map(prev).to_numpy()
@@ -82,7 +95,10 @@ def load_production() -> pd.DataFrame:
     nat = nat.drop_duplicates("year", keep="last").assign(area_name="national")  # prioriza FAOSTAT
     prov = p[(p.level == "province") & p.area_name.isin(PROVINCES)]
     cols = ["area_name", "level", "year", "harvested_ha", "production_t", "yield_t_ha", "source"]
-    return pd.concat([nat, prov])[cols].sort_values(["area_name", "year"]).reset_index(drop=True)
+    out = pd.concat([nat, prov])[cols].sort_values(["area_name", "year"]).reset_index(drop=True)
+    out[OUTPUT] = np.where(out.level == "national", out[OUTPUT_BY_LEVEL["national"]],
+                           out[OUTPUT_BY_LEVEL["province"]])
+    return out
 
 
 def load_enso() -> pd.DataFrame:
@@ -106,7 +122,7 @@ def fit_bias_correction() -> tuple[BiasCorrection, pd.DataFrame]:
 def build_panel(exclude: set[int] | None = None) -> pd.DataFrame:
     bc, daily = fit_bias_correction()
     feats = build_features(daily, bc)
-    panel = (add_target(load_production(), exclude)
+    panel = (add_target(load_production(), exclude, value=OUTPUT)
              .merge(feats, on=["area_name", "year"], how="left")
              .merge(load_enso(), on="year", how="left"))
     panel["is_nino"] = (panel.enso_class == "nino").astype(int)
@@ -131,7 +147,7 @@ def main():
     nat = ok[ok.area_name == "national"].set_index("year")
     print("\nNacional, años Niño fuertes:")
     print(nat.loc[[1983, 1987, 1992, 1998, 2016, 2024],
-                  ["yield_t_ha", "yield_trend", TARGET, "rain_anom_pct", "nino12_jan_jun"]].round(2))
+                  ["production_t", "trend", TARGET, "rain_anom_pct", "nino12_jan_jun"]].round(2))
     num = ok[FEATURES + [TARGET]].corr(method="spearman")[TARGET].drop(TARGET)
     print("\nCorrelación de Spearman con el target (todas las áreas):")
     print(num.sort_values().round(2).to_string())

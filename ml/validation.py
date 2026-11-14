@@ -25,22 +25,47 @@ class Model(Protocol):
     def predict(self, X: pd.DataFrame) -> np.ndarray: ...
 
 
-PROD_COLS = ["area_name", "year", "yield_t_ha"]
+def fold_targets(panel: pd.DataFrame, years: list[int] | None = None, value: str = "yield_t_ha",
+                 block: int = 1) -> dict[int, pd.DataFrame]:
+    """Target recalculado para cada año de test (tendencia SIN los años retenidos).
+
+    Es la parte lenta de la validación (un LOWESS por área y año); calcularlo una vez permite
+    comparar muchos modelos sobre exactamente los mismos pliegues.
+    """
+    years = years or sorted(panel.year.unique())
+    half = block // 2
+    out = {}
+    for yr in years:
+        held = set(range(yr - half, yr + half + 1))
+        out[yr] = add_target(panel[["area_name", "year", value]], exclude=held, value=value)[
+            ["area_name", "year", TARGET, "y_anom_prev"]]
+    return out
 
 
 def loyo(panel: pd.DataFrame, make_model: Callable[[], Model], features: list[str],
-         years: list[int] | None = None, retrend: bool = True) -> pd.DataFrame:
+         years: list[int] | None = None, retrend: bool = True, value: str = "yield_t_ha",
+         block: int = 1, targets: dict[int, pd.DataFrame] | None = None) -> pd.DataFrame:
     """Predicciones fuera de muestra. Devuelve panel con columnas pred, y_cv (target sin fuga)
-    y, si el modelo lo permite, p10/p90."""
+    y, si el modelo lo permite, p10/p90.
+
+    value:   columna R con la que se calcula el target (rendimiento o producción).
+    block:   nº de años consecutivos que se dejan fuera a la vez alrededor del año de test
+             (block=3 → también t−1 y t+1 salen del entrenamiento y de la tendencia): comprueba
+             que el resultado no depende de la autocorrelación entre años vecinos.
+    targets: salida de `fold_targets` con los mismos `value` y `block` (evita recalcular).
+    """
     years = years or sorted(panel.year.unique())
+    half = block // 2
+    base = panel.drop(columns=[TARGET, "y_anom_prev"], errors="ignore")
     out = []
     for yr in years:
+        held = set(range(yr - half, yr + half + 1))
         if retrend:
-            prod = add_target(panel[PROD_COLS], exclude={yr})[["area_name", "year", TARGET, "y_anom_prev"]]
-            df = panel.drop(columns=[TARGET, "y_anom_prev"], errors="ignore").merge(prod, on=["area_name", "year"])
+            prod = targets[yr] if targets is not None else fold_targets(panel, [yr], value, block)[yr]
+            df = base.merge(prod, on=["area_name", "year"])
         else:
             df = panel
-        train = df[(df.year != yr)].dropna(subset=features + [TARGET])
+        train = df[~df.year.isin(held)].dropna(subset=features + [TARGET])
         test = df[df.year == yr].dropna(subset=features + [TARGET])
         if test.empty:
             continue
