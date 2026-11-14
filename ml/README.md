@@ -42,3 +42,27 @@ ml/.venv/bin/python -m pytest ml/tests
   aptitud ECOCROP, lluvia oct–dic previa, ENSO (ONI, Niño 1+2, Niño 3.4).
 - **Target**: `y_anom_pct = 100·(R − T)/T`, con T = tendencia LOWESS sin el propio año.
 - **Panel**: 216 filas (nacional 1961–2025 + 7 provincias 2002–2025).
+
+## Fase 3 — datos sintéticos y validación
+
+```bash
+ml/.venv/bin/python -m ml.synthetic          # panel con verdad conocida → data/processed/synthetic_panel.parquet
+ml/.venv/bin/python -m pytest ml/tests       # 23 tests (~3 min)
+```
+
+- `synthetic.py`: `y = Σβ·z(x) − γ·max(0, lluvia − 60 %) + α_area + ruido AR(1)` sobre una tendencia
+  tecnológica con el salto de CCN-51; features remuestreadas por año desde el panel real.
+  `Truth.linear()`, `Truth()` (no lineal), `Truth.null()` (sin señal) y `stress_scenarios()`.
+- `validation.py`: leave-one-year-out que **recalcula el target sin el año de test**, línea base
+  (media en años de lluvia extrema / no extrema) y métricas (MAE, skill, cobertura p10–p90,
+  acierto en pérdidas > 10 %).
+- `dataset.area_anomalies()`: las features se usan como anomalía dentro de cada área (el nivel
+  medio lo absorbe la tendencia).
+
+| Verdad | Modelo | Skill vs base | Correlación | Cobertura p10–p90 | Acierto pérdidas grandes |
+|--------|--------|---------------|-------------|-------------------|--------------------------|
+| Lineal | Ridge | 0.36 | 0.79 | — | 0.77 |
+| Lineal | GBR | 0.34 | 0.77 | 0.75 | 0.81 |
+| No lineal | Ridge | 0.22 | 0.90 | — | 0.88 |
+| No lineal | GBR | 0.28 | 0.92 | 0.73 | 0.82 |
+| **Nula** | Ridge / GBR | **0.01 / 0.00** | 0.01 / 0.03 | 0.74 | 0 |

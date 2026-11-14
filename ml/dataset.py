@@ -26,6 +26,15 @@ TARGET = "y_anom_pct"
 TREND_SPAN_YEARS = 15
 
 
+def area_anomalies(df: pd.DataFrame, cols: list[str], ref: pd.DataFrame | None = None) -> pd.DataFrame:
+    """x − media del área. El target es una anomalía dentro de cada área, así que las
+    features deben serlo también: el nivel medio de cada área no es información útil
+    (lo absorbe la tendencia). `ref` = datos de entrenamiento para calcular las medias
+    (en la API se pasan las medias guardadas con el modelo)."""
+    means = (ref if ref is not None else df).groupby("area_name")[cols].mean()
+    return df[cols] - means.reindex(df.area_name).to_numpy()
+
+
 def loo_trend(years: np.ndarray, yields: np.ndarray, exclude: set[int] | None = None) -> np.ndarray:
     """Tendencia de rendimiento en cada año, ajustada sin ese año (leave-one-out).
 
