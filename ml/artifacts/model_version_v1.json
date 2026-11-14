@@ -1,0 +1,42 @@
+{
+  "name": "cacao_loss_v1",
+  "crop_id": "cacao",
+  "target": "production_anomaly_pct",
+  "algorithm": "ridge_sign_constrained",
+  "features": [
+    "saturated_days",
+    "fav_days_phytophthora",
+    "solar_mean",
+    "rain_total"
+  ],
+  "hyperparams": {
+    "lambda": 46.41588833612777,
+    "rain_hinge_sd": 2.0,
+    "weights": "1/s_a^2"
+  },
+  "cv_scheme": "leave_one_year_out",
+  "metrics": {
+    "mae": 12.044076007762362,
+    "mae_baseline": 12.77673692452329,
+    "rmse": 15.269449729045204,
+    "rmse_baseline": 18.128358838247944,
+    "skill_vs_baseline": 0.1577036914765223,
+    "corr": 0.5421663351595172,
+    "r2_oos": 0.2905369286477224,
+    "interval_coverage_p10_p90": 0.7846153846153846,
+    "nino_years_hit": {
+      "1983": true,
+      "1987": false,
+      "1998": true,
+      "2016": false
+    },
+    "best": "ridge",
+    "province_skill": 0.000774191335212504,
+    "permutation_p": null
+  },
+  "train_start_year": 1961,
+  "train_end_year": 2025,
+  "n_samples": 202,
+  "artifact_path": "ml/artifacts/cacao_loss_v1.joblib",
+  "is_active": true
+}

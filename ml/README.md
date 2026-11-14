@@ -22,7 +22,7 @@ ml/.venv/bin/earthengine authenticate      # una vez por máquina
 | `features.py`, `dataset.py` | 2 | Fórmulas de features y panel área × año |
 | `synthetic.py`, `tests/` | 3 | Datos falsos con verdad conocida + tests |
 | `model.py`, `train.py` | 4 | Ridge con signos físicos + GBR cuantílico + ensamble, validación leave-one-year-out |
-| `predict.py` | 5 | Escenarios normal / Niño / actual → API |
+| `scenarios.py`, `inference.py`, `predict.py` | 5 | Escenarios, interfaz para el backend y predicciones por lote |
 | `artifacts/` | 4 | `cacao_loss_vX.joblib`, `.onnx`, `model_card_vX.json` |
 | `data/raw`, `data/processed` | 1–2 | Datos crudos y Parquet procesado (no versionados) |
 
@@ -116,7 +116,7 @@ pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_ni
 
 | Archivo | Qué es |
 |---|---|
-| `cacao_loss_v1.joblib` | `CacaoLossModel` para la API (no versionado; se regenera con `ml.train`) |
+| `cacao_loss_v1.joblib` | Bundle para el backend (versionado, 20 KB; se regenera con `ml.train`) |
 | `model_card_v1.json` | Fórmula con todos sus números (reproducible sin Python), métricas, límites |
 | `cv_predictions_v1.csv` | Predicción fuera de muestra, p10 y p90 de cada área-año |
 
@@ -128,3 +128,59 @@ model.predict(df)   # df: area_name, year, saturated_days, fav_days_phytophthora
 #   extrapolated, evidence, model_version
 model.model.pre_.add_area("Vinces", historial_features)   # cantón nuevo: necesita ≥10 años 1991–2020
 ```
+
+## Fase 5 — entrega para el backend y predicciones por escenario
+
+El backend, Supabase y el front son del resto del equipo; aquí solo se entrega lo que necesitan
+para enchufar el modelo, según el contrato de `docs/backend/03-integracion-ml.md` (rama
+`emilio/backend`).
+
+```bash
+ml/.venv/bin/python -m ml.train     # → artifacts/cacao_loss_v1.joblib (bundle para el backend)
+ml/.venv/bin/python -m ml.predict   # → artifacts/loss_predictions_v1.csv/.parquet + model_version_v1.json
+```
+
+**Para el backend (modo en vivo / what-if)** — en `BACK/.env`:
+
+```
+MODEL_PATH=../ml/artifacts/cacao_loss_v1.joblib
+ML_INFERENCE_MODULE=ml.inference
+```
+
+- El bundle es un `dict` con `version`, `features`, `model`, `feature_ranges`, `feature_means`,
+  `explain`, `sklearn_version`, `scenario_features`, `sensitivities`, `scenario_years`, `metrics`.
+- `ml/inference.py` expone las dos funciones del contrato:
+  - `adjust_features(features, adjust, area_ctx)`: sliders `rain_delta_pct`, `temp_delta_c`,
+    `nino12_anom`, `oni`. La lluvia arrastra al suelo saturado, a los días favorables y a la
+    radiación con las pendientes históricas de cada área; El Niño cambia la lluvia esperada.
+  - `predict(bundle, features)` → `loss_pct`, `loss_pct_low`, `loss_pct_high`,
+    `top_factors` (`feature`, `value`, `contribution_pct` > 0 = suma pérdida), `out_of_range`,
+    `risk_class`, `evidence`.
+- **Áreas por nombre** (`national`, `Los Rios`, …). Con uuid de Supabase:
+  `attach_area_ids(bundle, {uuid: nombre})`. Cantón nuevo: `register_area(bundle, id, historial)`
+  (≥ 10 años de features 1991–2020). El vector lleva `_area` (o `_province`) para elegir la normal.
+- Misma versión de scikit-learn en `BACK/requirements.txt` que en `ml/` (1.9.1).
+
+**Para Supabase (modo lote)** — `loss_predictions_v1.csv` tiene las columnas de la tabla
+`loss_predictions` (por nombre de área; falta mapear a `area_id`) y `model_version_v1.json` la fila
+de `model_versions`.
+
+**Escenarios** (`ml/scenarios.py`, mismos ids que la tabla `scenarios`):
+
+| id | Años | Pérdida nacional esperada |
+|---|---|---|
+| `normal` | ENSO neutros 2001–2025 | 2 % |
+| `nino` | El Niño (ONI) 2001–2025 | 0 % |
+| `nina` | La Niña 2001–2025 | 2 % |
+| `nino_extremo` | 1983, 1998 | 48 % (27–68) |
+| `actual` | análogos: Niño 1+2 ago–oct previo ≥ +2 °C → 1998, 2016, 2024 | 18 % (11–37) |
+
+- La pérdida de un escenario es la **media de las pérdidas de sus años** (un año promedio no
+  existe y diluye los extremos).
+- El "Niño" según el ONI casi no da pérdidas: en 2001–2025 esos años no fueron lluviosos en la
+  costa. Lo que daña es el **Niño costero con lluvia extrema** (`nino_extremo`).
+- `actual`: hoy (oct 2026) Niño 1+2 está en +5,3 °C, más que en 1997. De los 3 análogos, uno fue
+  extremo (1998) y dos no (2016, 2024): por eso 18 % con un rango amplio. Se actualiza solo al
+  re-ejecutar con los datos ENSO nuevos.
+- Toneladas y USD: hectáreas y rendimiento de tendencia del último año, precio FAOSTAT del último
+  año disponible (2024: 5 602 USD/t, año de precio récord).

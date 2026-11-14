@@ -115,4 +115,5 @@ ml/data/raw/*
 ml/data/processed/*
 !ml/data/**/.gitkeep
 ml/artifacts/*.joblib
+!ml/artifacts/cacao_loss_v*.joblib
 ml/artifacts/*.onnx

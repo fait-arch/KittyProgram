@@ -11,7 +11,7 @@ Qué hace:
      serie nacional, target de rendimiento, sin 1983/1998, desde 1999, y corrección de sesgo
      climática reajustada sin el año de test (1983, 1998).
   4. Ajusta el modelo final con todos los datos y guarda:
-        artifacts/cacao_loss_v1.joblib      modelo (CacaoLossModel) para la API
+        artifacts/cacao_loss_v1.joblib      bundle para el backend (dict; ver ml/inference.py)
         artifacts/model_card_v1.json        fórmula, coeficientes, métricas y límites
         artifacts/cv_predictions_v1.csv     predicción fuera de muestra de cada área-año
 """
@@ -32,6 +32,8 @@ from .config import ARTIFACTS, DATA_PROCESSED
 from .dataset import OUTPUT, OUTPUT_BY_LEVEL, TARGET, TREND_SPAN_YEARS
 from .model import (CORE, EXCLUDE_AREAS, FACTOR_GROUPS, CacaoLossModel, FeatureSpec,
                     QuantileGBR, RidgeModel, hinge_name)
+from .inference import build_bundle
+from .scenarios import load_climate, scenario_features, scenario_years
 from .validation import NinoBaseline, fold_targets, loyo
 
 VERSION = "v1"
@@ -414,7 +416,11 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
     }
     if save:
         ARTIFACTS.mkdir(exist_ok=True)
-        joblib.dump(model, ARTIFACTS / f"cacao_loss_{VERSION}.joblib")
+        clim = load_climate()
+        years = scenario_years(clim)
+        sf = scenario_features(clim, CORE.inputs, years)
+        bundle = build_bundle(model, train, clim, sf, years, card["validation"])
+        joblib.dump(bundle, ARTIFACTS / f"cacao_loss_{VERSION}.joblib")
         (ARTIFACTS / f"model_card_{VERSION}.json").write_text(
             json.dumps(card, indent=2, ensure_ascii=False, default=float))
         out = ens.merge(cvs["ridge"][KEY + ["pred"]].rename(columns={"pred": "pred_ridge"}), on=KEY) \

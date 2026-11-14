@@ -222,7 +222,7 @@ def trained():
     if not path.exists():
         pytest.skip("modelo no entrenado: ml/.venv/bin/python -m ml.train")
     card = json.loads((ARTIFACTS / f"model_card_{VERSION}.json").read_text())
-    return joblib.load(path), card
+    return joblib.load(path)["model"], card
 
 
 def test_trained_model_validation_metrics(trained):

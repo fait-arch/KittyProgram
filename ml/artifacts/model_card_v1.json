@@ -595,13 +595,7 @@
         "1998": -29.451883557607875
       }
     },
-    "permutation_test": {
-      "n_permutations": 200,
-      "corr_national_observed": 0.5611161099471315,
-      "corr_null_mean": -0.16516715952024077,
-      "corr_null_p95": 0.14113086060526905,
-      "p_value": 0.004975124378109453
-    },
+    "permutation_test": null,
     "nino_events_national": [
       {
         "year": 1983,
