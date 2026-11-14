@@ -120,7 +120,15 @@ def main() -> int:
 
     host = re.sub(r"^.*@", "", url).split("/")[0]
     print(f"Conectando a {host} …")
-    with psycopg.connect(url, autocommit=False, connect_timeout=20) as conn:
+    try:
+        conn_ctx = psycopg.connect(url, autocommit=False, connect_timeout=20)
+    except psycopg.OperationalError as e:
+        msg = str(e)
+        print("No se pudo conectar:", msg.splitlines()[0][-110:])
+        if "password authentication failed" in msg:
+            print("La contraseña de SUPABASE_DB_URL es incorrecta: resetéala en Project Settings → Database y actualiza el .env.")
+        return 3
+    with conn_ctx as conn:
         cur = conn.cursor()
         cur.execute("select current_database(), count(*) from public.areas where id = %s", (COUNTRY_ID,))
         dbname, seeded = cur.fetchone()
