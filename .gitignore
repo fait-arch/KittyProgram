@@ -109,3 +109,10 @@ logs/
 *.tmp
 *.temp
 *.bak
+
+# ── ML ────────────────────────────────────────────────────────
+ml/data/raw/*
+ml/data/processed/*
+!ml/data/**/.gitkeep
+ml/artifacts/*.joblib
+ml/artifacts/*.onnx
