@@ -35,6 +35,7 @@ Niño 1+2 en octubre 2026 = +5.25 °C).
 |------|--------|
 | [`docs/`](docs/README.md) | **Plan del proyecto**: propuesta, base de datos, backend, frontend, modelo, fases |
 | [`docs/APIS-DATOS.md`](docs/APIS-DATOS.md) | **APIs para sacar los datos** (probadas) |
+| [`docs/backend/`](docs/backend/README.md) | **Backend integrador**: endpoints, contrato con ML, Supabase, pendientes |
 | [`supabase/migrations/`](supabase/migrations) | Esquema Supabase. `0005_cacaoresiliente.sql` = esquema del proyecto |
 | [`BACK/docs/`](BACK/docs/README.md) | Documentación técnica base del backend (v1) |
 | [`BACK/.env.example`](BACK/.env.example) | Variables de entorno (sin secretos) |
