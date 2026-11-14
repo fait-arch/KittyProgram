@@ -36,7 +36,7 @@ Requisito: las migraciones 0001 → 0006 ya aplicadas.
 
 Si no quieres usar Python: pega los archivos de `data/` **en orden** en el SQL Editor de
 Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.py`.
-`data/seed_completo.sql` es la concatenación de las 6 partes (para `psql -f`).
+`build_seed.py` también genera `data/seed_completo.sql` (concatenación de las 6 partes, para `psql -f`), pero **no se versiona** (pesa ~10 MB).
 
 ## Contenido de `data/`
 
@@ -44,7 +44,7 @@ Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.p
 |-------|--------|------:|
 | 01_territorio | `areas`, `area_static_features`, `data_sources` (+6 fuentes) | 139 + 138 + 6 |
 | 02_el_nino | `enso_index`, `enso_events` | 2 209 + 24 |
-| 03_clima | `area_monthly_series`, `area_monthly_hazard` | 30 744 + 7 686 |
+| 03_clima | `area_monthly_series`, `area_monthly_hazard` | 84 546 + 7 686 |
 | 04_riesgo_y_escenarios | `disease_risk_monthly`, `area_scenario_climate`, `disease_risk_scenario`, `crop_suitability` | 23 058 + 5 832 + 5 832 + 12 |
 | 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 327 + 138 + 309 |
 | 06_modelo_demo_y_observaciones | `model_versions`, `loss_predictions`, `field_observations`, `etl_runs` | 1 + 276 + 12 + 1 |
@@ -64,16 +64,20 @@ select area_id, year, yield_t_ha, fav_days_phytophthora, enso_class from public.
 
 ```bash
 cd supabase/seed/tools
-python download_raw.py  <carpeta_raw>              # límites, DPA, NOAA, FRED, FAOSTAT, GBIF, ESPAC 2023-2025
-python fetch_weather.py <carpeta_raw>              # clima diario ERA5 (Open-Meteo), varias horas
-python fetch_static.py  <carpeta_raw>              # altitud/pendiente (SRTM) y suelo (SoilGrids), ~1 h
-python build_seed.py    <carpeta_raw> ../data      # genera los .sql
-python build_seed.py    <carpeta_raw> ../data_muestra --sample   # versión mínima de prueba
+python download_raw.py  supabase/seed/raw              # límites, DPA, NOAA, FRED, FAOSTAT, GBIF, ESPAC 2023-2025
+python fetch_weather.py supabase/seed/raw              # clima diario ERA5 (Open-Meteo), varias horas
+python fetch_static.py  supabase/seed/raw              # altitud/pendiente (SRTM) y suelo (SoilGrids), ~1 h
+python build_seed.py    supabase/seed/raw ../data      # genera los .sql
+python build_seed.py    supabase/seed/raw ../data_muestra --sample   # versión mínima de prueba
 ```
 
 Los tres pasos de descarga guardan caché en `<raw>/`: se pueden relanzar sin repetir llamadas.
 **Open-Meteo gratuito tiene un límite diario**: si se agota, `fetch_weather.py` se detiene y se
 retoma al día siguiente. SoilGrids permite ~5 peticiones/min.
+
+## Qué falta y cómo conseguirlo
+
+Ver [`docs/09-como-conseguir-los-datos-que-faltan.md`](../../docs/09-como-conseguir-los-datos-que-faltan.md).
 
 ## Cuando lleguen los datos reales
 

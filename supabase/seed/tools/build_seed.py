@@ -1,6 +1,6 @@
 """Genera los archivos SQL de carga (seed) para probar la base de datos y el backend.
 
-Uso:  python build_seed.py <carpeta_raw> <carpeta_salida> [--sample]
+Uso:  python build_seed.py <carpeta_raw> <carpeta_salida> [--sample] [--no-synthetic]
 
 Entradas (en <raw>): adm1.geojson, adm2.geojson, oni.txt, sstoi.txt, fred_cocoa.csv,
 faostat_americas.zip, gbif_*.json, areas.json, weather/*.json (ver fetch_weather.py).
@@ -29,6 +29,7 @@ from shapely.validation import make_valid
 RAW = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
 SAMPLE = "--sample" in sys.argv
+NO_SYN = "--no-synthetic" in sys.argv   # no genera producción sintética (solo años con dato real de ESPAC)
 OUT.mkdir(parents=True, exist_ok=True)
 rnd = random.Random(42)
 
@@ -183,7 +184,8 @@ def load_weather(a: dict) -> tuple[dict, float | None]:
         D = d["daily"]
         for i, t in enumerate(D["time"]):
             days[t] = (D["temperature_2m_mean"][i], D["relative_humidity_2m_mean"][i],
-                       D["precipitation_sum"][i], D["soil_moisture_0_to_7cm_mean"][i])
+                       D["precipitation_sum"][i], D["soil_moisture_0_to_7cm_mean"][i],
+                       D["temperature_2m_max"][i], D["temperature_2m_min"][i])
     return days, elev
 
 
@@ -242,7 +244,10 @@ def month_stats(days: dict, y: int, m: int):
     p = [(r[2] or 0.0) for r in recs]
     sm = [r[3] for r in recs if r[3] is not None]
     n = len(recs)
-    hz = {"precip_total_mm": sum(p), "wet_days": sum(x >= 1 for x in p), "heavy_rain_days": sum(x >= 50 for x in p),
+    tx = [r[4] for r in recs if r[4] is not None]
+    tn = [r[5] for r in recs if r[5] is not None]
+    hz = {"t2m_max_mean": (sum(tx) / len(tx)) if tx else None, "t2m_min_mean": (sum(tn) / len(tn)) if tn else None,
+          "frost_days": sum(x < 2 for x in tn), "precip_total_mm": sum(p), "wet_days": sum(x >= 1 for x in p), "heavy_rain_days": sum(x >= 50 for x in p),
           "max_consecutive_wet_days": longest([x >= 1 for x in p]), "rh_mean": sum(rh) / n,
           "humid_days": sum(x >= 80 for x in rh), "t2m_mean": sum(t) / n, "hot_days": sum(x > 32 for x in t),
           "saturated_days": sum(x >= SAT for x in sm), "n_days_with_data": n, "sm_mean": (sum(sm) / len(sm)) if sm else None}
@@ -341,10 +346,13 @@ for (ak, y, m), (hz, _r) in MONTHS.items():
 for (ak, y, m), (hz, _r) in sorted(MONTHS.items()):
     a = next(x for x in areas if x["key"] == ak)
     md = f"{y}-{m:02d}-01"
-    for vid, val in (("t2m", hz["t2m_mean"]), ("rh_mean", hz["rh_mean"]), ("precip", hz["precip_total_mm"]), ("soil_moisture_surf", hz["sm_mean"])):
+    VARMAP = {"t2m": "t2m_mean", "rh_mean": "rh_mean", "precip": "precip_total_mm", "soil_moisture_surf": "sm_mean",
+              "t2m_max": "t2m_max_mean", "t2m_min": "t2m_min_mean", "frost_days": "frost_days", "wet_days": "wet_days",
+              "heavy_rain_days": "heavy_rain_days", "hot_days": "hot_days", "saturated_days": "saturated_days"}
+    for vid, key_v in VARMAP.items():
+        val = hz[key_v]
         if val is None:
             continue
-        key_v = {"t2m": "t2m_mean", "rh_mean": "rh_mean", "precip": "precip_total_mm", "soil_moisture_surf": "sm_mean"}[vid]
         norm = [c[key_v] for c in clim[(ak, m)] if c[key_v] is not None]
         anom = (val - sum(norm) / len(norm)) if a["kind"] == "province" and len(norm) > 3 else None
         series.append([a["id"], vid, md, val, anom])
@@ -440,11 +448,25 @@ def parse_espac(year):
     return out
 
 
-espac = {y: parse_espac(y) for y in (2023, 2024, 2025)}
-espac_years = sorted(y for y in espac if espac[y] and "__nacional__" in espac[y])
-for y in espac_years:   # control: las provincias deben sumar ≈ total nacional
+espac = {}
+for y in range(2014, 2026):
+    if not (RAW / f"espac_tab{y}.xlsx").exists():
+        continue
+    try:
+        espac[y] = parse_espac(y)
+    except Exception as e:  # formato distinto en años antiguos
+        print(f"ESPAC {y}: no se pudo leer ({e}); se omite", flush=True)
+espac_years = []
+for y in sorted(espac):   # control: las provincias deben sumar ≈ total nacional (±2 %)
+    if not espac[y] or "__nacional__" not in espac[y]:
+        print(f"ESPAC {y}: sin tabla de cacao reconocible; se omite", flush=True)
+        continue
     tot = sum(v[2] for k, v in espac[y].items() if k != "__nacional__")
-    print(f"ESPAC {y}: producción nacional {espac[y]['__nacional__'][2]:,.0f} t; suma de provincias {tot:,.0f} t", flush=True)
+    nat = espac[y]["__nacional__"][2]
+    ok = nat > 0 and abs(tot - nat) / nat < 0.02
+    print(f"ESPAC {y}: producción nacional {nat:,.0f} t; suma de provincias {tot:,.0f} t -> {'OK' if ok else 'NO CUADRA, se omite'}", flush=True)
+    if ok:
+        espac_years.append(y)
 
 for a in prov:
     ys_, hs_ = [], []
@@ -476,7 +498,7 @@ for a in prov:
             a.setdefault("ha", {})[y] = v[1]
             a.setdefault("yld", {})[y] = v[2] / v[1]
             continue
-        if y not in fao["Area harvested"]:
+        if NO_SYN or y not in fao["Area harvested"]:
             continue
         rk = [(MONTHS[(a["key"], y, m)][1]["monilia"][2] + MONTHS[(a["key"], y, m)][1]["phytophthora"][2]) / 2
               for m in range(1, 7) if (a["key"], y, m) in MONTHS]
@@ -511,7 +533,18 @@ for r in csv.DictReader(open(RAW / "fred_cocoa.csv")):
     if r["PCOCOUSDM"] not in ("", "."):
         prices.append(["cacao", r["observation_date"], "internacional_fred", "grano_seco", float(r["PCOCOUSDM"]), "fred"])
 parts[5].append(ins("crop_prices", ["crop_id", "month_date", "market", "product_form", "price_usd_t", "source_id"], [p for p in prices if p[1] >= f"{YEAR0}-01-01"]))
-price_now = sum(p[4] for p in prices[-12:]) / 12
+sipa_fp = RAW / "sipa_cacao.csv"
+if sipa_fp.exists():
+    sp = []
+    for r in csv.DictReader(open(sipa_fp, encoding="utf-8-sig")):
+        m_ = r["month"][:7] + "-01"
+        v_ = float(r["usd_per_t"]) if r.get("usd_per_t") else float(r["usd_per_qq"]) * 1000 / 45.36
+        sp.append(["cacao", m_, "nacional", "grano_seco", v_, "sipa"])
+    parts[5].append(ins("crop_prices", ["crop_id", "month_date", "market", "product_form", "price_usd_t", "source_id"],
+                        [x for x in sp if x[1] >= f"{YEAR0}-01-01"]))
+    prices = sp
+    print(f"SIPA: {len(sp)} meses de precio de Ecuador", flush=True)
+price_now = sum(p[4] for p in sorted(prices, key=lambda x: x[1])[-12:]) / 12
 
 # P6: modelo DEMO + predicciones + observaciones GBIF + etl_runs
 mv = uid("model_demo")

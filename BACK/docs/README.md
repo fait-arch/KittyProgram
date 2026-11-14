@@ -1,3 +1,9 @@
+> ⚠️ **Documentación ARCHIVADA (v1 — rotación de cultivos).** Describe el diseño anterior; varias tablas que
+> menciona (`analysis_runs`, `rotation_strategies`, `expert_reviews`, `area_climatology`, `field_priorities`,
+> `field_current_rotation`) **ya no existen**. La base vigente de CacaoResiliente está en
+> [`docs/02-base-de-datos.md`](../../docs/02-base-de-datos.md). Se conserva porque la estructura de
+> carpetas, la autenticación y el patrón router → service → repository siguen siendo válidos.
+
 # Documentación del backend — AgroRotación UIDE
 
 Backend en **FastAPI** que combina datos satelitales de la **NASA** (vía Google Earth Engine,

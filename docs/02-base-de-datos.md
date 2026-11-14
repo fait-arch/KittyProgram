@@ -1,10 +1,10 @@
 # 2. Base de datos — diccionario de datos
 
 Supabase · Postgres 17 + PostGIS · proyecto `chjgktgkilxjuwuuekah`.
-Estado desplegado el 2026-11-14: **32 tablas, 3 vistas, 0 alertas de seguridad.** Con datos de prueba cargados (ver [08-informe-datos.md](08-informe-datos.md)).
+Estado desplegado el 2026-11-14: **32 tablas, 6 vistas, 0 alertas de seguridad.** Con datos de prueba cargados (ver [08-informe-datos.md](08-informe-datos.md)).
 
 Migraciones aplicadas, en orden: `0001_init` → `0002_fk_indexes` → `0003_field_rpc` →
-`0004_more_sources` → `0005_cacaoresiliente` → `0006_revision` → `0007_limpieza` → `0008_politicas_internas`.
+`0004_more_sources` → `0005_cacaoresiliente` → `0006_revision` → `0007_limpieza` → `0008_politicas_internas` → `0009_cobertura`.
 
 Principio: **guardar valores agregados (área × mes / año / escenario), nunca imágenes.**
 Todo se lee públicamente; escribe solo el backend (`service_role`), salvo las observaciones y
@@ -555,6 +555,18 @@ la ventana de riesgo** de `crop_phenology` (Costa: enero–junio), más `v_enso_
 (simplificada), `crop_id`, `scenario_id`, `loss_pct`, `loss_pct_low`, `loss_pct_high`,
 `exposed_ha`, `loss_t`, `loss_usd`, `risk_class`, `top_factors`, `model_name`.
 Solo incluye el modelo activo.
+
+---
+
+### Vistas de cobertura (migración 0009) — qué datos hay y qué falta
+
+| Vista | Qué muestra |
+|-------|-------------|
+| `v_variable_coverage` | Por variable del catálogo: filas cargadas, áreas, primer y último mes, y `status` (`cargada` / `pendiente`) |
+| `v_area_coverage` | Por territorio: `has_dpa`, `has_terrain`, `has_soil`, años de clima, años de producción **real** y **sintética**, `has_exposure`, nº de predicciones |
+| `v_production_provenance` | Producción por año y fuente, con `is_real` (falso para `seed_sintetico`) |
+
+Se recalculan solas; son la forma más rápida de ver qué falta ([guía](09-como-conseguir-los-datos-que-faltan.md)).
 
 ---
 

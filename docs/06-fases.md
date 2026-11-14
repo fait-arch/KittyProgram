@@ -1,5 +1,21 @@
 # 6. Fases y tareas
 
+## Estado actual (2026-11-14)
+
+| Fase 1 | Estado |
+|--------|--------|
+| 1.1 Cultivo, requisitos, enfermedades, umbrales | ✅ (umbrales por validar) |
+| 1.2 Territorio | ✅ 12 provincias y 126 cantones (Costa y Amazonía), con DPA |
+| 1.3 El Niño | ✅ |
+| 1.4 Clima mensual | 🟡 ERA5; cantones con 5–6 años (faltan 2014, 2015, 2016 parcial, 2022) |
+| 1.5 Riesgo de enfermedad | 🟡 la moniliasis casi no discrimina |
+| 1.6 Aptitud ECOCROP | 🟡 solo provincias |
+| 1.7–1.8 Producción, precios, exposición | 🟡 ESPAC real 2023–2025; resto sintético; precio internacional |
+| 1.9–1.14 Modelo real, estrategias, API, front, demo | ⏳ pendiente |
+| Fase 2 y 3 | ⏳ pendiente |
+
+Detalle y cómo completar cada punto: [09-como-conseguir-los-datos-que-faltan.md](09-como-conseguir-los-datos-que-faltan.md).
+
 Cada fase termina en algo **demostrable**. Si el tiempo no alcanza, se presenta la última
 fase completa y las siguientes como trabajo futuro.
 

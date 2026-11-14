@@ -1,6 +1,6 @@
 # 8. Informe de datos — qué hay cargado, de dónde sale y qué falta
 
-Actualizado: 2026-11-14 (segunda carga). Archivos: [`supabase/seed/`](../supabase/seed/README.md).
+Actualizado: 2026-11-14 (segunda carga). Archivos: [`supabase/seed/`](../supabase/seed/README.md). Cómo conseguir lo que falta: [09](09-como-conseguir-los-datos-que-faltan.md).
 **Real** = descargado de la fuente oficial. **Sintético** = inventado para probar el sistema.
 
 ## 1. Resumen de lo cargado en Supabase
@@ -11,7 +11,7 @@ Actualizado: 2026-11-14 (segunda carga). Archivos: [`supabase/seed/`](../supabas
 | Territorio: Ecuador, **12 provincias** (6 Costa + 6 Amazonía), **126 cantones** | **Real** (geoBoundaries / INEC) | 139 |
 | **Códigos DPA** del INEC: 12/12 provincias, 124/126 cantones | **Real** (HDX COD-AB) | — |
 | El Niño (ONI y regiones Niño 1+2, 3, 3.4, 4, 1990–oct 2026) + 24 eventos | **Real** (NOAA CPC) | 2 209 + 24 |
-| Clima mensual y conteos de peligro | **Real** (ERA5 vía Open-Meteo) | 30 744 + 7 686 |
+| Clima mensual (11 variables: temperatura media/máx/mín, humedad, lluvia, suelo, días de lluvia/aguacero/calor/helada/saturados) y conteos de peligro | **Real** (ERA5 vía Open-Meteo) | 84 546 + 7 686 |
 | Altitud y pendiente (SRTM 30 m) y suelo (SoilGrids) por área | **Real** | 138 |
 | Riesgo de enfermedad por mes / por escenario | **Calculado** con umbrales por validar | 23 058 + 5 832 |
 | Aptitud ECOCROP (provincias) | **Calculada** (ver aviso de lluvia) | 12 |
@@ -94,6 +94,8 @@ Marcados con `source_id = 'seed_sintetico'`, "SINTÉTICO" en `notes` y el modelo
 - **Control de ESPAC:** la suma de las provincias coincide con el total nacional en 2023, 2024 y 2025
   (375 719, 403 699 y 501 244 t). Esa comprobación detectó un error de lectura (filas "Asociado" omitidas)
   que se corrigió.
-- **Carga real** con `inject.py --reset --yes`: 6 partes en ~9 s; revisor de seguridad de Supabase: 0 alertas.
+- **Cobertura:** 11 de 24 variables del catálogo tienen datos; las 13 pendientes dependen de datos NASA (ver `v_variable_coverage`).
+- **Auditoría de consistencia** (17 comprobaciones en SQL): sin huérfanos ni duplicados; las hectáreas de los cantones suman la de su provincia; las 12 provincias tienen riesgo 2001–2025; 2 observaciones de GBIF caen fuera de los cantones cargados (área nula).
+- **Carga real** con `inject.py --reset --yes`: 6 partes en ~11 s; revisor de seguridad de Supabase: 0 alertas.
 - Hallazgos de la primera carga ya corregidos: 3 polígonos inválidos (`st_makevalid`), formato del JSON
   de `top_factors` y fórmula demo.

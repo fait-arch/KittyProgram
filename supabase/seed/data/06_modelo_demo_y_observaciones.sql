@@ -292,4 +292,4 @@ insert into public.field_observations (area_id, pathogen_id, observed_on, lat, l
 ('f68c040f-7ee9-5934-94ec-f2f83a9599b3','escoba_bruja','1990-09-01',-1.105,-79.4558,'gbif','4930328478','GBIF: PRESERVED_SPECIMEN'),
 (NULL,'escoba_bruja','1940-11-24',-2.358,-80.6569,'gbif','4099469390','GBIF: PRESERVED_SPECIMEN') on conflict (source, external_id) do nothing;
 insert into public.etl_runs (script, params, status, rows_written, notes) values
-('seed_pruebas','{"sample": false, "years": "2001-2025"}','done',61488,'Carga de datos de prueba (ver supabase/seed/README.md)');
+('seed_pruebas','{"sample": false, "years": "2001-2025"}','done',115290,'Carga de datos de prueba (ver supabase/seed/README.md)');

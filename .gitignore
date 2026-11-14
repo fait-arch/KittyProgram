@@ -109,3 +109,8 @@ logs/
 *.tmp
 *.temp
 *.bak
+
+# Datos crudos descargados (regenerables con supabase/seed/tools/download_raw.py) y seed combinado
+supabase/seed/raw/
+supabase/seed/data/seed_completo.sql
+supabase/seed/data_muestra/
