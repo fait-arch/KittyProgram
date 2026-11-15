@@ -63,3 +63,34 @@ El mar caliente en oct–dic no garantiza lluvia extrema en la costa en ene–ju
 alarmas). Para avisar antes de la temporada haría falta un **pronóstico estacional de lluvia**
 (p. ej. Copernicus C3S o NMME), no solo el índice de El Niño. Por eso el escenario `actual` usa
 años análogos con un rango amplio.
+<<<<<<< HEAD
+=======
+
+## Exp. 5 — Clima provincial = promedio de sus cantones ponderado por cultivo · NO mejora
+
+`ml.experiments.canton_weighted`. Features calculadas en cada cantón (con su corrección de sesgo) y
+promediadas por provincia con peso = superficie de cultivo + árboles < 900 m (o pesos iguales).
+
+| Clima provincial | Nacional corr / R² | Provincias corr / R² |
+|---|---|---|
+| Provincia entera < 900 m (actual) | 0,643 / 0,408 | **0,325 / 0,103** |
+| Cantones ponderados por cultivo | 0,647 / 0,411 | 0,317 / 0,098 |
+| Cantones, pesos iguales | 0,648 / 0,411 | 0,310 / 0,094 |
+
+El promedio provincial ya captura la señal climática; lo que limita en provincias es el ruido del
+target (encuesta ESPAC), no la medición del clima.
+
+## Exp. 6 — Entrenar con el target provincial "limpiado" hacia el nacional · NO mejora
+
+`ml.experiments.shrink_target`. y' = λ·y_provincia + (1−λ)·y_nacional del mismo año, solo al entrenar;
+se evalúa contra el dato provincial crudo.
+
+| λ | Nacional corr | Provincias corr / R² | Provincias, bloques de 3 años |
+|---|---|---|---|
+| 1 (actual) | 0,643 | 0,325 / 0,103 | 0,284 |
+| 0,75 | 0,646 | 0,327 / 0,105 | 0,289 |
+| 0,50 | 0,647 | 0,322 / 0,101 | 0,290 |
+| 0,25 | 0,643 | 0,313 / 0,094 | 0,298 |
+
+Diferencias de ±0,01: ruido. El modelo está en el techo que permiten estos datos de producción.
+>>>>>>> beltranfuego

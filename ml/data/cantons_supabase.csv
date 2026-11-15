@@ -1,0 +1,127 @@
+id,name,province,dpa
+21d6819e-15f1-533e-83ab-78c30ed1852d,Arenillas,El Oro,0702
+a33f1f86-fa9d-586e-b082-ee656b9aa43f,Atahualpa,El Oro,0703
+f78b785b-1655-51d0-a3fd-43bc6a80d550,Balsas,El Oro,0704
+91006447-3cdc-53ae-a779-c7e7cdc3312e,Chilla,El Oro,0705
+81ef0214-606d-5862-b84f-2dfa40ccd579,El Guabo,El Oro,0706
+f4ea7d6b-ba01-5fe2-92bf-c31caf3386bd,Huaquillas,El Oro,0707
+3b59b24b-da4c-5fc2-bf61-9a9784e006bd,Las Lajas,El Oro,0714
+9ca9323e-1af2-5fba-8e66-92f98f5bc484,Machala,El Oro,0701
+d1a42480-6dcc-5195-bf2e-04b99e526529,Marcabeli,El Oro,0708
+b1a510e5-62f4-5c13-81ee-2b655d83236d,Pasaje,El Oro,0709
+8cfffcc2-09bf-5248-8b6a-f9de7c150252,Piñas,El Oro,0710
+c2442838-f7a8-5d21-b913-1571049f0a27,Portovelo,El Oro,0711
+8085cafa-869c-59ba-9868-7f2ddb4d2718,Santa Rosa,El Oro,0712
+f1df8aea-57ae-5511-8814-ba1af178018f,Zaruma,El Oro,0713
+ea68c21a-c25b-56f8-a61b-ed9943890e3f,Atacames,Esmeraldas,0806
+70c71240-d00e-5379-857b-1891e2feb950,Eloy Alfaro,Esmeraldas,0802
+d5b594b1-70a0-5110-ac02-317e42f40648,Esmeraldas,Esmeraldas,0801
+17fe9868-a255-56fd-9836-538bb81ef423,Muisne,Esmeraldas,0803
+4c5137d7-85bc-54be-80b9-805f861ab7d4,Quininde,Esmeraldas,0804
+ac67d8b8-fe69-592c-8198-d7ace969966e,Rioverde,Esmeraldas,0807
+44e66644-ef69-52a6-bcc8-da07d0afabc0,San Lorenzo,Esmeraldas,0805
+02f7c47d-5c12-5980-ab00-12a7bb2fdb80,Alfredo Baquerizo Moreno,Guayas,0902
+50c3f374-d390-5f9c-af38-68ebcc64def6,Balao,Guayas,0903
+32fd49f8-3a92-5e87-9b8b-720610da3804,Balzar,Guayas,0904
+742c08e6-ab3e-555b-9fc4-e15fab3c59a2,Colimes,Guayas,0905
+cd7c9ea6-0b29-53cf-8976-e20fbfdafd42,Crnel. Marcelino Maridueña,Guayas,0923
+bedb0b9b-59e1-52cf-ac5b-5c9327d62db6,Daule,Guayas,0906
+e48af3a7-72f7-5871-9d86-3e33b085a544,Duran,Guayas,0907
+0924711e-ffb7-5a7e-9061-375bb12adde5,El Piedrero,Guayas,
+b7a8f761-581e-5fc0-87bf-b5cd45376a38,El Triunfo,Guayas,0909
+82f5331c-76d3-5bb6-8341-1b5e2977e445,Empalme,Guayas,0908
+bbd3075c-3b6c-5bd1-895c-9b874ddb870b,Gnral. Antonio Elizalde,Guayas,0927
+139e7108-0786-57dd-a7b0-4ff213128e04,Guayaquil,Guayas,0901
+b2aec43d-82a5-5ecb-898e-56097ee18bf9,Isidro Ayora,Guayas,0928
+6bec362a-bb93-5140-9630-645f431b80b4,Lomas de Sargentillo,Guayas,0924
+3fdde964-c86b-59ac-9525-ca2151f15925,Milagro,Guayas,0910
+d97358e3-3f8c-5758-b5a9-1db8e4f55845,Naranjal,Guayas,0911
+23cdd069-7aa7-553e-b71a-704881d7dfd8,Naranjito,Guayas,0912
+675a6c73-cd0c-5cb9-938e-6a8ab22ec03c,Nobol,Guayas,0925
+61c671ae-a27f-59c8-8605-80e43de06e75,Palestina,Guayas,0913
+97e39314-6526-5787-918c-c3af01b8ea99,Pedro Carbo,Guayas,0914
+7eaf7170-420f-5b19-a348-ab586bede321,Playas,Guayas,0921
+8d8abd8c-f022-5a0b-b140-c307827c7273,Salitre,Guayas,0919
+e47e644d-65ea-5c9d-9fc7-a4b9a969a84a,Samborondon,Guayas,0916
+d6093828-06ff-54f6-966a-bc22cebd9244,San Jacinto de Yaguachi,Guayas,0920
+02fd0a8c-c639-5806-800f-3beb2a86ef5b,Santa Lucia,Guayas,0918
+e157bb8a-f6a1-5047-9e20-c8ec10b0b155,Simon Bolivar,Guayas,0922
+222cd92d-74b7-5779-9592-2a12336aeecc,Baba,Los Ríos,1202
+b91ad54f-3715-5c9b-bda2-51b150d708ed,Babahoyo,Los Ríos,1201
+a7e04ba6-da81-5d88-98d2-70fe885db2dd,Buena Fe,Los Ríos,1210
+f68c040f-7ee9-5934-94ec-f2f83a9599b3,Mocache,Los Ríos,1212
+0adbc843-e20d-5fc6-afa3-0d94550e9fcd,Montalvo,Los Ríos,1203
+d9cc1c0f-38b8-53a5-a634-a45c29c7ca0e,Palenque,Los Ríos,1209
+0f12a443-f01e-5c1f-ab7d-26284b1e043d,Puebloviejo,Los Ríos,1204
+ff0e0a5a-5504-5d68-9752-51a5e1ef56c2,Quevedo,Los Ríos,1205
+8d91f0b0-a665-5544-aea2-58148d764541,Quinsaloma,Los Ríos,1213
+51fc323a-61be-5c85-a680-49faf004891f,Urdaneta,Los Ríos,1206
+68240a1a-4b4e-504d-8333-e14e9ab397d3,Valencia,Los Ríos,1211
+e79c2bbb-3ae7-54e6-9964-3ccc22996686,Ventanas,Los Ríos,1207
+08684146-4a68-558d-b27e-23e3673f59dd,Vinces,Los Ríos,1208
+626d0769-b624-5bc8-880b-ae1ea55576cb,24 de Mayo,Manabi,1316
+489ded23-9fa4-54e4-a2ad-82dd93f38b72,Bolivar,Manabi,1302
+26d4513a-c290-56c5-90c1-5f28066e142b,Chone,Manabi,1303
+eea0a6e2-666b-5868-b122-968b96ae530d,El Carmen,Manabi,1304
+6d6abf53-c0a9-5dc2-b8f1-41b2dbfab320,Flavio Alfaro,Manabi,1305
+35df1bde-31b2-5c79-8a22-da8448db5c48,Jama,Manabi,1320
+88abdc96-593f-5a1a-8dd9-67b301f6c050,Jaramijo,Manabi,1321
+266cc651-6986-54f0-ac7c-045bab3381cb,Jipijapa,Manabi,1306
+ed86b764-3e7c-5c34-b016-3d269a9f2702,Junin,Manabi,1307
+359826a7-08c5-50cb-b701-15ce3a41e43e,Manga del Cura,Manabi,
+ed8a81af-1947-52dd-8f0b-61386a2d30fb,Manta,Manabi,1308
+b1d4af6d-732f-5398-a81a-e4ba0a5e89f0,Montecristi,Manabi,1309
+1a4ae8d2-7ef8-5c10-8a5a-218019b74a46,Olmedo,Manabi,1318
+be49db84-26d6-569e-a6c5-6bc793e2bf71,Pajan,Manabi,1310
+d25cf8bf-ccfb-5bbb-a465-66342f4ea574,Pedernales,Manabi,1317
+213adf54-c45f-5bc8-9db6-fa0bc363ca55,Pichincha,Manabi,1311
+5c8e2ded-5537-5259-ad8e-9febaa7cc2fc,Portoviejo,Manabi,1301
+58fc3727-6aca-5347-9cd1-c582031576f0,Puerto Lopez,Manabi,1319
+047dbc58-9365-5797-8a9b-01347ed38d8e,Rocafuerte,Manabi,1312
+ad0cbd90-d7b4-51cc-9e33-290a01e7c5ea,San Vicente,Manabi,1322
+3c388a88-4ccd-503b-82ff-4973de9940a7,Santa Ana,Manabi,1313
+afa3d9a3-c233-5bec-befd-0cf90b7eb28c,Sucre,Manabi,1314
+3991c549-fbc8-5d4e-ae9f-9bf5a01f5b16,Tosagua,Manabi,1315
+f566c59c-8275-5a55-8c72-cc91ac94ba7f,Gualaquiza,Morona Santiago,1402
+bd17f849-b0b4-5eea-a58f-9267c78422f4,Huamboya,Morona Santiago,1407
+cf1365d3-943d-5d4d-b82a-b5f0e5a1a627,Limon Indanza,Morona Santiago,1403
+14c5bd3f-d00b-5840-977e-5fa233045bbc,Logroño,Morona Santiago,1410
+09f64f52-9e6b-5475-bb55-a5adb4260000,Morona,Morona Santiago,1401
+e96f1f7b-8e40-56d0-88f3-164fc98894ad,Pablo Sexto,Morona Santiago,1411
+7da02bad-7fa3-57d1-98f7-4e294b5b38b4,Palora,Morona Santiago,1404
+be78faf4-381c-58f0-8438-fd621871f03a,San Juan Bosco,Morona Santiago,1408
+1b84dd06-c69b-5389-81fd-dcaac2ca76c1,Santiago,Morona Santiago,1405
+086e161d-b323-5ea4-9f53-32f3268bbc43,Sucua,Morona Santiago,1406
+22a7e860-7576-5a67-8257-56b19f2d4e52,Taisha,Morona Santiago,1409
+b77b7400-02ab-5e9a-881c-5bf2386d2834,Tiwintza,Morona Santiago,1412
+2ab7bf49-a49c-5c69-8ec6-f3cba331be1f,Archidona,Napo,1503
+35ab6048-e035-5dcd-b0dd-f0fe4582a91f,Carlos Julio Arosemena Tola,Napo,1509
+f9a65e32-05c8-5cf3-938b-e271be400e9f,El Chaco,Napo,1504
+f6dbb491-c410-5cb7-a30b-e48756b20c9c,Quijos,Napo,1507
+d6da2bb1-a154-5519-8543-825df645d9ce,Tena,Napo,1501
+d609022f-e2d9-5d34-bc38-91985e9ba286,Aguarico,Orellana,2202
+e008cd8e-e7df-502f-89ed-c614aca47e23,La Joya de los Sachas,Orellana,2203
+3b53982e-cf86-57ca-9afb-4af8ef23a309,Loreto,Orellana,2204
+bd390339-d563-5671-9183-f3d499bb7bf9,Orellana,Orellana,2201
+8bf24380-8356-5796-8fcb-98b5d21ff832,Arajuno,Pastaza,1604
+1835a787-b769-5175-9302-78aa88ed08ed,Mera,Pastaza,1602
+94496e05-0f9a-5878-ba44-5c81b1074399,Pastaza,Pastaza,1601
+a53763b6-8a70-504c-897f-611911d7da12,Santa Clara,Pastaza,1603
+420b297a-9d18-51a1-bddc-1006a63614b9,La Concordia,Santo Domingo de los Tsáchilas,2302
+ed09148f-6e00-57d2-82e5-444c1a7c5113,Santo Domingo,Santo Domingo de los Tsáchilas,2301
+f83bac99-f08b-5071-a099-08d7138faa8b,Cascales,Sucumbios,2106
+f20ed30f-c107-5c7a-b8fd-096a45001544,Cuyabeno,Sucumbios,2107
+80634056-53d1-5aac-a020-484ecab2277f,Gonzalo Pizarro,Sucumbios,2102
+89b51688-d59e-5a4d-9415-638593a850ac,Lago Agrio,Sucumbios,2101
+7f6478cc-7a13-501d-a148-61330936180e,Putumayo,Sucumbios,2103
+d37d465f-4df4-52f3-a6b8-e440f7252a86,Shushufindi,Sucumbios,2104
+21f57257-bdf9-5962-84a5-fff8fe6f82ab,Sucumbios,Sucumbios,2105
+b18eccc5-be77-5344-bc79-2d611e6679a6,Centinela del Condor,Zamora Chinchipe,1907
+8d705e8e-ae4f-57c7-8fa3-fcf43e5cdf55,Chinchipe,Zamora Chinchipe,1902
+19b89691-5aec-53df-98ec-0314e5f3d4de,El Pangui,Zamora Chinchipe,1906
+8d81282f-3fff-51ab-a13e-b172409df2db,Nangaritza,Zamora Chinchipe,1903
+06a4d3b9-18a3-5bac-8257-b870d701c509,Palanda,Zamora Chinchipe,1908
+473051ff-17cb-5c8b-a4e7-4544b437507e,Paquisha,Zamora Chinchipe,1909
+50161b7a-67c3-5be0-910f-873a06508b82,Yacuambi,Zamora Chinchipe,1904
+547ba9ae-e414-5541-897c-b0dec9ef3890,Yantzaza,Zamora Chinchipe,1905
+5898d045-6c5c-54b9-a3fc-60ab70baceb0,Zamora,Zamora Chinchipe,1901

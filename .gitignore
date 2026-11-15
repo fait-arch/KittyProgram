@@ -111,6 +111,7 @@ logs/
 *.bak
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Datos crudos descargados (regenerables con supabase/seed/tools/download_raw.py) y seed combinado
 supabase/seed/raw/
 supabase/seed/data/seed_completo.sql
@@ -120,3 +121,12 @@ supabase/seed/data_muestra/
 BACK/models/*.joblib
 BACK/.model_cache/
 >>>>>>> intermediaJuanDaEmilio
+=======
+# ── ML ────────────────────────────────────────────────────────
+ml/data/raw/*
+ml/data/processed/*
+!ml/data/**/.gitkeep
+ml/artifacts/*.joblib
+!ml/artifacts/cacao_loss_v*.joblib
+ml/artifacts/*.onnx
+>>>>>>> beltranfuego

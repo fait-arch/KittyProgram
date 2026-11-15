@@ -128,7 +128,12 @@ class BiasCorrection:
     @classmethod
     def fit(cls, daily: pd.DataFrame, worldclim: pd.DataFrame, area_meta: pd.DataFrame,
             qm_years: tuple[int, int] | None = None, rain_ref: str = "precip_gpm_mm",
+<<<<<<< HEAD
             use_obs: bool = False) -> "BiasCorrection":
+=======
+            use_obs: bool = False, temp_delta: dict | None = None) -> "BiasCorrection":
+        """temp_delta: {área: {var: {mes: °C}}} ya calculado (p. ej. cantones sin ERA5 1961–1990)."""
+>>>>>>> beltranfuego
         bc = cls(rain_ref=rain_ref, use_obs=use_obs)
         daily = daily.assign(month=daily.date.dt.month, year=daily.date.dt.year)
         for area, g in daily.groupby("area_name"):
@@ -139,11 +144,22 @@ class BiasCorrection:
             ref = g[g.year.between(1961, 1990)].groupby("month")[
                 ["t2m_c", "t2m_min_c", "t2m_max_c"]].mean()
             wc = worldclim[worldclim.area_name == area].set_index("month")
+<<<<<<< HEAD
             bc.temp_delta[area] = {
                 "t2m_c": (wc.wc_tavg_c - ref.t2m_c).to_dict(),
                 "t2m_min_c": (wc.wc_tmin_c - ref.t2m_min_c).to_dict(),
                 "t2m_max_c": (wc.wc_tmax_c - ref.t2m_max_c).to_dict(),
             }
+=======
+            if temp_delta is not None:
+                bc.temp_delta[area] = temp_delta[area]
+            else:
+                bc.temp_delta[area] = {
+                    "t2m_c": (wc.wc_tavg_c - ref.t2m_c).to_dict(),
+                    "t2m_min_c": (wc.wc_tmin_c - ref.t2m_min_c).to_dict(),
+                    "t2m_max_c": (wc.wc_tmax_c - ref.t2m_max_c).to_dict(),
+                }
+>>>>>>> beltranfuego
 
             # Lluvia: quantile mapping empírico ERA5 -> referencia (GPM o CHIRPS), periodo común
             both = g.dropna(subset=[rain_ref, "precip_era5_mm"])

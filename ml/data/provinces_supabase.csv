@@ -1,0 +1,14 @@
+id,kind,name,model_name
+df5013ea-246f-56b5-a845-683e6137e956,country,Ecuador,national
+199dd091-ff96-5d58-9be2-c5a5c9820a89,province,El Oro,El Oro
+0d00089d-0085-51bb-a2c5-5150c60a418c,province,Esmeraldas,Esmeraldas
+154399da-b0f6-51fe-9e14-ef5bebde9784,province,Guayas,Guayas
+7c78adf8-0b1a-5054-83db-ceca8843a2ac,province,Los Ríos,Los Rios
+7f262421-d007-59b1-a8d7-ae156ce2b73c,province,Manabi,Manabi
+49116eec-f1ae-5658-b9d6-c668863ac2d8,province,Morona Santiago,
+febb1849-2575-5ce2-9924-3ea0139f3fe1,province,Napo,
+918490c2-1a9f-5ccc-bee0-3124e888566f,province,Orellana,
+c59be6e9-5d1c-5a18-a0b2-2f0f8fedc9a3,province,Pastaza,
+a6a40d65-273d-5a9f-b02f-aa4265976954,province,Santo Domingo de los Tsáchilas,Santo Domingo de los Tsachilas
+1debf6a0-621e-52a2-805f-b7898be23ae7,province,Sucumbios,Sucumbios
+331a8395-a39e-5b76-9a7e-3a7c299ab815,province,Zamora Chinchipe,

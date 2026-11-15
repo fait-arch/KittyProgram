@@ -169,12 +169,23 @@ class Preprocessor:
 
     def add_area(self, name: str, climate: pd.DataFrame) -> None:
         """Registra un área nueva (cantón, polígono) a partir de su historial de features."""
+<<<<<<< HEAD
         ref = climate[climate.year.between(*self.ref_period)][list(self.spec.anom)].dropna()
         if len(ref) < MIN_NORMAL_YEARS:
             raise ValueError(f"{name}: hacen falta ≥ {MIN_NORMAL_YEARS} años de "
                              f"{self.ref_period[0]}–{self.ref_period[1]} para la normal climática")
         sd = ref.std().replace(0, np.nan)
         self.mean_.loc[name], self.sd_.loc[name] = ref.mean(), sd.fillna(self.sd_.median())
+=======
+        ref = climate[climate.year.between(*self.ref_period)][list(self.spec.anom)]
+        needed = [c for c in self.spec.anom if c not in self.spec.fill_zero]
+        if ref[needed].dropna().shape[0] < MIN_NORMAL_YEARS:
+            raise ValueError(f"{name}: hacen falta ≥ {MIN_NORMAL_YEARS} años de "
+                             f"{self.ref_period[0]}–{self.ref_period[1]} para la normal climática")
+        mean, sd = ref.mean(), ref.std().replace(0, np.nan)           # cada variable con sus años
+        self.mean_.loc[name] = mean.fillna(self.mean_.median())
+        self.sd_.loc[name] = sd.fillna(self.sd_.median())
+>>>>>>> beltranfuego
 
     def _terms(self, X: pd.DataFrame) -> pd.DataFrame:
         missing = set(X.area_name) - set(self.mean_.index)
@@ -372,6 +383,11 @@ class CacaoLossModel:
     resid_q        {"national": (q10, q90), "province": (q10, q90)}: cuantiles de los residuos
                    LOYO normalizados r/s_a (intervalo conformal), por nivel
     noise_scale    s_a por área; `default_scale` para áreas nuevas (cantones, polígonos)
+<<<<<<< HEAD
+=======
+    resid          {"national": [...], "province": [...]}: residuos LOYO normalizados r/s_a, para
+                   la probabilidad de año malo  P(pérdida > 20 %) = media_r 1[ŷ + s_a·r < −20]
+>>>>>>> beltranfuego
     """
     model: RidgeModel
     resid_q: dict
@@ -379,6 +395,11 @@ class CacaoLossModel:
     default_scale: float
     version: str = "v1"
     meta: dict = field(default_factory=dict)
+<<<<<<< HEAD
+=======
+    resid: dict = field(default_factory=dict)
+    BAD_LOSS = 20.0
+>>>>>>> beltranfuego
 
     @property
     def features(self) -> list[str]:
@@ -399,6 +420,14 @@ class CacaoLossModel:
         out["loss_pct"] = np.clip(-y, 0, 100)
         out["loss_p10"], out["loss_p90"] = np.clip(-p90, 0, 100), np.clip(-p10, 0, 100)
         out["risk_class"] = [risk_class(v) for v in out.loss_pct]
+<<<<<<< HEAD
+=======
+        res = getattr(self, "resid", None) or {}
+        if res:
+            out["prob_loss_gt20"] = [
+                float(np.mean(yi + si * np.asarray(res["national" if n else "province"]) < -self.BAD_LOSS))
+                for yi, si, n in zip(y, s, nat)]
+>>>>>>> beltranfuego
         factors = self.explain(X)
         out["top_factors"] = [
             [{"name": k, "contribution": round(float(v), 2)}

@@ -49,3 +49,4 @@ Documentación interactiva (Swagger): http://localhost:8000/docs
 | CRUD de cultivos, fincas, rotación, prioridades | 📝 Especificado en estos docs, pendiente de código |
 | Perfil climático NASA por finca + caché | 📝 Especificado, pendiente de código |
 | Motor de comparación de rotaciones | 📝 Especificado, pendiente de código |
+| 8 | [Datos NASA para el equipo](08-datos-nasa-equipo.md) | Módulo `nasa_data`: series GEE + POWER a CSV/Python |
