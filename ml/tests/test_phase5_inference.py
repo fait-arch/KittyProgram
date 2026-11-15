@@ -211,7 +211,7 @@ def areas_batch():
 
 
 def test_canton_predictions(areas_batch):
-    c = areas_batch[areas_batch.kind == "canton"]
+    c = areas_batch[(areas_batch.kind == "canton") & ~areas_batch.scenario_id.str.endswith("_2050")]
     assert c.area_id.nunique() >= 100                                  # ~125 de 126 cantones
     assert c.area_id.str.match(r"^[0-9a-f-]{36}$").all()                # uuid de Supabase
     assert c.loss_pct.between(0, 100).all() and c.prob_loss_gt20.between(0, 1).all()
@@ -229,3 +229,36 @@ def test_bundle_knows_cantons(bundle, areas_batch):
         pytest.skip("bundle sin cantones (regenerar con ml.cantons_predict)")
     r = predict(bundle, bundle["scenario_features"][cid]["normal"])
     assert r["area_used"] == cid and 0 <= r["loss_pct"] <= 100
+
+
+# ── Proyecciones 2026–2050 ───────────────────────────────────────────────────────────
+@pytest.fixture(scope="module")
+def projections():
+    path = ARTIFACTS / f"projections_{VERSION}.parquet"
+    if not path.exists():
+        pytest.skip("sin proyecciones: ml/.venv/bin/python -m ml.projections")
+    return pd.read_parquet(path)
+
+
+def test_projection_trajectory(projections):
+    p = projections
+    assert set(p.ssp) == {"ssp245", "ssp585"} and set(p.base) == {"tipico", "nino_extremo"}
+    for _, g in p.groupby(["area_id", "ssp", "base"]):
+        assert sorted(g.year) == list(range(2026, 2051))               # todos los años hasta 2050
+    assert p.loss_pct.between(0, 100).all()
+    assert (p.loss_pct_min <= p.loss_pct + 1e-6).all() and (p.loss_pct <= p.loss_pct_max + 1e-6).all()
+    nat = p[(p.area_name == "national") & (p.year == 2050)]
+    assert nat[nat.base == "nino_extremo"].loss_pct.min() > 3 * nat[nat.base == "tipico"].loss_pct.max()
+    assert (nat.anual_frecuencia_x2 >= nat.anual_frecuencia_hoy - 1e-9).all()   # más Niños extremos → más riesgo
+    dt = nat[nat.base == "tipico"].set_index("ssp").dT_ene_jun
+    assert dt["ssp585"] > dt["ssp245"] > 0
+
+
+def test_2050_scenarios_in_area_predictions(areas_batch):
+    s = areas_batch[areas_batch.scenario_id.isin(["ssp245_2050", "ssp585_2050"])]
+    if s.empty:
+        pytest.skip("escenarios 2050 sin integrar (ml.projections)")
+    n_areas = areas_batch[areas_batch.scenario_id == "normal"].area_id.nunique()
+    assert s.groupby("scenario_id").area_id.nunique().eq(n_areas).all()
+    assert (s.evidence == "proyeccion_cmip6_no_validada").all()
+    assert s.loss_pct.between(0, 100).all()

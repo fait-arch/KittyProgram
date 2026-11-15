@@ -261,3 +261,42 @@ Validación (ver `ml/experiments/`): AUC 0,87 y Brier skill 0,29 nacional; AUC 0
 |---|---|---|---|
 | Nacional | 9 % | 98 % | 36 % |
 | Provincias | 12–28 % | 74–100 % | 37–48 % |
+
+## Proyecciones 2026–2050 (NASA NEX-GDDP-CMIP6)
+
+```bash
+ml/.venv/bin/python -m ml.etl.cmip6          # medias mensuales CMIP6 por área (GEE, ~10 min)
+ml/.venv/bin/python -m ml.projections        # → artifacts/projections_v1.csv (después de ml.cantons_predict)
+```
+
+- **4 modelos climáticos** (ACCESS-CM2, EC-Earth3, GFDL-ESM4, MRI-ESM2-0), **SSP2-4.5 y SSP5-8.5**, para
+  país, provincias y los 125 cantones.
+- **Método delta**: cambio mensual de temperatura, humedad y lluvia de la ventana de 21 años centrada en
+  cada año (Y−10…Y+10) frente a 1995–2014 **del mismo modelo**, aplicado al clima diario observado
+  1991–2020 (año típico) y de 1983/1998 (Niño extremo). Se recalculan las mismas features.
+- **Todos los años 2026–2050**: cálculo exacto en 2026, 2030, 2035, 2040, 2045 y 2050, interpolado en
+  los años intermedios.
+- **Pérdida anual esperada** = (1 − p)·típica + p·Niño extremo; p hoy = 2/65; escenario "frecuencia ×2"
+  según Cai et al. (2014, *Nature Climate Change* 4:111–116): los Niños extremos pasan de ~1 cada 20 años
+  a ~1 cada 10 con el calentamiento.
+
+| Nacional | 2026 | 2030 | 2040 | 2050 |
+|---|---|---|---|---|
+| Año típico, SSP2-4.5 | 4,8 % | 4,7 % | 5,0 % | 5,1 % [4,1–7,4] |
+| Año típico, SSP5-8.5 | 5,2 % | 5,0 % | 5,0 % | 5,3 % [3,8–7,5] |
+| Niño extremo, SSP2-4.5 | 51 % | 51 % | 52 % | 52 % [46–58] |
+| Niño extremo, SSP5-8.5 | 53 % | 52 % | 52 % | 53 % [46–58] |
+| **Pérdida anual esperada**, frecuencia de Niños ×2, SSP5-8.5 | 6,7 % | 6,8 % | 7,3 % | **8,2 %** (hoy 6,4 %) |
+
+Cambio ene–jun en 2050 (costa): **+1,2 °C / +4 % de lluvia** (SSP2-4.5) y **+1,6 °C / +9 %** (SSP5-8.5).
+
+**Lectura**: el clima promedio de 2050 casi no cambia la pérdida de un año típico (+0,5 puntos); el
+riesgo sube sobre todo si aumentan los Niños extremos (+25–28 % de pérdida anual esperada).
+**Limitaciones**: el modelo se entrenó con el clima observado y no extrapola (recorta cada término al
+rango visto, `extrapolated = True`): la pérdida futura puede estar subestimada. El método delta no
+cambia la variabilidad interanual ni la intensidad de los Niños; la frecuencia ×2 es un supuesto de
+literatura, no una salida del modelo.
+
+Los escenarios `ssp245_2050` y `ssp585_2050` (año típico 2050) se añaden a
+`loss_predictions_areas_v1.csv` con `evidence = "proyeccion_cmip6_no_validada"`, el rango entre modelos
+(`loss_pct_models_min/max`) y la pérdida anual esperada (`annual_loss_pct_*`).
