@@ -71,7 +71,8 @@ def get_areas(provinces: list[str] | None = None, include_national: bool = True
               ) -> dict[str, tuple[ee.Geometry, ee.Image]]:
     """Return {area_name: (geometry, mask_image)}; area_name is the exact GAUL name
     (plus 'national')."""
-    names = gaul_names(provinces)
+    names = gaul_names(provinces or config.ALL_PROVINCES)
+    national_names = set(gaul_names(config.PROVINCES).values())    # 'national' = solo la Costa+Sucumbíos
     fc = ee.FeatureCollection(GAUL_L1).filter(ee.Filter.eq("ADM0_NAME", "Ecuador"))
     mask = cacao_mask()
     areas: dict[str, tuple[ee.Geometry, ee.Image]] = {}
@@ -79,7 +80,8 @@ def get_areas(provinces: list[str] | None = None, include_national: bool = True
     for gname in names.values():
         g = fc.filter(ee.Filter.eq("ADM1_NAME", gname)).geometry(maxError=100).simplify(SIMPLIFY_M)
         areas[gname] = (g, mask)
-        geoms.append(g)
+        if gname in national_names:
+            geoms.append(g)
     if include_national:
         nat = ee.FeatureCollection([ee.Feature(g) for g in geoms]).union(maxError=100).geometry()
         areas[NATIONAL] = (nat, mask)

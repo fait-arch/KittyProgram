@@ -145,6 +145,27 @@
       "rain_total_gt2": 0.1916
     },
     "area_normal_mean": {
+      "Bolivar": {
+        "saturated_days": 17.3,
+        "fav_days_phytophthora": 42.0667,
+        "solar_mean": 12.6499,
+        "rain_total": 1359.9462,
+        "evi_jan_jun": 0.294
+      },
+      "Canar": {
+        "saturated_days": 11.6333,
+        "fav_days_phytophthora": 31.0,
+        "solar_mean": 12.5311,
+        "rain_total": 1043.1708,
+        "evi_jan_jun": 0.33
+      },
+      "Cotopaxi": {
+        "saturated_days": 29.4,
+        "fav_days_phytophthora": 46.5333,
+        "solar_mean": 12.4382,
+        "rain_total": 1457.365,
+        "evi_jan_jun": 0.3101
+      },
       "El Oro": {
         "saturated_days": 35.0333,
         "fav_days_phytophthora": 12.0333,
@@ -180,6 +201,13 @@
         "rain_total": 1145.467,
         "evi_jan_jun": 0.3845
       },
+      "Pichincha": {
+        "saturated_days": 30.5667,
+        "fav_days_phytophthora": 39.2,
+        "solar_mean": 12.9343,
+        "rain_total": 1517.2311,
+        "evi_jan_jun": 0.3785
+      },
       "Santo Domingo de los Tsachilas": {
         "saturated_days": 31.9,
         "fav_days_phytophthora": 45.7,
@@ -203,6 +231,27 @@
       }
     },
     "area_normal_sd": {
+      "Bolivar": {
+        "saturated_days": 10.1137,
+        "fav_days_phytophthora": 15.4873,
+        "solar_mean": 0.5355,
+        "rain_total": 607.3182,
+        "evi_jan_jun": 0.0327
+      },
+      "Canar": {
+        "saturated_days": 5.8515,
+        "fav_days_phytophthora": 18.5156,
+        "solar_mean": 0.536,
+        "rain_total": 657.821,
+        "evi_jan_jun": 0.0336
+      },
+      "Cotopaxi": {
+        "saturated_days": 11.193,
+        "fav_days_phytophthora": 14.855,
+        "solar_mean": 0.44,
+        "rain_total": 510.1461,
+        "evi_jan_jun": 0.037
+      },
       "El Oro": {
         "saturated_days": 28.2727,
         "fav_days_phytophthora": 12.1697,
@@ -237,6 +286,13 @@
         "solar_mean": 0.6369,
         "rain_total": 447.4823,
         "evi_jan_jun": 0.0253
+      },
+      "Pichincha": {
+        "saturated_days": 7.5644,
+        "fav_days_phytophthora": 6.4935,
+        "solar_mean": 0.3621,
+        "rain_total": 254.8025,
+        "evi_jan_jun": 0.0377
       },
       "Santo Domingo de los Tsachilas": {
         "saturated_days": 8.1805,

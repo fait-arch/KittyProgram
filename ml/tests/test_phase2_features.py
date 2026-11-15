@@ -96,7 +96,9 @@ def test_rain_matches_gpm_by_year(real):
            .rename("gpm").rename_axis(["area_name", "year"]).reset_index().dropna())
     feats = F.build_features(daily, bc).merge(gpm)
     r = feats.groupby("area_name").apply(lambda x: x.rain_total.corr(x.gpm), include_groups=False)
-    assert r.drop("Sucumbios").min() > 0.7                 # Costa; Amazonía (Sucumbíos) es más débil
+    from ml.config import PROVINCES
+    coast = [a for a in PROVINCES if a != "Sucumbios"] + ["national"]
+    assert r[coast].min() > 0.7                             # Costa; Amazonía y Sierra son más débiles
 
 
 @needs_data

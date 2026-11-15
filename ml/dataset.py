@@ -96,6 +96,8 @@ def load_production() -> pd.DataFrame:
     p = p[~p.suppressed & p.yield_t_ha.notna() & (p.yield_t_ha > 0)]
     nat = p[p.level == "national"].sort_values("source")           # espac < faostat
     nat = nat.drop_duplicates("year", keep="last").assign(area_name="national")  # prioriza FAOSTAT
+    # Solo PROVINCES: las andinas (EXTRA_PROVINCES) se probaron y empeoran el modelo (ruido ESPAC
+    # ±46–75 %); su clima sí se descarga para dar el índice de riesgo en esas zonas.
     prov = p[(p.level == "province") & p.area_name.isin(PROVINCES)]
     cols = ["area_name", "level", "year", "harvested_ha", "production_t", "yield_t_ha", "source"]
     out = pd.concat([nat, prov])[cols].sort_values(["area_name", "year"]).reset_index(drop=True)

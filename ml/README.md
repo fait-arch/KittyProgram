@@ -207,6 +207,8 @@ de `model_versions`.
 | Ventanas de meses (ene–abr, feb–may, mar–jun…) y lluvia oct–dic previa | 0,37–0,55 | 15,3–16,8 | Ninguna supera a ene–jun |
 | Producción o área como target provincial | prov 0,07–0,13 | — | Sin skill provincial igual |
 | **Target nacional = producción + exportaciones (ADOPTADO)** | **0,64** (0,56 vs producción sola) | **14,1** | Dos medidas independientes de la cosecha: menos ruido |
+| Verdor solo en píxeles de cultivo (ESA WorldCover), NDVI, otros meses, temporada previa (26 variantes) | 0,61–0,65; prov 0,10–0,22 | 13,8–14,5 | Ninguna mejora a la vez nacional y provincias; elegir la mejor sería inflar |
+| + 4 provincias andinas (Bolívar, Cotopaxi, Pichincha, Cañar), +96 filas | 0,66; prov 0,20 → 0,18 | — | Su ESPAC es aún más ruidoso (±46–75 %). Su clima se usa solo para el índice por zona |
 | **+ verdor MODIS EVI ene–jun (ADOPTADO)** | **0,65**; provincias 0,10 → **0,20** | **13,8** | Medida satelital del estado del cultivo, independiente de la encuesta (recurso del reto) |
 
 CHIRPS queda en el ETL (`--datasets chirps`) y en `BiasCorrection.fit(rain_ref=…, use_obs=…)` por si
