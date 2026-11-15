@@ -31,16 +31,24 @@ check:
 
 define launch
 	@./produccion.sh --detener >/dev/null 2>&1 || true
-	@mkdir -p logs
+	@mkdir -p logs; : > $(LOG)
 	@$(RUN) nohup ./produccion.sh $(1) > $(LOG) 2>&1 &
 	@echo "Desplegando… (log: $(LOG); la 1ª vez tarda varios minutos)"
-	@for i in $$(seq 1 900); do \
-	  curl -fs -o /dev/null http://127.0.0.1:$(BACK_PORT)/health && \
-	  curl -fs -o /dev/null http://127.0.0.1:$(P2_PORT)/health && break; \
-	  grep -q '✖' $(LOG) 2>/dev/null && { tail -30 $(LOG); exit 1; }; \
-	  sleep 1; done
-	@curl -fs -o /dev/null http://127.0.0.1:$(P2_PORT)/health || { tail -30 $(LOG); echo "✖ No levantó a tiempo"; exit 1; }
-	@echo "✔ CacaoResiliente arriba → http://<ip-del-servidor>:$(P2_PORT)   (API local :$(BACK_PORT), logs/ )"
+	@# Muestra el log en vivo mientras espera a que API y front respondan
+	@tail -n +1 -f $(LOG) & T=$$!; trap "kill $$T 2>/dev/null" EXIT; ok=0; \
+	for i in $$(seq 1 900); do \
+	  if curl -fs -o /dev/null http://127.0.0.1:$(BACK_PORT)/health && \
+	     curl -fs -o /dev/null http://127.0.0.1:$(P2_PORT)/health; then ok=1; break; fi; \
+	  grep -q '✖' $(LOG) 2>/dev/null && break; \
+	  sleep 1; done; \
+	sleep 1; kill $$T 2>/dev/null; wait $$T 2>/dev/null; \
+	echo; echo "──── logs/backend.log (últimas líneas) ────"; tail -n 15 logs/backend.log 2>/dev/null; \
+	echo "──── logs/frontend-propuesta2.log (últimas líneas) ────"; tail -n 10 logs/frontend-propuesta2.log 2>/dev/null; \
+	echo "──── /health ────"; curl -s http://127.0.0.1:$(BACK_PORT)/health; echo; echo; \
+	if (( ok )) && ! curl -s http://127.0.0.1:$(BACK_PORT)/health | grep -q '"status":"ok"'; then \
+	  echo "⚠ Levantó, pero el backend está DEGRADADO: mira database.error y model.error en el /health de arriba"; fi; \
+	if (( ok )); then echo "✔ CacaoResiliente arriba → http://<ip-del-servidor>:$(P2_PORT)   (API local :$(BACK_PORT); make logs para seguir)"; \
+	else echo "✖ El despliegue falló o no levantó a tiempo: revisa lo de arriba y logs/"; exit 1; fi
 endef
 
 deploy: check
