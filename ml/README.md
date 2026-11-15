@@ -210,6 +210,10 @@ de `model_versions`.
 | Producción o área como target provincial | prov 0,07–0,13 | — | Sin skill provincial igual |
 | **Target nacional = producción + exportaciones (ADOPTADO)** | **0,64** (0,56 vs producción sola) | **14,1** | Dos medidas independientes de la cosecha: menos ruido |
 | **Target provincial = producción por ha SEMBRADA (ADOPTADO)** | nacional 0,65; prov 0,20 → **0,28** (p = 0,01) | 13,8 | Cuenta el área perdida por enfermedad o inundación (la fracción cosechada baja con la lluvia: r = −0,2) |
+| Lluvia GPM observada 1998→ (en vez de ERA5 calibrado) | nacional 0,65 → 0,61; prov 0,28 → 0,30 | 14,4 | GPM marca menos lluvia extrema en 1998 (pred. −39 % → −30 %) |
+| + suelo saturado de GLDAS (2000→) | nacional 0,61; prov 0,31 | 14,3 | Igual que la anterior: no compensa la pérdida nacional |
+| Ancho de la tendencia 10 / 20 / 30 / 60 años (actual 15) | nacional 0,49–0,66; prov 0,18–0,28 | — | 15 años (fijado en la Fase 2) es el mejor equilibrio |
+| Sensibilidad propia por provincia (encogida hacia 1) | prov 0,28 → 0,30 | — | Se estima sin ningún Niño extremo (2002–2025): a El Oro le da ×0,14 y borraría su pérdida en un Niño como 1998 |
 | Verdor solo en píxeles de cultivo (ESA WorldCover), NDVI, otros meses, temporada previa (26 variantes) | 0,61–0,65; prov 0,10–0,22 | 13,8–14,5 | Ninguna mejora a la vez nacional y provincias; elegir la mejor sería inflar |
 | + 4 provincias andinas (Bolívar, Cotopaxi, Pichincha, Cañar), +96 filas | 0,66; prov 0,20 → 0,18 | — | Su ESPAC es aún más ruidoso (±46–75 %). Su clima se usa solo para el índice por zona |
 | **+ verdor MODIS EVI ene–jun (ADOPTADO)** | **0,65**; provincias 0,10 → **0,20** | **13,8** | Medida satelital del estado del cultivo, independiente de la encuesta (recurso del reto) |
