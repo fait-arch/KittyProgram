@@ -1,0 +1,203 @@
+area_name,year,level,y_cv,p_clim,p_logit,p_ridge
+national,1961,national,7.9355,0.0625,0.3063,0.2577
+national,1962,national,-0.0949,0.0781,0.0569,0.0415
+national,1963,national,2.2804,0.0781,0.0355,0.0312
+national,1964,national,-20.4038,0.0781,0.1458,0.1099
+national,1965,national,6.2089,0.0625,0.2619,0.3579
+national,1966,national,-6.6472,0.0938,0.215,0.2011
+national,1967,national,16.8777,0.0625,0.0443,0.0426
+national,1968,national,60.1138,0.0781,0.0341,0.0214
+national,1969,national,-19.4522,0.0781,0.0964,0.0749
+national,1970,national,-10.0357,0.0938,0.0505,0.0053
+national,1971,national,18.9671,0.0781,0.197,0.1872
+national,1972,national,11.264,0.0781,0.0996,0.1176
+national,1973,national,-16.6536,0.0938,0.3117,0.2995
+national,1974,national,41.416,0.0781,0.0694,0.0321
+national,1975,national,-0.3336,0.0781,0.3043,0.1016
+national,1976,national,-12.7234,0.0781,0.3141,0.2781
+national,1977,national,-1.073,0.0781,0.0507,0.0428
+national,1978,national,5.7192,0.0781,0.0484,0.0053
+national,1979,national,9.7153,0.0781,0.038,0.0053
+national,1980,national,13.4034,0.0781,0.0369,0.0214
+national,1981,national,-8.2376,0.0781,0.0349,0.0428
+national,1982,national,18.3163,0.0781,0.0412,0.0749
+national,1983,national,-49.7515,0.0625,0.8691,0.9679
+national,1984,national,-12.4674,0.0781,0.0784,0.123
+national,1985,national,31.9846,0.0781,0.0338,0.0053
+national,1986,national,9.0134,0.0781,0.0733,0.0588
+national,1987,national,-27.5667,0.0625,0.2823,0.3048
+national,1988,national,-5.7475,0.0781,0.0638,0.0749
+national,1989,national,-2.5581,0.0781,0.1178,0.1283
+national,1990,national,24.2317,0.0781,0.0449,0.0749
+national,1991,national,11.0799,0.0781,0.0438,0.0481
+national,1992,national,-11.1458,0.0781,0.4969,0.5455
+national,1993,national,-7.9971,0.0781,0.1346,0.123
+national,1994,national,-7.0329,0.0781,0.1179,0.107
+national,1995,national,5.0652,0.0781,0.082,0.0495
+national,1996,national,18.9151,0.0781,0.1163,0.0734
+national,1997,national,2.6534,0.0781,0.2269,0.25
+national,1998,national,-63.9967,0.0625,0.9165,0.8743
+national,1999,national,15.2742,0.0781,0.2687,0.2531
+national,2000,national,-15.406,0.0781,0.3673,0.3376
+national,2001,national,-12.232,0.0781,0.2448,0.2697
+El Oro,2002,province,-2.254,0.2609,0.1461,0.2945
+Esmeraldas,2002,province,-48.4563,0.1304,0.2152,0.1849
+Guayas,2002,province,-17.8784,0.0,0.2772,0.2192
+Los Rios,2002,province,-20.8002,0.2174,0.2536,0.2808
+Manabi,2002,province,-27.6397,0.1739,0.2364,0.3288
+national,2002,national,-24.862,0.0625,0.2334,0.2329
+El Oro,2003,province,58.693,0.3043,0.1689,0.2
+Esmeraldas,2003,province,22.1862,0.1739,0.2653,0.0714
+Guayas,2003,province,36.4988,0.0,0.087,0.0
+Los Rios,2003,province,29.173,0.1739,0.149,0.05
+Manabi,2003,province,-7.7314,0.2174,0.2352,0.2
+national,2003,national,0.4918,0.0781,0.2016,0.0643
+El Oro,2004,province,4.3766,0.2609,0.0474,0.1269
+Esmeraldas,2004,province,54.7113,0.1739,0.1785,0.0597
+Guayas,2004,province,20.531,0.0,0.059,0.0
+Los Rios,2004,province,11.5298,0.1739,0.0456,0.0
+Manabi,2004,province,41.0518,0.1739,0.1674,0.194
+national,2004,national,3.5315,0.0781,0.0767,0.0299
+El Oro,2005,province,0.5692,0.3043,0.0696,0.1875
+Esmeraldas,2005,province,-15.0214,0.1739,0.1381,0.0859
+Guayas,2005,province,-9.1327,0.0435,0.1152,0.0
+Los Rios,2005,province,18.8802,0.1739,0.0511,0.0156
+Manabi,2005,province,26.1243,0.2174,0.0942,0.1562
+national,2005,national,7.032,0.0781,0.0781,0.0469
+El Oro,2006,province,-17.019,0.3043,0.1487,0.2541
+Esmeraldas,2006,province,-11.7767,0.2174,0.1018,0.0164
+Guayas,2006,province,-6.5738,0.0,0.0973,0.0164
+Los Rios,2006,province,-14.7207,0.2174,0.0879,0.0164
+Manabi,2006,province,12.0977,0.2174,0.1031,0.123
+national,2006,national,-9.7878,0.0938,0.1,0.0738
+El Oro,2007,province,-19.4671,0.2609,0.0603,0.1638
+Esmeraldas,2007,province,-44.8764,0.1304,0.184,0.0862
+Guayas,2007,province,-16.6353,0.0,0.0638,0.0
+Los Rios,2007,province,-35.0761,0.2174,0.1175,0.0345
+Manabi,2007,province,-6.6462,0.2174,0.0906,0.0603
+national,2007,national,-19.2033,0.0781,0.0817,0.0776
+El Oro,2008,province,-27.0868,0.2609,0.1952,0.2636
+Esmeraldas,2008,province,3.6834,0.1739,0.0872,0.0091
+Guayas,2008,province,0.8458,0.0,0.1335,0.0273
+Los Rios,2008,province,-39.1484,0.2174,0.0642,0.0091
+Manabi,2008,province,-36.6458,0.2174,0.1546,0.0909
+national,2008,national,-17.962,0.0938,0.0961,0.0818
+El Oro,2009,province,-3.6013,0.3043,0.0792,0.1731
+Esmeraldas,2009,province,11.1857,0.1739,0.0539,0.0
+Guayas,2009,province,1.1897,0.0,0.0424,0.0
+Los Rios,2009,province,18.5308,0.2174,0.0312,0.0
+Manabi,2009,province,-7.898,0.2174,0.0561,0.0096
+Santo Domingo de los Tsachilas,2009,province,26.2213,0.1875,0.0561,0.0192
+national,2009,national,7.5206,0.0781,0.0716,0.0481
+El Oro,2010,province,-24.1495,0.2609,0.1566,0.233
+Esmeraldas,2010,province,15.4029,0.1739,0.3481,0.233
+Guayas,2010,province,17.6991,0.0,0.2339,0.0583
+Los Rios,2010,province,28.3627,0.1739,0.2902,0.1262
+Manabi,2010,province,-17.7324,0.2174,0.2793,0.1262
+Santo Domingo de los Tsachilas,2010,province,9.3859,0.1875,0.1582,0.0777
+national,2010,national,0.5657,0.0781,0.2174,0.1456
+El Oro,2011,province,46.3309,0.2609,0.0508,0.1373
+Esmeraldas,2011,province,2.1379,0.1739,0.0185,0.0098
+Guayas,2011,province,16.1132,0.0,0.0457,0.0196
+Los Rios,2011,province,28.736,0.2174,0.0278,0.0098
+Manabi,2011,province,49.7522,0.2174,0.029,0.0098
+Santo Domingo de los Tsachilas,2011,province,-10.5215,0.1875,0.0454,0.0294
+national,2011,national,21.821,0.0781,0.0225,0.0196
+El Oro,2012,province,10.409,0.2609,0.086,0.198
+Esmeraldas,2012,province,-11.1614,0.1739,0.126,0.2277
+Guayas,2012,province,-16.3988,0.0,0.1891,0.1386
+Los Rios,2012,province,-3.6732,0.1739,0.2096,0.1485
+Manabi,2012,province,-46.5205,0.2174,0.398,0.5347
+Santo Domingo de los Tsachilas,2012,province,-23.7666,0.125,0.1817,0.2574
+national,2012,national,-4.0677,0.0781,0.2316,0.2574
+El Oro,2013,province,-33.4108,0.2609,0.1102,0.19
+Esmeraldas,2013,province,-41.3106,0.1304,0.3664,0.34
+Guayas,2013,province,-11.5562,0.0,0.1818,0.09
+Los Rios,2013,province,-35.2722,0.1304,0.2191,0.11
+Manabi,2013,province,-50.6046,0.2174,0.2356,0.18
+Santo Domingo de los Tsachilas,2013,province,-13.2942,0.1875,0.225,0.17
+national,2013,national,-7.5853,0.0781,0.2204,0.16
+El Oro,2014,province,9.5265,0.2609,0.0615,0.1515
+Esmeraldas,2014,province,-1.1986,0.1739,0.2914,0.3131
+Guayas,2014,province,8.1788,0.0,0.1183,0.0505
+Los Rios,2014,province,5.9977,0.2174,0.2147,0.1111
+Manabi,2014,province,60.1274,0.2174,0.1321,0.101
+Santo Domingo de los Tsachilas,2014,province,39.7001,0.1875,0.1388,0.1515
+national,2014,national,-1.2816,0.0781,0.1612,0.101
+El Oro,2015,province,39.8743,0.2609,0.1132,0.2143
+Esmeraldas,2015,province,-22.8269,0.1304,0.0339,0.1224
+Guayas,2015,province,7.8322,0.0,0.0399,0.0306
+Los Rios,2015,province,-5.7362,0.2174,0.0453,0.0612
+Manabi,2015,province,24.8222,0.2174,0.0181,0.0102
+Santo Domingo de los Tsachilas,2015,province,4.1975,0.1875,0.0321,0.0918
+national,2015,national,5.0234,0.0781,0.0435,0.051
+El Oro,2016,province,19.9231,0.3043,0.1926,0.2887
+Esmeraldas,2016,province,-10.4848,0.1739,0.2036,0.299
+Guayas,2016,province,-12.3978,0.0,0.134,0.0928
+Los Rios,2016,province,-17.2531,0.1739,0.151,0.1753
+Manabi,2016,province,-35.2311,0.2174,0.1453,0.1753
+Santo Domingo de los Tsachilas,2016,province,-45.0486,0.125,0.2879,0.3814
+national,2016,national,-6.2959,0.0781,0.1671,0.1443
+El Oro,2017,province,9.0673,0.3043,0.3854,0.4742
+Esmeraldas,2017,province,-6.7542,0.1739,0.026,0.0928
+Guayas,2017,province,-6.9796,0.0,0.1787,0.1546
+Los Rios,2017,province,-6.3793,0.1304,0.0899,0.1546
+Manabi,2017,province,-0.8286,0.2174,0.0642,0.1134
+Santo Domingo de los Tsachilas,2017,province,-8.8491,0.1875,0.0482,0.0
+national,2017,national,3.0052,0.0781,0.0884,0.1134
+El Oro,2018,province,-29.5027,0.2609,0.0927,0.1649
+Esmeraldas,2018,province,24.2116,0.1739,0.0381,0.1546
+Guayas,2018,province,-2.7548,0.0,0.1005,0.1134
+Los Rios,2018,province,-7.4566,0.2174,0.1003,0.2268
+Manabi,2018,province,-11.2334,0.2174,0.0664,0.1546
+Santo Domingo de los Tsachilas,2018,province,13.5818,0.1875,0.091,0.0103
+national,2018,national,2.9328,0.0781,0.0841,0.1237
+El Oro,2019,province,22.2475,0.2609,0.1678,0.2692
+Esmeraldas,2019,province,-1.3307,0.1739,0.0744,0.1827
+Guayas,2019,province,16.1796,0.0,0.1767,0.1442
+Los Rios,2019,province,-0.4784,0.2174,0.1733,0.2212
+Manabi,2019,province,-5.5433,0.2174,0.0865,0.1635
+Santo Domingo de los Tsachilas,2019,province,3.1207,0.1875,0.1165,0.1154
+national,2019,national,0.411,0.0781,0.1488,0.1442
+El Oro,2020,province,-34.9188,0.2609,0.0612,0.1351
+Esmeraldas,2020,province,-0.0797,0.1739,0.0375,0.0901
+Guayas,2020,province,22.1897,0.0,0.0609,0.027
+Los Rios,2020,province,20.6207,0.1739,0.048,0.0901
+Manabi,2020,province,15.2465,0.2174,0.0496,0.1351
+Santo Domingo de los Tsachilas,2020,province,16.6034,0.1875,0.023,0.009
+national,2020,national,9.4044,0.0781,0.0354,0.018
+El Oro,2021,province,-18.7446,0.2609,0.0515,0.1441
+Esmeraldas,2021,province,-13.0063,0.1739,0.2313,0.3136
+Guayas,2021,province,-5.6483,0.0,0.0988,0.0593
+Los Rios,2021,province,-2.2792,0.2174,0.1785,0.2203
+Manabi,2021,province,-8.0631,0.2174,0.1593,0.2458
+Santo Domingo de los Tsachilas,2021,province,-14.1809,0.1875,0.205,0.161
+national,2021,national,-4.0614,0.0781,0.1479,0.1356
+El Oro,2022,province,-48.8171,0.2609,0.1305,0.168
+Esmeraldas,2022,province,-3.4242,0.1739,0.142,0.208
+Guayas,2022,province,-4.5835,0.0,0.193,0.128
+Los Rios,2022,province,10.742,0.1739,0.1658,0.2
+Manabi,2022,province,-6.0683,0.2174,0.2065,0.296
+Santo Domingo de los Tsachilas,2022,province,-15.7504,0.1875,0.2175,0.208
+national,2022,national,2.4812,0.0781,0.196,0.144
+El Oro,2023,province,61.6558,0.2609,0.0852,0.2197
+Esmeraldas,2023,province,-6.9607,0.1739,0.0942,0.2273
+Guayas,2023,province,-6.9253,0.0,0.0923,0.0985
+Los Rios,2023,province,-2.0235,0.2174,0.0639,0.1515
+Manabi,2023,province,22.0454,0.2174,0.0625,0.2955
+Santo Domingo de los Tsachilas,2023,province,31.5958,0.125,0.0791,0.1742
+national,2023,national,-5.2867,0.0781,0.066,0.1364
+El Oro,2024,province,-0.2253,0.2609,0.0544,0.1151
+Esmeraldas,2024,province,12.9238,0.1739,0.0388,0.0935
+Guayas,2024,province,-4.1267,0.0,0.0876,0.0072
+Los Rios,2024,province,11.5991,0.1739,0.0897,0.1367
+Manabi,2024,province,-15.4743,0.2609,0.0854,0.2086
+Santo Domingo de los Tsachilas,2024,province,-23.022,0.1875,0.0723,0.1151
+national,2024,national,-6.8563,0.0781,0.0502,0.0432
+El Oro,2025,province,49.1544,0.2609,0.1068,0.1027
+Esmeraldas,2025,province,6.2048,0.1739,0.1304,0.1301
+Guayas,2025,province,7.0912,0.0,0.119,0.0068
+Los Rios,2025,province,-20.8918,0.1739,0.0786,0.0479
+Manabi,2025,province,9.6091,0.2174,0.1117,0.2055
+Santo Domingo de los Tsachilas,2025,province,18.6476,0.1875,0.0465,0.0616
+national,2025,national,7.0008,0.0781,0.1282,0.0479

@@ -1,0 +1,60 @@
+{
+  "national": {
+    "clima": {
+      "n": 65,
+      "malos": 5,
+      "brier": 0.072900390625,
+      "brier_skill": 0.0,
+      "auc": 0.1166666666666667,
+      "acierto_p50": 0.0,
+      "falsa_alarma_p50": 0.0
+    },
+    "logit": {
+      "n": 65,
+      "malos": 5,
+      "brier": 0.053858184010714634,
+      "brier_skill": 0.26120856762261513,
+      "auc": 0.88,
+      "acierto_p50": 0.4,
+      "falsa_alarma_p50": 0.0
+    },
+    "ridge": {
+      "n": 65,
+      "malos": 5,
+      "brier": 0.05143250263244559,
+      "brier_skill": 0.2944824823091189,
+      "auc": 0.8733333333333334,
+      "acierto_p50": 0.4,
+      "falsa_alarma_p50": 0.016666666666666666
+    }
+  },
+  "province": {
+    "clima": {
+      "n": 137,
+      "malos": 23,
+      "brier": 0.13859353224649182,
+      "brier_skill": 0.0,
+      "auc": 0.5715102974828375,
+      "acierto_p50": 0.0,
+      "falsa_alarma_p50": 0.0
+    },
+    "logit": {
+      "n": 137,
+      "malos": 23,
+      "brier": 0.13233562524617487,
+      "brier_skill": 0.04515295121555252,
+      "auc": 0.6876430205949657,
+      "acierto_p50": 0.0,
+      "falsa_alarma_p50": 0.0
+    },
+    "ridge": {
+      "n": 137,
+      "malos": 23,
+      "brier": 0.13204559793426932,
+      "brier_skill": 0.04724559801662931,
+      "auc": 0.6626620900076278,
+      "acierto_p50": 0.043478260869565216,
+      "falsa_alarma_p50": 0.0
+    }
+  }
+}
