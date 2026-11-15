@@ -123,6 +123,7 @@ class BiasCorrection:
     meta: dict = field(default_factory=dict)
     rain_ref: str = "precip_gpm_mm"
     use_obs: bool = False
+    evi_cal: dict = field(default_factory=dict)   # {área: (a, b)}: EVI_MODIS ≈ a + b·EVI_VIIRS
 
     # ---- ajuste -------------------------------------------------------------------
     @classmethod
@@ -158,6 +159,9 @@ class BiasCorrection:
                 s = both[both.month.isin(_season(month))]
                 bc.qm[area][month] = (np.quantile(s.precip_era5_mm, QM_QUANTILES),
                                       np.quantile(s[rain_ref], QM_QUANTILES))
+        # Verdor: calibración VIIRS → MODIS (respaldo cuando MODIS no tenga dato; Terra se retira)
+        if {"modis_evi", "viirs_evi"} <= set(daily.columns):
+            bc.evi_cal = fit_evi_calibration(daily)
         # Umbrales de referencia (sobre datos ya corregidos)
         corrected = bc.apply(daily.drop(columns=["month", "year"]))
         ref = corrected[corrected.date.dt.year.between(*REF_PERIOD)]
@@ -190,6 +194,19 @@ class BiasCorrection:
                 g["precip_mm"] = g[self.rain_ref].where(g[self.rain_ref].notna(), g.precip_mm)
             out.append(g)
         return pd.concat(out).sort_values(["area_name", "date"]).reset_index(drop=True)
+
+
+def fit_evi_calibration(daily: pd.DataFrame, months=RAINY_MONTHS) -> dict:
+    """Por área: EVI_MODIS = a + b·EVI_VIIRS con las medias mensuales (ene–jun) en que existen ambos."""
+    d = daily[daily.date.dt.month.isin(months)].dropna(subset=["modis_evi", "viirs_evi"], how="all")
+    m = d.groupby(["area_name", d.date.dt.to_period("M")])[["modis_evi", "viirs_evi"]].mean().dropna()
+    m["modis_evi"] *= 1e-4                         # MODIS viene ×10 000; VIIRS 002 ya viene en 0–1
+    out = {}
+    for area, g in m.groupby(level=0):
+        if len(g) >= 12:
+            b, a = np.polyfit(g.viirs_evi, g.modis_evi, 1)
+            out[area] = (float(a), float(b))
+    return out
 
 
 def _qmap(x, q_src, q_dst):
@@ -273,6 +290,13 @@ def yearly_features(d: pd.DataFrame, bc: BiasCorrection, months=RAINY_MONTHS) ->
     )
     if "modis_evi" in w.columns:                    # MODIS (2000→): verdor medio de la ventana
         f["evi_jan_jun"] = g.modis_evi.mean() * 1e-4
+        cal = getattr(bc, "evi_cal", None) or {}
+        if "viirs_evi" in w.columns and cal:        # sin MODIS → VIIRS calibrado a escala MODIS
+            v = g.viirs_evi.mean()                  # VIIRS 002 ya viene en 0–1
+            ab = pd.Series([cal.get(a, (np.nan, np.nan)) for a in v.index.get_level_values(0)], index=v.index)
+            v_cal = ab.map(lambda t: t[0]) + ab.map(lambda t: t[1]) * v
+            f["evi_source"] = np.where(f.evi_jan_jun.notna(), "modis", np.where(v_cal.notna(), "viirs", None))
+            f["evi_jan_jun"] = f.evi_jan_jun.fillna(v_cal)
     f["rain_max_5d"] = g.precip_mm.apply(lambda s: s.rolling(5).sum().max())
     f["max_wet_spell"] = g.wet_day.apply(lambda s: _max_run(s.to_numpy()))
     f["water_balance"] = f.rain_total - f.et0_total

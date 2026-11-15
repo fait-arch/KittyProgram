@@ -160,3 +160,14 @@ ecuatoriana**: mezclar países diluye la respuesta y el modelo subestima los des
 La correlación "contra su propio target" sube porque las exportaciones de solo grano reaccionan más
 al clima (el objetivo se vuelve más fácil), pero **la prueba justa contra la producción no cambia**
 (0,578 → 0,582): no predice mejor la cosecha real. No se adopta como target.
+
+## Exp. 11 — VIIRS como respaldo de MODIS · FUNCIONA (adoptado como respaldo)
+
+`ml.experiments.viirs_backup`. Se simula que MODIS se apagó en 2012 y el verdor 2012–2025 sale solo de
+VIIRS calibrado a escala MODIS.
+
+| Verdor | Nacional corr | Provincias corr | Provincias 2012–2025 |
+|---|---|---|---|
+| MODIS (actual) | 0,643 | 0,325 | 0,286 |
+| Solo VIIRS desde 2012 | 0,644 | 0,280 | 0,206 |
+| Sin verdor | 0,637 | 0,19 | — |

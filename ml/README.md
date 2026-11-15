@@ -340,3 +340,38 @@ Manga del Cura, Vinces, Puebloviejo.
 su aptitud real es mayor. Los cortes (4 000 y 30 %) son decisiones del equipo (`ml/zones.py`).
 GAEZ proyecta que la aptitud **mejora** hacia 2050 en la costa (más lluvia y calor), mientras el riesgo
 por Niños extremos sigue igual o crece: la costa seguirá siendo cacaotera, pero más expuesta.
+
+## VIIRS (respaldo de MODIS) y monitor de humedad del suelo SMAP
+
+```bash
+ml/.venv/bin/python -m ml.etl.satellite_extra   # VIIRS 2012→ (país, provincias, cantones) y SMAP hasta hoy
+ml/.venv/bin/python -m ml.etl.smap_cantons      # SMAP diario de los 125 cantones (lote mensual, ~7 min)
+ml/.venv/bin/python -m ml.monitor               # → artifacts/monitor_soil_v1.csv (correr cada mes)
+```
+
+**VIIRS** (NASA, recurso del reto): MODIS va en el satélite Terra, que la NASA está retirando. VIIRS
+(`NASA/VIIRS/002/VNP13A1`, 2012→) es su sucesor. La corrección de sesgo (`BiasCorrection.evi_cal`)
+calibra por área `EVI_MODIS ≈ a + b·EVI_VIIRS` con los meses ene–jun 2012–2025 (anomalías r = 0,77,
+error medio 0,018) y `yearly_features` usa VIIRS calibrado cuando falta MODIS (`evi_source`).
+Simulando que MODIS se apagó en 2012 (`ml.experiments.viirs_backup`): nacional igual (0,644);
+provincias 0,325 → 0,280 (sin ningún verdor serían 0,19). El sistema sigue funcionando sin MODIS.
+
+**SMAP** (NASA, recurso del reto, ~3 días de retraso): humedad del suelo superficial diaria por área.
+Por mes: anomalía frente al mismo mes 2015–2025, % de días con el suelo saturado (≥ p90) y estado
+(seco / normal / húmedo / encharcado). Validación: los días saturados de SMAP y los de ERA5 que usa el
+modelo coinciden (r = 0,42 dentro de cada área, ene–jun 2015–2025).
+
+**Noviembre 2026 (hasta el día 10)**: el suelo de la costa está **encharcado en plena época seca**:
+
+| Área | Humedad hoy | Normal de noviembre | Diferencia |
+|---|---|---|---|
+| Ecuador | 0,37 m³/m³ | 0,23 | **+59 %** |
+| Guayas | 0,37 | 0,16 | **+131 %** |
+| El Oro | 0,34 | 0,15 | **+120 %** |
+| Los Ríos | 0,33 | 0,16 | **+101 %** |
+| Manabí | 0,33 | 0,17 | **+89 %** |
+| Esmeraldas | 0,39 | 0,27 | +47 % |
+
+85 de 125 cantones "encharcados". Es la señal del Niño costero de 2026 trayendo lluvia fuera de
+temporada (como a fines de 1997, antes del desastre de 1998). Correr el monitor cada mes durante
+ene–jun 2027 permite ir actualizando el riesgo del escenario `actual`.

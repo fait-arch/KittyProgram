@@ -33,7 +33,8 @@ CANTONS_CSV = config.ROOT / "data" / "cantons_supabase.csv"
 RAW = config.DATA_RAW / "gee_cantons"
 OUT_DAILY = config.DATA_PROCESSED / "climate_daily_cantons.parquet"
 OUT_META = config.DATA_PROCESSED / "canton_meta.parquet"
-YEARS = {"era5": (1991, config.YEAR_END), "gpm": (1998, config.YEAR_END), "modis": (2000, config.YEAR_END)}
+YEARS = {"era5": (1991, config.YEAR_END), "gpm": (1998, config.YEAR_END), "modis": (2000, config.YEAR_END),
+         "viirs": (2012, config.YEAR_END)}
 WORLDCLIM = "WORLDCLIM/V1/MONTHLY"
 log = logging.getLogger("cantons")
 

@@ -277,3 +277,26 @@ def test_zones_matrix():
     for r in z.dropna(subset=["zone_2050"]).itertuples():
         assert r.zone_2050 == zone(r.si_2050_rcp85_alto, r.loss_pct_nino_extremo)
     assert zone(SUIT_MIN + 1, RISK_MAX + 1) == "manejo" and zone(SUIT_MIN - 1, RISK_MAX - 1) == "transicion"
+
+
+# ── VIIRS (respaldo de MODIS) y monitor SMAP ─────────────────────────────────────────
+def test_viirs_calibration():
+    import pandas as pd
+    from ml.features import fit_evi_calibration
+    rng = np.random.default_rng(0)
+    dates = pd.date_range("2015-01-01", "2020-06-30", freq="16D")
+    v = rng.uniform(0.3, 0.5, len(dates))
+    d = pd.DataFrame({"date": dates, "area_name": "x", "viirs_evi": v, "modis_evi": (0.05 + 0.9 * v) * 1e4})
+    a, b = fit_evi_calibration(d)["x"]
+    assert a == pytest.approx(0.05, abs=1e-6) and b == pytest.approx(0.9, abs=1e-6)
+
+
+def test_soil_monitor():
+    path = ARTIFACTS / "monitor_soil_v1.parquet"
+    if not path.exists():
+        pytest.skip("sin monitor: ml/.venv/bin/python -m ml.monitor")
+    m = pd.read_parquet(path)
+    assert set(m.estado.dropna()) <= {"seco", "normal", "humedo", "encharcado"}
+    assert (m.kind == "canton").groupby(m.area_id).any().sum() >= 100
+    assert m.sm_m3m3.between(0, 1).all() and m.dias_saturados_pct.between(0, 100).all()
+    assert m.ultimo_dato.max().year >= 2026

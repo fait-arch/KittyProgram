@@ -7,6 +7,7 @@ Datasets (area mean per day, masked to cacao-relevant land):
   smap  NASA/SMAP/SPL4SMGP/008            2015-03→ daily mean sm_surface, sm_rootzone
   chirps UCSB-CHG/CHIRPS/DAILY            1981→   daily precip (satélite + estaciones, ~5 km)
   modis MODIS/061/MOD13A2 (16 días, 1 km)  2000→   EVI, NDVI (× 0.0001)
+  viirs NASA/VIIRS/002/VNP13A1 (16 días)    2012→   EVI, NDVI (ya en 0–1), sucesor de MODIS
 
 Each (dataset, area, year) chunk is one server-side aggregation + getInfo, cached to
 ml/data/raw/gee/{dataset}/{area_slug}_{year}.parquet (reruns skip cached chunks).
@@ -63,8 +64,11 @@ DATASETS = {
     # MODIS Terra 16 días, 1 km: verdor de la vegetación (EVI/NDVI × 0.0001); una fila por compuesto
     "modis": dict(collection="MODIS/061/MOD13A2", first=date(2000, 2, 18), scale=1000,
                   kind="daily_plain", bands=["EVI", "NDVI"]),
+    # VIIRS (Suomi NPP), 16 días, 500 m: sucesor de MODIS para el verdor (EVI/NDVI ya en 0–1)
+    "viirs": dict(collection="NASA/VIIRS/002/VNP13A1", first=date(2012, 1, 17), scale=1000,
+                  kind="daily_plain", bands=["EVI", "NDVI"]),
 }
-PRIORITY = ["era5", "gpm", "gldas", "smap", "chirps", "modis"]
+PRIORITY = ["era5", "gpm", "gldas", "smap", "chirps", "modis", "viirs"]
 
 
 def _era5_prep(img: ee.Image) -> ee.Image:
@@ -88,6 +92,7 @@ RENAME = {
     "smap": {"sm_surface": "smap_sm_surface_m3m3", "sm_rootzone": "smap_sm_rootzone_m3m3"},
     "chirps": {"precipitation": "precip_chirps_mm"},
     "modis": {"EVI": "modis_evi", "NDVI": "modis_ndvi"},
+    "viirs": {"EVI": "viirs_evi", "NDVI": "viirs_ndvi"},
 }
 
 

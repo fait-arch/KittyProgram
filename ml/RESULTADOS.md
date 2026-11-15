@@ -65,6 +65,8 @@ los experimentos en [`experiments/README.md`](experiments/README.md).
 | **NOAA CPC** | Índices de El Niño (ONI, Niño 1+2, Niño 3.4) | 1950–2026 |
 | **NASA NEX-GDDP-CMIP6** | Clima futuro: 4 modelos, 2 escenarios de emisiones | 1995–2060 |
 | **FAO GAEZ v4** | Aptitud del cacao hoy y en 2050 (capa complementaria) | 1981–2010, 2041–2070 |
+| **NASA VIIRS** | Verdor (respaldo de MODIS, que se retira) | 2012–2026 |
+| **NASA SMAP** | Humedad del suelo casi en tiempo real (monitor de la temporada) | 2015–nov 2026 |
 
 Todo se descarga con scripts propios desde Google Earth Engine para cada área: el país, las
 provincias cacaoteras de la costa (Los Ríos, Guayas, Manabí, Esmeraldas, El Oro, Santo Domingo)
@@ -295,6 +297,17 @@ expuestas a los Niños extremos. Cantones prioritarios: Jama, Baba, Muisne, Pede
 Chone, La Concordia, Vinces. (Guayas y El Oro salen "críticas" porque GAEZ evalúa cacao de secano y allí
 se riega mucho: su aptitud real es mayor.) Archivo: [`artifacts/zones_v1.csv`](artifacts/zones_v1.csv).
 
+### 6.5 La temporada en curso, vista desde el espacio (NASA SMAP) y el respaldo de MODIS (NASA VIIRS)
+
+- **Monitor de humedad del suelo (SMAP, ~3 días de retraso)**: en noviembre de 2026 el suelo de la costa
+  está **tan húmedo como en marzo** (pico de la época de lluvias) en plena época seca: **+59 %** sobre lo
+  normal a nivel nacional, Guayas +131 %, El Oro +120 %, Los Ríos +101 %, Manabí +89 %; **85 de 125
+  cantones encharcados**. Es la señal del Niño costero de 2026 trayendo lluvia fuera de temporada, como
+  a fines de 1997. Archivo: [`artifacts/monitor_soil_v1.csv`](artifacts/monitor_soil_v1.csv) (se actualiza cada mes).
+- **VIIRS como respaldo de MODIS**: MODIS va en Terra, que la NASA está retirando. El modelo ya sabe usar
+  VIIRS calibrado si falta MODIS; probado: el resultado nacional no cambia y el provincial conserva la
+  mayor parte de la ganancia del verdor (0,28 frente a 0,325).
+
 ## 7. Hallazgos principales
 
 1. **Lo que destruye el cacao no es "El Niño" en general, sino el Niño costero con lluvia
@@ -308,7 +321,8 @@ se riega mucho: su aptitud real es mayor.) Archivo: [`artifacts/zones_v1.csv`](a
    cacao, los coeficientes del clima casi no cambian.
 4. **Hay tres fuentes independientes que confirman 1998**: la producción cayó −59 %, las
    exportaciones se desplomaron y **las compras de la Unión Europea a Ecuador cayeron 41 %**.
-5. **Ya hay señal de la temporada 2027**: el mar frente a Ecuador está más caliente que en 1997.
+5. **Ya hay señal de la temporada 2027**: el mar frente a Ecuador está más caliente que en 1997 y el
+   satélite SMAP muestra el suelo de la costa encharcado en plena época seca (+59 % sobre lo normal).
 6. **Hacia 2050 el peligro es que los Niños extremos sean más frecuentes**, no el calentamiento
    promedio. Prepararse para ellos (drenaje, cosecha sanitaria, poda) es la adaptación que más vale.
 7. **La costa seguirá siendo apta para el cacao en 2050** (FAO GAEZ: la aptitud incluso mejora), pero más
@@ -382,6 +396,7 @@ rendimientos de ensayos del INIAP.
 | [`artifacts/projections_v1.csv`](artifacts/projections_v1.csv) | Trayectoria **año por año 2026–2050** por área y escenario de emisiones | Front (gráfico de evolución) |
 | [`artifacts/cacao_loss_v1.joblib`](artifacts/cacao_loss_v1.joblib) | El modelo para el backend (en memoria) | Backend (`MODEL_PATH`) |
 | [`inference.py`](inference.py) | `predict()` y `adjust_features()` (sliders de lluvia, temperatura y El Niño) | Backend (`ML_INFERENCE_MODULE=ml.inference`) |
+| [`artifacts/monitor_soil_v1.csv`](artifacts/monitor_soil_v1.csv) | Humedad del suelo por área y mes (SMAP): estado, % sobre lo normal | Front (banner de la temporada) |
 | [`artifacts/zones_v1.csv`](artifacts/zones_v1.csv) | Matriz de decisión por área: zona (segura/manejo/transición/crítica), recomendación, aptitud GAEZ hoy y 2050 | Front (ZoneMatrix) y Supabase (`zone_classification`) |
 | [`artifacts/model_card_v1.json`](artifacts/model_card_v1.json) | Ficha: fórmula con todos sus números, métricas y límites | Página de metodología |
 | [`artifacts/model_version_v1.json`](artifacts/model_version_v1.json) | Fila para la tabla `model_versions` | Supabase |
