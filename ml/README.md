@@ -1,5 +1,8 @@
 # ml/ — Modelo predictivo CacaoResiliente
 
+> **Resumen de resultados en lenguaje claro: [RESULTADOS.md](RESULTADOS.md)** — qué datos usamos, cómo
+> funciona el modelo, qué tan bueno es, escenarios de hoy y 2050, hallazgos y límites.
+
 Predice la **pérdida de rendimiento de cacao (%)** por área y año a partir de datos NASA
 (ERA5-Land, GPM, GLDAS/SMAP) y El Niño (NOAA), y la convierte en t y USD.
 Diseño completo en [`docs/05-modelo-predictivo.md`](../docs/05-modelo-predictivo.md).

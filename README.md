@@ -39,7 +39,7 @@ Niño 1+2 en octubre 2026 = +5.25 °C).
 | [`BACK/docs/`](BACK/docs/README.md) | Documentación técnica base del backend (v1) |
 | [`BACK/.env.example`](BACK/.env.example) | Variables de entorno (sin secretos) |
 | [`BACK/nasa_data/`](BACK/docs/08-datos-nasa-equipo.md) | Módulo Python para descargar series NASA (GEE + POWER) a CSV |
-| [`ml/`](ml/README.md) | Modelo predictivo de pérdida de cacao (ETL, features, entrenamiento, API) |
+| [`ml/`](ml/README.md) | Modelo predictivo de pérdida de cacao (ETL, features, entrenamiento, API) · **[resultados explicados](ml/RESULTADOS.md)** |
 
 ## Aplicar la base de datos
 
