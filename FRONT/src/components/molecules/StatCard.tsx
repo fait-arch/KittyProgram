@@ -18,7 +18,7 @@ export function StatCard({ icon, value, label, trend, trendBad = true, foot, loa
 }) {
   const bad = trend ? trend.up === trendBad : false;
   return (
-    <div className="flex flex-col gap-4 rounded-xl border border-outline-variant bg-surface-lowest p-5 shadow-sm">
+    <div className="lift flex flex-col gap-4 rounded-xl border border-outline-variant bg-surface-lowest p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="grid size-11 place-items-center rounded-lg bg-primary/12 text-primary"><Icon name={icon} size={24} /></span>
         {trend && (

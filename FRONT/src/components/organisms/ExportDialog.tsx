@@ -167,14 +167,14 @@ export function ExportDialog({ open, onClose }: { open: boolean; onClose: () => 
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col gap-0.5 rounded-sm border border-outline px-3.5 py-2">
                     <span className="text-xs text-on-surface-variant">Sistema de referencia (SRC)</span>
-                    <select value={crs} onChange={(e) => setCrs(Number(e.target.value) as 4326 | 32717)} className="bg-transparent text-[15px] font-semibold outline-none">
+                    <select style={{ colorScheme: "inherit" }} value={crs} onChange={(e) => setCrs(Number(e.target.value) as 4326 | 32717)} className="bg-transparent text-[15px] font-semibold outline-none">
                       <option value={4326}>EPSG:4326 · WGS 84 (grados)</option>
                       <option value={32717} disabled={browserOnly}>EPSG:32717 · UTM 17S (metros)</option>
                     </select>
                   </label>
                   <label className="flex flex-col gap-0.5 rounded-sm border border-outline px-3.5 py-2">
                     <span className="text-xs text-on-surface-variant">Nivel</span>
-                    <select value={level} onChange={(e) => setLevel(e.target.value as "canton" | "province")} className="bg-transparent text-[15px] font-semibold outline-none">
+                    <select style={{ colorScheme: "inherit" }} value={level} onChange={(e) => setLevel(e.target.value as "canton" | "province")} className="bg-transparent text-[15px] font-semibold outline-none">
                       <option value="canton">Cantón</option>
                       <option value="province" disabled={browserOnly}>Provincia</option>
                     </select>

@@ -7,7 +7,7 @@ import * as api from "@/lib/api/endpoints";
 import type { ScenarioId } from "@/lib/api/types";
 import { markCantonSaved } from "@/lib/offline";
 
-const ALL: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual"];
+const ALL: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual", "ssp245_2050", "ssp585_2050"];
 
 export async function saveCantonOffline(id: string, name: string, onProgress?: (done: number, total: number) => void) {
   const jobs: (() => Promise<unknown>)[] = [

@@ -13,7 +13,7 @@ export function SummaryCard({ scenario, province, scenarios }: { scenario: Scena
   return (
     <section aria-label="Resumen del escenario" aria-busy={isLoading} className="flex flex-col gap-3 rounded-lg bg-surface-high p-5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-on-surface-variant">Pérdida estimada · {province ?? "Costa"}</span>
+        <span className="text-sm font-semibold text-on-surface-variant">Pérdida estimada · {province ?? "Costa y Amazonía"}</span>
       </div>
       {error ? (
         <p className="text-sm text-error">No se pudo cargar el resumen.</p>

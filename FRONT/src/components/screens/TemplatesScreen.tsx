@@ -69,13 +69,13 @@ export function TemplatesScreen() {
           options={[{ value: "tarjeta", label: "Tarjeta" }, { value: "ficha", label: "Ficha A4" }, { value: "portada", label: "Portada" }]} />
         <label className="flex h-10 items-center gap-2 rounded-sm border border-outline px-3 text-sm">
           <span className="sr-only">Cantón</span>
-          <select value={canton} onChange={(e) => set("canton", e.target.value)} className="bg-transparent font-semibold outline-none">
+          <select style={{ colorScheme: "inherit" }} value={canton} onChange={(e) => set("canton", e.target.value)} className="bg-transparent font-semibold outline-none">
             {(areas ?? []).map((a) => <option key={a.id} value={a.id}>{a.name} · {a.province}</option>)}
           </select>
         </label>
         <label className="flex h-10 items-center gap-2 rounded-sm border border-outline px-3 text-sm">
           <span className="sr-only">Escenario</span>
-          <select value={scenario} onChange={(e) => set("escenario", e.target.value)} className="bg-transparent font-semibold outline-none">
+          <select style={{ colorScheme: "inherit" }} value={scenario} onChange={(e) => set("escenario", e.target.value)} className="bg-transparent font-semibold outline-none">
             {SCENARIO_IDS.map((id) => <option key={id} value={id}>{scenarios?.find((s) => s.id === id)?.label ?? id}</option>)}
           </select>
         </label>

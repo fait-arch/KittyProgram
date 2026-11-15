@@ -15,10 +15,10 @@ const KEYS = [
 export type ChartTokens = Record<(typeof KEYS)[number], string> & { font: string; display: string; reducedMotion: boolean };
 
 const FALLBACK: ChartTokens = {
-  "on-surface": "#edf4ee", "on-surface-variant": "#bcc8bd", "on-surface-muted": "#9da89e", outline: "#667768", "outline-variant": "#1f2d20",
-  surface: "#081109", "surface-high": "#122014", "surface-highest": "#18271a", primary: "#64bd5b", "primary-container": "#085630", error: "#ff8a6b",
-  "series-monilia": "#2e96f5", "series-phyto": "#d95926", "loss-0": "#b2ffd8", "loss-1": "#fae61e", "loss-2": "#e67800", "loss-3": "#c80000", "loss-4": "#640000",
-  "loss-outline": "#232323", font: "Overpass, system-ui, sans-serif", display: "'Fira Sans', system-ui, sans-serif", reducedMotion: false,
+  "on-surface": "#eceff1", "on-surface-variant": "#c8cec6", "on-surface-muted": "#a2a99e", outline: "#7d877b", "outline-variant": "#3b463e",
+  surface: "#181e1a", "surface-high": "#2d362f", "surface-highest": "#36413a", primary: "#96c9b2", "primary-container": "#2f4a37", error: "#ff8a6b",
+  "series-monilia": "#2e96f5", "series-phyto": "#d95926", "loss-0": "#e8dc9a", "loss-1": "#d9b04f", "loss-2": "#c4722f", "loss-3": "#963a25", "loss-4": "#4a1a17",
+  "loss-outline": "#2b221c", font: "Overpass, system-ui, sans-serif", display: "'Fira Sans', system-ui, sans-serif", reducedMotion: false,
 };
 
 function read(): ChartTokens {

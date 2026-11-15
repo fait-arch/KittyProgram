@@ -58,9 +58,14 @@ class ModelArtifacts:
         if not self.csv_path.exists():
             log.info("Sin predicciones del modelo en %s", self.csv_path)
             return []
-        with self.csv_path.open(encoding="utf-8") as fh:
-            out = list(csv.DictReader(fh))
-        log.info("Predicciones del modelo: %d filas de %s", len(out), self.csv_path.name)
+        out: list[dict] = []
+        # el CSV principal y los complementarios (p. ej. loss_predictions_2050_v1.csv de build_predictions.py)
+        extra = sorted(p for p in self.csv_path.parent.glob("loss_predictions_*.csv") if p != self.csv_path)
+        for path in [self.csv_path, *extra]:
+            with path.open(encoding="utf-8") as fh:
+                rows = list(csv.DictReader(fh))
+            out.extend(rows)
+            log.info("Predicciones del modelo: %d filas de %s", len(rows), path.name)
         return out
 
     @cached_property
@@ -196,6 +201,24 @@ class ArtifactBackedSource:
             for r in rows:
                 r["geom"] = geoms.get(r["area_id"])
         return rows
+
+    def zones(self, crop: str, future: str) -> list[dict]:
+        """Zonas 2050: la base las calcula por provincia (parte 10); cada cantón hereda la de su provincia."""
+        rows = list(self.base.zones(crop, future))
+        have = {r["area_id"] for r in rows}
+        provs = self._provinces()
+        cantons_by_prov: dict[str, list[dict]] = {}
+        for c in self.base.areas("canton"):
+            cantons_by_prov.setdefault(c.get("parent_id"), []).append(c)
+        extra = []
+        for r in rows:
+            if r["area_id"] not in provs:
+                continue
+            for c in cantons_by_prov.get(r["area_id"], []):
+                if c["id"] not in have:
+                    extra.append({**r, "area_id": c["id"], "areas": {"name": c["name"], "parent_id": c.get("parent_id")},
+                                  "inherited_from": provs[r["area_id"]]["name"]})
+        return rows + extra
 
     def loss_full(self, model_version_id: str, area_id: str, crop: str, scenario: str) -> dict | None:
         art_model = (self.art.card or {}).get("name")

@@ -2,6 +2,8 @@ import type { AreaDetail } from "@/lib/api/types";
 import { RISK_META } from "@/lib/design/colors";
 import { fmtPct, fmtPctRange, fmtPts, fmtT, fmtUsd } from "@/lib/design/format";
 import { Icon } from "@/components/atoms/Icon";
+import { EmptyCacao } from "@/components/atoms/Anim";
+import { CountUp } from "@/components/molecules/CountUp";
 import { AlertLevelChip } from "@/components/molecules/AlertLevelChip";
 import { KpiTile } from "@/components/molecules/KpiTile";
 import { LossInterval } from "@/components/molecules/LossInterval";
@@ -34,16 +36,20 @@ export function ModelChips({ l }: { l: NonNullable<AreaDetail["loss"]> }) {
 }
 
 /** Organismo · cifra principal + rango probable (p10–p90) + toneladas, USD y diferencia con año normal. */
-export function LossHero({ d, scenarioLabel }: { d: AreaDetail; scenarioLabel: string }) {
+export function LossHero({ d, scenarioLabel, province }: {
+  d: AreaDetail;
+  scenarioLabel: string;
+  /** Totales de la provincia, para cuando el cantón no tiene hectáreas medidas */
+  province?: { name: string; loss_t: number | null; loss_usd: number | null } | null;
+}) {
   const l = d.loss;
   if (!l) {
     return (
       <section aria-label="Pérdida estimada" className="flex flex-col gap-2 rounded-lg bg-surface-high p-5">
         <span className="text-sm font-semibold text-on-surface-variant">Pérdida estimada de producción · {scenarioLabel}</span>
-        <p className="flex gap-2 text-[15px] leading-[22px]">
-          <Icon name="info" size={20} className="text-primary" />
-          El modelo todavía no tiene estimación para {d.area.name} en este escenario. Se entrena con la producción de las provincias de la Costa; abajo están el clima y el riesgo de enfermedad del cantón.
-        </p>
+        <EmptyCacao title={`Sin estimación para ${d.area.name}`}>
+          El modelo se entrena con la producción de las provincias de la Costa. Abajo están el clima y el riesgo de enfermedad del cantón.
+        </EmptyCacao>
       </section>
     );
   }
@@ -51,7 +57,7 @@ export function LossHero({ d, scenarioLabel }: { d: AreaDetail; scenarioLabel: s
     <section aria-label="Pérdida estimada" className="flex flex-col gap-4 rounded-lg bg-surface-high p-5">
       <span className="text-sm font-semibold text-on-surface-variant">Pérdida estimada de producción · {scenarioLabel}</span>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <span className="font-display text-[57px] leading-[64px] font-black tabular">{fmtPct(l.loss_pct)}</span>
+        <span className="font-display text-[57px] leading-[64px] font-black tabular"><CountUp value={l.loss_pct} format={fmtPct} duration={700} /></span>
         <AlertLevelChip risk={l.risk_class} prefix="Pérdida" />
       </div>
       <p className="-mt-2 text-[13px] leading-[18px] text-on-surface-variant">{RISK_META[l.risk_class].alert} · {RISK_META[l.risk_class].meaning}</p>
@@ -60,10 +66,17 @@ export function LossHero({ d, scenarioLabel }: { d: AreaDetail; scenarioLabel: s
         <LossInterval low={l.loss_pct_low} mid={l.loss_pct} high={l.loss_pct_high} />
         <span className="text-[13px] leading-[18px]">Rango probable (p10–p90): <b>{fmtPctRange(l.loss_pct_low, l.loss_pct_high)}</b>. Ocho de cada diez temporadas similares caen aquí.</span>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      {l.loss_t == null && province?.loss_t != null && (
+        <p className="-mb-1 flex items-center gap-1.5 text-[13px] leading-[18px] text-on-surface-variant">
+          <Icon name="info" size={16} />El cantón no tiene hectáreas medidas (ESPAC publica por provincia): toneladas y dólares son de toda la provincia.
+        </p>
+      )}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {l.loss_t != null ? <KpiTile value={fmtT(l.loss_t)} label="grano seco perdido" />
+          : province?.loss_t != null ? <KpiTile value={fmtT(province.loss_t)} label={`grano perdido en toda la provincia de ${province.name}`} />
           : <KpiTile value="—" label="toneladas: sin hectáreas medidas en el cantón" />}
         {l.loss_usd != null ? <KpiTile value={fmtUsd(l.loss_usd)} label="valor en riesgo" />
+          : province?.loss_usd != null ? <KpiTile value={fmtUsd(province.loss_usd)} label={`valor en riesgo en toda ${province.name}`} />
           : <KpiTile value="—" label="valor: se calcula por provincia" />}
         {l.vs_normal ? (
           <KpiTile value={fmtPts(l.vs_normal.delta_pct).replace(" pts", "")} label={`puntos frente a un año normal (${fmtPct(l.vs_normal.loss_pct)})`}

@@ -1,0 +1,149 @@
+:root {
+	/* Paleta "In Color Balance": café cacao, oliva, blanco niebla, menta y verde bosque.
+	   Misma paleta que FRONT (Next.js). Modo oscuro: [data-theme='dark']. */
+	--bg: #e9ede8;          /* blanco niebla verdoso */
+	--surface: #ffffff;
+	--surface-2: #eef2ee;
+	--ink: #2b221c;         /* texto café muy oscuro */
+	--ink-2: #5d5a4e;
+	--line: #cfd9d1;
+	--accent: #3d5a43;      /* verde bosque: acciones y selección */
+	--accent-deep: #2e4533;
+	--accent-soft: #d5eadf; /* menta suave */
+	--accent-2: #7d7340;    /* oliva */
+	--mint: #96c9b2;
+	--olive: #a99f6a;
+	--bar: #4b3a2f;         /* café cacao: barra superior */
+	--heading: #2b221c;
+	--on-accent: #ffffff;
+	--good: #2f7f73;
+	--warn: #9a7a22;
+	--bad: #963a25;
+	--map-sea: #b9dccd;
+	--shadow: 0 1px 2px rgb(43 34 28 / 0.06), 0 8px 24px rgb(43 34 28 / 0.09);
+	--radius: 14px;
+	--font: 'Instrument Sans', system-ui, sans-serif;
+	--display: 'Fraunces', Georgia, serif;
+	color-scheme: light;
+}
+:root[data-theme='dark'] {
+	--bg: #18231d;
+	--surface: #1f2c25;
+	--surface-2: #2b3b32;
+	--ink: #eceff1;
+	--ink-2: #b4c0b5;
+	--line: #3b4f44;
+	--accent: #96c9b2;      /* menta */
+	--accent-deep: #c4e3d4;
+	--accent-soft: #2b3b32;
+	--accent-2: #c9bd7e;    /* oliva claro */
+	--bar: #4b3a2f;
+	--heading: #eceff1;
+	--on-accent: #12241b;
+	--good: #7fc3b2;
+	--warn: #d9b04f;
+	--bad: #e08a6f;
+	--map-sea: #163033;
+	--shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 24px rgb(0 0 0 / 0.4);
+	color-scheme: dark;
+}
+:root[data-theme='dark'] .maplibregl-ctrl-group { background: var(--surface); }
+:root[data-theme='dark'] .maplibregl-ctrl-group button + button { border-top-color: var(--line); }
+:root[data-theme='dark'] .maplibregl-ctrl-icon { filter: invert(1) hue-rotate(180deg); }
+:root[data-theme='dark'] .maplibregl-ctrl-attrib { background: rgb(31 44 37 / 0.85); color: var(--ink-2); }
+:root[data-theme='dark'] .maplibregl-ctrl-attrib a { color: var(--ink-2); }
+select option { background: var(--surface); color: var(--ink); }
+body { transition: background 0.25s, color 0.25s; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+	background: var(--bg);
+	color: var(--ink);
+	font: 14px/1.45 var(--font);
+	-webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; letter-spacing: -0.01em; color: var(--heading); }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1rem; font-family: var(--font); font-weight: 600; }
+p { margin: 0.25rem 0; }
+small, .muted { color: var(--ink-2); }
+a { color: var(--accent); }
+
+button, select, input, textarea {
+	font: inherit;
+	color: inherit;
+}
+.btn {
+	display: inline-flex; align-items: center; gap: 0.4rem;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	padding: 0.45rem 0.8rem;
+	border-radius: 999px;
+	cursor: pointer;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.primary:hover { background: var(--accent-deep); color: var(--on-accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn.sm { padding: 0.25rem 0.6rem; font-size: 0.85rem; }
+
+select, input[type='text'], input[type='email'], input[type='password'], input[type='number'], input[type='date'], textarea {
+	border: 1px solid var(--line);
+	background: var(--surface);
+	border-radius: 10px;
+	padding: 0.45rem 0.6rem;
+	min-width: 0;
+}
+textarea { resize: vertical; width: 100%; }
+input[type='range'] { accent-color: var(--accent); width: 100%; }
+
+.card {
+	background: var(--surface);
+	border: 1px solid var(--line);
+	border-radius: var(--radius);
+	padding: 0.9rem 1rem;
+}
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.stack { display: flex; flex-direction: column; gap: 0.75rem; }
+.row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.spread { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+.kpi .label { font-size: 0.75rem; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi .value { font-family: var(--display); font-size: 1.5rem; font-weight: 700; line-height: 1.1; color: var(--heading); }
+.kpi .sub { font-size: 0.8rem; color: var(--ink-2); }
+
+.pill {
+	display: inline-flex; align-items: center; gap: 0.3rem;
+	padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600;
+	background: var(--surface-2);
+}
+.tag-ok, .kpi .value.tag-ok { color: var(--good); }
+.tag-warn, .kpi .value.tag-warn { color: var(--warn); }
+.tag-bad, .kpi .value.tag-bad { color: var(--bad); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th { text-align: left; font-weight: 600; color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+th, td { padding: 0.35rem 0.4rem; border-bottom: 1px solid var(--line); }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--surface-2); }
+
+.err { color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); padding: 0.5rem 0.7rem; border-radius: 10px; }
+.skeleton { background: linear-gradient(90deg, var(--surface-2), var(--line), var(--surface-2)); background-size: 200% 100%; animation: sk 1.2s infinite; border-radius: 10px; min-height: 60px; }
+@keyframes sk { to { background-position: -200% 0; } }
+
+.disclaimer { font-size: 0.75rem; color: var(--ink-2); border-top: 1px dashed var(--line); padding-top: 0.5rem; }
+
+.maplibregl-popup-content { background: var(--surface) !important; color: var(--ink); border-radius: 10px !important; box-shadow: var(--shadow) !important; font-family: var(--font); }
+.maplibregl-popup-tip { border-top-color: var(--surface) !important; }
+
+/* Ficha impresa / PDF: mapa + panel, sin controles */
+@media print {
+	@page { margin: 12mm; }
+	body { background: #fff; color: #2b221c; }
+	.bar, .controls, .hint, .ov, .show, .drawer, .scrim, .draw, .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-top-right { display: none !important; }
+	main > .wrap { position: relative !important; height: 120mm; }
+}

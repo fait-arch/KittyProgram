@@ -34,17 +34,17 @@
   --color-martian-red: #8e1100;
 
   /* Barra superior y banner: verde profundo (el azul NASA queda solo en el logo) */
-  --color-appbar: #0a150b;
-  --color-on-appbar: #edf4ee;
-  --color-on-appbar-variant: #bcc8bd;
-  --color-appbar-outline: #1f2d20;
-  --color-appbar-container: #1b381c;
+  --color-appbar: #4b3a2f;
+  --color-on-appbar: #eceff1;
+  --color-on-appbar-variant: #d9cfbb;
+  --color-appbar-outline: #5d4a3c;
+  --color-appbar-container: #6a5444;
   --color-on-banner: #ffffff;
-  --color-on-banner-variant: #c9e3cb;
-  --color-banner-from: #1b4d22;
-  --color-banner-to: #0a2410;
+  --color-on-banner-variant: #dfe6df;
+  --color-banner-from: #4b3a2f;
+  --color-banner-to: #3d5a43;
   /* Terciario: cacao (mazorca madura) para acentos y la serie de mazorca negra */
-  --color-tertiary: #e39a6f;
+  --color-tertiary: #c9bd7e;
 
   /* Verde cacao (rampa tonal, OKLCH h≈150) */
   --color-cacao-10: #012a14;
@@ -57,44 +57,46 @@
   --color-cacao-95: #d1f2d7;
 
   /* Roles M3 · Misión (oscuro) */
-  --color-primary: #64bd5b;
-  --color-on-primary: #0b1a10;
-  --color-primary-container: #18421c;
-  --color-on-primary-container: #d4f1d4;
-  --color-secondary-container: #1b381c;
-  --color-on-secondary-container: #d8efd8;
-  --color-cta: #65c55b; /* botón relleno / acción clave */
-  --color-on-cta: #0b1a10;
-  --color-link: #64bd5b;
-  --color-surface: #081109;
-  --color-surface-lowest: #050c06;
-  --color-surface-low: #0a150b;
-  --color-surface-container: #0e1b10;
-  --color-surface-high: #122014;
-  --color-surface-highest: #18271a;
-  --color-on-surface: #edf4ee;
-  --color-on-surface-variant: #bcc8bd;
-  --color-on-surface-muted: #9da89e;
-  --color-outline: #667768;
-  --color-outline-variant: #1f2d20;
+  --color-primary: #96c9b2;
+  --color-on-primary: #12241b;
+  --color-primary-container: #3d5a43;
+  --color-on-primary-container: #d8efe3;
+  --color-secondary-container: #5b5634;
+  --color-on-secondary-container: #f1ebcb;
+  --color-cta: #96c9b2; /* botón relleno / acción clave */
+  --color-on-cta: #12241b;
+  --color-link: #a9d8c3;
+  --color-surface: #1f2c25;
+  --color-surface-lowest: #22302a;
+  --color-surface-low: #25342c;
+  --color-surface-container: #2b3b32;
+  --color-surface-high: #31433a;
+  --color-surface-highest: #3b4f44;
+  --color-on-surface: #eceff1;
+  --color-on-surface-variant: #cdd6cd;
+  --color-on-surface-muted: #a9b5a9;
+  --color-outline: #86958a;
+  --color-outline-variant: #435a4d;
   --color-error: #ff8a6b;
   --color-error-container: #8e1100;
   --color-on-error-container: #ffdad2;
 
   /* Datos: pérdida · alerta de 5 niveles (= qgis/estilos/perdida_cacao.qml)
      IPC fase 1-5 (FEWS NET) y semáforo SNGR (amarilla · naranja · roja). */
-  --color-loss-0: #b2ffd8; /* Baja      ≤ 5 %  · sin alerta      */
-  --color-loss-1: #fae61e; /* Moderada  ≤ 15 % · alerta amarilla */
-  --color-loss-2: #e67800; /* Alta      ≤ 30 % · alerta naranja  */
-  --color-loss-3: #c80000; /* Muy alta  ≤ 45 % · alerta roja     */
-  --color-loss-4: #640000; /* Crítica   > 45 % · + rayado blanco */
-  --color-loss-outline: #232323;
+  --color-loss-0: #e8dc9a; /* Baja      ≤ 5 %  · sin alerta      */
+  --color-loss-1: #d9b04f; /* Moderada  ≤ 15 % · alerta amarilla */
+  --color-loss-2: #c4722f; /* Alta      ≤ 30 % · alerta naranja  */
+  --color-loss-3: #963a25; /* Muy alta  ≤ 45 % · alerta roja     */
+  --color-loss-4: #4a1a17; /* Crítica   > 45 % · + rayado blanco */
+  --color-loss-outline: #2b221c;
+  --color-map-sea: #163033;
+  --color-page: #18231d;
 
   /* Datos: matriz de zonas 2050 (igual en ambos temas y en QGIS) */
-  --color-zone-segura: #007c83;
-  --color-zone-manejo: #ebc831;
-  --color-zone-transicion: #de6f00;
-  --color-zone-critica: #b7191c;
+  --color-zone-segura: #2f7f73;
+  --color-zone-manejo: #d9b04f;
+  --color-zone-transicion: #c4722f;
+  --color-zone-critica: #963a25;
 
   /* Textura de botones: brillo superior + borde interior (ver .tex-*) */
   --shadow-btn: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 3px 1px rgb(0 0 0 / 0.15);
@@ -118,34 +120,36 @@
 
 /* Roles M3 · Campo (claro, móvil a pleno sol) */
 [data-theme="campo"] {
-  --color-primary: #027300;
+  --color-page: #e3e9e4;
+  --color-map-sea: #b9dccd;
+  --color-primary: #3d5a43;
   --color-on-primary: #ffffff;
-  --color-on-appbar: #131e14;
-  --color-appbar: #fcfefb;
-  --color-on-appbar-variant: #3d4c3f;
-  --color-appbar-outline: #d1e0cd;
-  --color-appbar-container: #c8e5be;
-  --color-banner-from: #1f5a26;
-  --color-banner-to: #0f3a16;
-  --color-tertiary: #9a4e24;
-  --color-primary-container: #d0efc9;
-  --color-on-primary-container: #112812;
-  --color-secondary-container: #c8e5be;
-  --color-on-secondary-container: #182619;
-  --color-cta: #006c00;
+  --color-on-appbar: #eceff1;
+  --color-appbar: #4b3a2f;
+  --color-on-appbar-variant: #d9cfbb;
+  --color-appbar-outline: #4b3a2f;
+  --color-appbar-container: #6a5444;
+  --color-banner-from: #4b3a2f;
+  --color-banner-to: #3d5a43;
+  --color-tertiary: #7d7340;
+  --color-primary-container: #c4e3d4;
+  --color-on-primary-container: #1e3324;
+  --color-secondary-container: #e2dcb8;
+  --color-on-secondary-container: #3a3320;
+  --color-cta: #3d5a43;
   --color-on-cta: #ffffff;
-  --color-link: #027300;
-  --color-surface: #f1faf0;
-  --color-surface-lowest: #fcfefb;
-  --color-surface-low: #ebf5e9;
-  --color-surface-container: #e6f0e4;
-  --color-surface-high: #ddebda;
-  --color-surface-highest: #d1e0cd;
-  --color-on-surface: #131e14;
-  --color-on-surface-variant: #3d4c3f;
-  --color-on-surface-muted: #4d5d4f;
-  --color-outline: #7b8b7b;
-  --color-outline-variant: #d1e0cd;
+  --color-link: #355540;
+  --color-surface: #f7f9f7;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #f1f5f2;
+  --color-surface-container: #e9efea;
+  --color-surface-high: #dfe8e1;
+  --color-surface-highest: #d2dfd6;
+  --color-on-surface: #2b221c;
+  --color-on-surface-variant: #4b3a2f;
+  --color-on-surface-muted: #57544a;
+  --color-outline: #878570;
+  --color-outline-variant: #c3d1c7;
   --shadow-btn: 0 1px 2px rgb(20 38 28 / 0.25), 0 1px 3px 1px rgb(20 38 28 / 0.12);
   --shadow-btn-hover: 0 2px 4px rgb(20 38 28 / 0.25), 0 3px 8px 2px rgb(20 38 28 / 0.12);
   --tex-sheen: rgb(255 255 255 / 0.18);
@@ -161,34 +165,36 @@
 /* Misión forzado dentro de un elemento (plantillas oscuras aunque la app esté en Campo).
    Mismos valores que @theme; generado desde ahí. */
 [data-theme="mision"] {
-  --color-appbar: #0a150b;
-  --color-on-appbar: #edf4ee;
-  --color-on-appbar-variant: #bcc8bd;
-  --color-appbar-outline: #1f2d20;
-  --color-appbar-container: #1b381c;
-  --color-banner-from: #1b4d22;
-  --color-banner-to: #0a2410;
-  --color-tertiary: #e39a6f;
-  --color-primary: #64bd5b;
-  --color-on-primary: #0b1a10;
-  --color-primary-container: #18421c;
-  --color-on-primary-container: #d4f1d4;
-  --color-secondary-container: #1b381c;
-  --color-on-secondary-container: #d8efd8;
-  --color-cta: #65c55b;
-  --color-on-cta: #0b1a10;
-  --color-link: #64bd5b;
-  --color-surface: #081109;
-  --color-surface-lowest: #050c06;
-  --color-surface-low: #0a150b;
-  --color-surface-container: #0e1b10;
-  --color-surface-high: #122014;
-  --color-surface-highest: #18271a;
-  --color-on-surface: #edf4ee;
-  --color-on-surface-variant: #bcc8bd;
-  --color-on-surface-muted: #9da89e;
-  --color-outline: #667768;
-  --color-outline-variant: #1f2d20;
+  --color-page: #18231d;
+  --color-map-sea: #163033;
+  --color-appbar: #4b3a2f;
+  --color-on-appbar: #eceff1;
+  --color-on-appbar-variant: #d9cfbb;
+  --color-appbar-outline: #5d4a3c;
+  --color-appbar-container: #6a5444;
+  --color-banner-from: #4b3a2f;
+  --color-banner-to: #3d5a43;
+  --color-tertiary: #c9bd7e;
+  --color-primary: #96c9b2;
+  --color-on-primary: #12241b;
+  --color-primary-container: #3d5a43;
+  --color-on-primary-container: #d8efe3;
+  --color-secondary-container: #5b5634;
+  --color-on-secondary-container: #f1ebcb;
+  --color-cta: #96c9b2;
+  --color-on-cta: #12241b;
+  --color-link: #a9d8c3;
+  --color-surface: #1f2c25;
+  --color-surface-lowest: #22302a;
+  --color-surface-low: #25342c;
+  --color-surface-container: #2b3b32;
+  --color-surface-high: #31433a;
+  --color-surface-highest: #3b4f44;
+  --color-on-surface: #eceff1;
+  --color-on-surface-variant: #cdd6cd;
+  --color-on-surface-muted: #a9b5a9;
+  --color-outline: #86958a;
+  --color-outline-variant: #435a4d;
   --color-error: #ff8a6b;
   --color-error-container: #8e1100;
   --color-on-error-container: #ffdad2;
@@ -199,6 +205,7 @@
   --tex-sheen: rgb(255 255 255 / 0.22);
   --tex-edge: rgb(255 255 255 / 0.16);
   color-scheme: dark;
+  --color-on-banner-variant: #dfe6df;
 }
 
 @layer base {
@@ -209,11 +216,17 @@
     color-scheme: light;
   }
   body {
-    @apply bg-surface-lowest text-on-surface font-sans antialiased;
+    @apply bg-page text-on-surface font-sans antialiased;
   }
   :focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
+  }
+  /* Listas nativas de <select>: el SO las pinta con su propio fondo; se fuerzan los colores del tema */
+  select option,
+  select optgroup {
+    background-color: var(--color-surface-container);
+    color: var(--color-on-surface);
   }
   .tabular {
     font-variant-numeric: tabular-nums;
@@ -250,7 +263,8 @@ html:not(.ms-ready) .ms {
 
 /* Leaflet con tokens M3 */
 .leaflet-container.leaflet-container {
-  background: var(--color-surface-lowest);
+  /* Mar: tono frío y apagado para que la tierra (crema / café) y la escala de pérdida resalten */
+  background: var(--color-map-sea);
   font-family: var(--font-sans);
 }
 .leaflet-tooltip.cr-tooltip {
@@ -390,4 +404,122 @@ html:not(.ms-ready) .ms {
 }
 .maplibregl-ctrl-attrib {
   font-size: 10px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Movimiento suave (referencias: ProEffects, Koncepto, LottieFiles)
+   - Una entrada por sección (no por párrafo), en escalera, con transformaciones CSS.
+   - Microinteracciones solo en botones y tarjetas principales.
+   - Todo se apaga con «reducir movimiento» del sistema.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --ease-out: cubic-bezier(0.22, 0.8, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --dur-fast: 160ms;
+  --dur-mid: 260ms;
+  --dur-slow: 520ms;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    line-height: 1.55;
+    text-rendering: optimizeLegibility;
+  }
+  /* Párrafos largos: renglones cortos que se leen sin perderse */
+  main p {
+    max-width: 72ch;
+  }
+}
+
+@keyframes cr-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes cr-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cr-shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -50% 0; }
+}
+@keyframes cr-sway {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+@keyframes cr-draw {
+  from { stroke-dashoffset: var(--len, 120); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cr-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes cr-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* Cambio de pantalla: aparece suave */
+.page-in {
+  animation: cr-fade var(--dur-mid) var(--ease-out) both;
+}
+
+/* Entrada al hacer scroll (la agrega MotionRoot a cada sección de la pantalla) */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+  transition-delay: var(--d, 0ms);
+}
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Listas que entran en escalera (alertas, tarjetas) */
+.stagger > * {
+  animation: cr-rise var(--dur-slow) var(--ease-out) both;
+}
+.stagger > *:nth-child(2) { animation-delay: 70ms; }
+.stagger > *:nth-child(3) { animation-delay: 140ms; }
+.stagger > *:nth-child(4) { animation-delay: 210ms; }
+.stagger > *:nth-child(5) { animation-delay: 280ms; }
+.stagger > *:nth-child(6) { animation-delay: 350ms; }
+.stagger > *:nth-child(n + 7) { animation-delay: 420ms; }
+
+/* Tarjetas y botones principales: se levantan apenas al pasar el cursor */
+.lift {
+  transition: transform var(--dur-mid) var(--ease-out), box-shadow var(--dur-mid) var(--ease-out), border-color var(--dur-mid);
+}
+.lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -12px rgb(0 0 0 / 0.35);
+}
+.lift:active {
+  transform: translateY(0);
+}
+
+/* Carga: brillo que recorre el bloque en vez de parpadear */
+.shimmer {
+  background: linear-gradient(100deg, var(--color-surface-high) 30%, var(--color-surface-highest) 50%, var(--color-surface-high) 70%);
+  background-size: 200% 100%;
+  animation: cr-shimmer 1.6s linear infinite;
+}
+
+/* Animaciones propias estilo Lottie (SVG): mazorca, check, estado vacío */
+.anim-sway { transform-origin: 50% 90%; animation: cr-sway 2.4s ease-in-out infinite; }
+.anim-breathe { transform-origin: center; animation: cr-breathe 2.4s ease-in-out infinite; }
+.anim-draw { stroke-dasharray: var(--len, 120); animation: cr-draw 0.9s var(--ease-out) both; }
+.anim-pop { animation: cr-pop 0.45s var(--ease-spring) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .page-in, .stagger > *, .anim-sway, .anim-breathe, .anim-draw, .anim-pop, .shimmer { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .lift, .lift:hover { transform: none; transition: none; }
 }

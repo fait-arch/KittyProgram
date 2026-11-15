@@ -50,7 +50,7 @@ export function hatchPattern(size = 12): ImageData {
   const c = document.createElement("canvas");
   c.width = c.height = size;
   const g = c.getContext("2d")!;
-  g.fillStyle = "#640000";
+  g.fillStyle = "#4a1a17";
   g.fillRect(0, 0, size, size);
   g.strokeStyle = "rgba(255,255,255,.7)";
   g.lineWidth = 2;

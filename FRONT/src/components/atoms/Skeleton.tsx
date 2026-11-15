@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-/** Átomo · marcador de carga (respeta prefers-reduced-motion vía motion-safe). */
+/** Átomo · marcador de carga: un brillo suave que recorre el bloque (sin parpadeo; respeta «reducir movimiento»). */
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn("rounded-md bg-surface-highest motion-safe:animate-pulse", className)} />;
+  return <div aria-hidden className={cn("shimmer rounded-md", className)} />;
 }

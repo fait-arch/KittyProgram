@@ -33,6 +33,11 @@ export function MapLegend({ mode, theme, scenarioLabel, lossCounts, zoneCounts, 
         <>
           <h3 className="font-display text-sm font-bold">Matriz de zonas 2050</h3>
           <p className="mb-2 text-xs text-on-surface-variant">{scenarioLabel}</p>
+          {zoneCounts && Object.values(zoneCounts).every((v) => !v) && (
+            <p className="mb-2 rounded-md bg-surface-high p-2 text-xs leading-[17px] text-on-surface-variant">
+              Las zonas 2050 todavía no están cargadas en la base de datos (proyecciones NASA CMIP6).
+            </p>
+          )}
           <ul className="flex flex-col gap-1.5">
             {ZONES.map((z) => (
               <LegendItem key={z} swatch={<><Swatch color={ZONE_COLORS[theme][z]} size="lg" /><Icon name={ZONE_META[z].icon} fill size={16} /></>}

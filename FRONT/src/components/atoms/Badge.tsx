@@ -16,7 +16,7 @@ export function Badge({ tone = "highlight", size = "md", children, className }: 
       className={cn(
         "inline-flex items-center rounded-full font-display font-extrabold tracking-normal whitespace-nowrap",
         size === "xs" ? "px-1 text-[10px] leading-[14px]" : "px-1.5 text-[10px] leading-4",
-        tone === "highlight" && "bg-neon-yellow text-deep-blue",
+        tone === "highlight" && "bg-[#c9bd7e] text-[#2b221c]",
         tone === "primary" && "bg-primary-container text-on-primary-container",
         tone === "neutral" && "bg-surface-highest text-on-surface-variant",
         className,

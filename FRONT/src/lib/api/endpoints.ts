@@ -119,4 +119,4 @@ export const getAlerts = (scenario: ScenarioId, province?: string) =>
     }).sort((a, b) => b.perdida_pct - a.perdida_pct);
     return { scenario, province: province ?? null, resumen: "Datos de demostración.", items, generated_by: "plantilla", model: null, provider: null,
       disclaimer: "Apoya, no reemplaza, al técnico." } satisfies AlertsResponse;
-  }, adapt.alerts);
+  }, adapt.alerts, 120_000); // la primera vez la IA tarda en redactar (luego el backend las guarda en caché)

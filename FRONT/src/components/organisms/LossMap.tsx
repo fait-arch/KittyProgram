@@ -142,7 +142,11 @@ export default function LossMap(props: LossMapProps) {
       },
     }).addTo(m);
     layer.current = gj;
-    if (props.focus !== "selected") m.fitBounds(gj.getBounds(), { padding: [16, 16] });
+    // Solo si hay geometrías válidas (un área sin polígono deja los límites vacíos)
+    const sz = m.getSize();
+    if (props.focus !== "selected" && gj.getBounds().isValid() && sz.x > 0 && sz.y > 0) {
+      try { m.fitBounds(gj.getBounds(), { padding: [16, 16] }); } catch { /* contenedor aún sin medidas */ }
+    }
     if (props.attribution) m.attributionControl.addAttribution(props.attribution);
     return () => {
       if (props.attribution) m.attributionControl.removeAttribution(props.attribution);
@@ -172,7 +176,7 @@ export default function LossMap(props: LossMapProps) {
             L.geoJSON(f, { ...opts, style: { color: t.halo, weight: 6, opacity: 0.9, lineJoin: "round" } }),
             L.geoJSON(f, { ...opts, style: { color: t.selected, weight: 2.5, opacity: 1, lineJoin: "round" } }),
           ]).addTo(map.current!);
-          if (props.focus === "selected") map.current?.fitBounds((l as L.Polygon).getBounds().pad(1.6), { animate: false });
+          if (props.focus === "selected" && (l as L.Polygon).getBounds().isValid() && (map.current?.getSize().x ?? 0) > 0) { try { map.current?.fitBounds((l as L.Polygon).getBounds().pad(1.6), { animate: false }); } catch { /* sin medidas */ } }
         }
       });
     }
@@ -187,7 +191,7 @@ export default function LossMap(props: LossMapProps) {
             <button type="button" aria-label="Acercar" onClick={() => map.current?.zoomIn()} className="grid size-12 place-items-center text-on-surface hover:bg-surface-highest cursor-pointer"><Icon name="add" /></button>
             <button type="button" aria-label="Alejar" onClick={() => map.current?.zoomOut()} className="grid size-12 place-items-center border-t border-outline-variant text-on-surface hover:bg-surface-highest cursor-pointer"><Icon name="remove" /></button>
           </div>
-          <button type="button" aria-label="Ver toda la Costa" onClick={() => layer.current && map.current?.fitBounds(layer.current.getBounds(), { padding: [16, 16] })} className="grid size-12 place-items-center rounded-md bg-surface-high text-on-surface shadow hover:bg-surface-highest cursor-pointer"><Icon name="zoom_out_map" /></button>
+          <button type="button" aria-label="Ver todo el mapa" onClick={() => layer.current?.getBounds().isValid() && map.current?.fitBounds(layer.current.getBounds(), { padding: [16, 16] })} className="grid size-12 place-items-center rounded-md bg-surface-high text-on-surface shadow hover:bg-surface-highest cursor-pointer"><Icon name="zoom_out_map" /></button>
         </div>
       )}
     </div>
@@ -195,7 +199,7 @@ export default function LossMap(props: LossMapProps) {
 }
 
 function provStyle(theme: Theme): L.PathOptions {
-  return { fill: false, color: MAP_THEME[theme].province, weight: 2.4, opacity: 0.95, lineJoin: "round" };
+  return { fill: false, color: MAP_THEME[theme].province, weight: 1.6, opacity: 0.9, lineJoin: "round" };
 }
 
 function ctxStyle(theme: Theme): L.PathOptions {

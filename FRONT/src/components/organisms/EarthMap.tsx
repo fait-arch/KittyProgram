@@ -75,8 +75,8 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
       const z = zoneById.get(f.properties.id);
       return { ...f, id: undefined, properties: {
         id: f.properties.id, name: f.properties.name, province: f.properties.province,
-        loss: v ?? null, level: v != null ? lossClassIndex(v) : -1, color: v != null ? LOSS_RAMP[lossClassIndex(v)] : "#9cf59a",
-        zone: z?.zone ?? null, zcolor: z ? ZONE_HEX[z.zone] : "#5e6b60",
+        loss: v ?? null, level: v != null ? lossClassIndex(v) : -1, color: v != null ? LOSS_RAMP[lossClassIndex(v)] : "#6b746c",
+        zone: z?.zone ?? null, zcolor: z ? ZONE_HEX[z.zone] : "#6b746c",
       } } as Feature;
     }) };
     const pts: FeatureCollection<Point> = { type: "FeatureCollection", features: [] };
@@ -142,17 +142,16 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
         ...overlayLayers,
         { id: "cr-relieve", type: "hillshade", source: "cr-dem", layout: { visibility: vis(o.terrain && isRaster && !hydro) }, paint: { "hillshade-exaggeration": 0.35, "hillshade-shadow-color": "#000000" } },
         { id: "cr-territorio-cantones", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "canton"],
-          paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-opacity": 0.35, "line-width": 0.7 } },
-        { id: "cr-cantones-relleno", type: "fill", source: "cr-cantones", paint: { "fill-color": ["get", "color"], "fill-opacity": ["case", ["<", ["get", "level"], 0], 0.16, hydro ? 0.38 : isRaster ? 0.55 : 0.6] as never } },
+          paint: { "line-color": isRaster ? "#ffffff" : "#2b221c", "line-opacity": 0.35, "line-width": 0.7 } },
+        { id: "cr-cantones-relleno", type: "fill", source: "cr-cantones", paint: { "fill-color": ["get", "color"], "fill-opacity": ["case", ["<", ["get", "level"], 0], 0.35, hydro ? 0.38 : isRaster ? 0.55 : 0.6] as never } },
         { id: "cr-cantones-critica", type: "fill", source: "cr-cantones", filter: ["==", ["get", "level"], 4], paint: { "fill-pattern": "rayado", "fill-opacity": 0.8 } },
-        { id: "cr-cantones-borde", type: "line", source: "cr-cantones", paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-opacity": 0.55, "line-width": 0.6 } },
+        { id: "cr-cantones-borde", type: "line", source: "cr-cantones", paint: { "line-color": isRaster ? "#ffffff" : "#2b221c", "line-opacity": 0.55, "line-width": 0.6 } },
         // Límite de provincia: más grueso que el de cantón para que se lea cada provincia
         { id: "cr-provincias-halo", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "province"], paint: { "line-color": isRaster ? "#000000" : "#ffffff", "line-opacity": 0.35, "line-width": 4.5 } },
-        { id: "cr-provincias-borde", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "province"], paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-opacity": 0.95, "line-width": 2 } },
-        // Provincias que están en la base: borde iluminado (brillo + trazo)
-        { id: "cr-prov-db-brillo", type: "line", source: "cr-prov-db", paint: { "line-color": "#9cf59a", "line-width": 9, "line-blur": 6, "line-opacity": 0.45 } },
-        { id: "cr-prov-db-borde", type: "line", source: "cr-prov-db", paint: { "line-color": "#c9ffc4", "line-width": 1.8, "line-opacity": 0.95 } },
-        { id: "cr-cantones-sel", type: "line", source: "cr-cantones", filter: ["==", ["get", "id"], ""], paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-width": 3.5 } },
+        { id: "cr-provincias-borde", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "province"], paint: { "line-color": isRaster ? "#ffffff" : "#2b221c", "line-opacity": 0.95, "line-width": 2 } },
+        // Provincias que están en la base: borde neutro, un poco más marcado que el de cantón
+        { id: "cr-prov-db-borde", type: "line", source: "cr-prov-db", paint: { "line-color": isRaster ? "#ffffff" : "#2b221c", "line-width": 1.6, "line-opacity": 0.85 } },
+        { id: "cr-cantones-sel", type: "line", source: "cr-cantones", filter: ["==", ["get", "id"], ""], paint: { "line-color": isRaster ? "#ffffff" : "#2b221c", "line-width": 3.5 } },
         // En el hidrográfico los ríos van encima de los cantones para que se lean
         ...style.layers.filter((l) => l.id.startsWith("hidro-rio")),
         { id: "cr-etiquetas", type: "raster", source: "cr-etiquetas", layout: { visibility: vis(o.labels && isRaster) } },
@@ -160,7 +159,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
           "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.45, 9, 0.9], "icon-allow-overlap": true } },
         { id: "cr-medida-linea", type: "line", source: "cr-medida", paint: { "line-color": "#ffffff", "line-width": 3, "line-dasharray": [2, 1.5] } },
         { id: "cr-medida-puntos", type: "circle", source: "cr-medida", filter: ["==", ["geometry-type"], "Point"],
-          paint: { "circle-radius": 5, "circle-color": "#5bdb87", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } },
+          paint: { "circle-radius": 5, "circle-color": "#96c9b2", "circle-stroke-color": "#ffffff", "circle-stroke-width": 2 } },
       ],
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -178,10 +177,10 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
         version: 8,
         sources: { ofm: { type: "vector", url: HYDRO.tilejson, attribution: HYDRO.attribution } },
         layers: [
-          { id: "fondo", type: "background", paint: { "background-color": "#1c1f21" } },
+          { id: "fondo", type: "background", paint: { "background-color": "#1f2c25" } },
           { id: "hidro-sombras", type: "hillshade", source: "cr-dem",
-            paint: { "hillshade-exaggeration": 0.85, "hillshade-shadow-color": "#000000", "hillshade-highlight-color": "#a8adb0", "hillshade-accent-color": "#2a2d2f", "hillshade-illumination-direction": 315 } },
-          { id: "hidro-agua", type: "fill", source: "ofm", "source-layer": "water", paint: { "fill-color": "#0f6f78", "fill-opacity": 0.85 } },
+            paint: { "hillshade-exaggeration": 0.85, "hillshade-shadow-color": "#000000", "hillshade-highlight-color": "#b9c2b4", "hillshade-accent-color": "#2a332d", "hillshade-illumination-direction": 315 } },
+          { id: "hidro-agua", type: "fill", source: "ofm", "source-layer": "water", paint: { "fill-color": "#3f8a80", "fill-opacity": 0.85 } },
           { id: "hidro-rio-brillo", type: "line", source: "ofm", "source-layer": "waterway", layout: { "line-cap": "round", "line-join": "round" },
             paint: { "line-color": color as never, "line-width": ["*", 3.2, width] as never, "line-blur": 3, "line-opacity": 0.35 } },
           { id: "hidro-rio", type: "line", source: "ofm", "source-layer": "waterway", layout: { "line-cap": "round", "line-join": "round" },
@@ -192,7 +191,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
     return addOwn({
       version: 8,
       sources: { base: { type: "raster", tiles: b.tiles!, tileSize: 256, maxzoom: b.maxzoom, attribution: b.attribution } },
-      layers: [{ id: "fondo", type: "background", paint: { "background-color": "#07120d" } }, { id: "base", type: "raster", source: "base" }],
+      layers: [{ id: "fondo", type: "background", paint: { "background-color": "#18231d" } }, { id: "base", type: "raster", source: "base" }],
     });
   }, [addOwn]);
 
@@ -235,7 +234,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
       mm.on("styleimagemissing", (e) => {
         if (mm.hasImage(e.id)) return;
         if (e.id === "rayado") mm.addImage("rayado", hatchPattern());
-        else if (e.id.startsWith("cacao-")) mm.addImage(e.id, cacaoIcon(ZONE_HEX[e.id.slice(6) as Zone] ?? "#5bdb87"), { pixelRatio: 2 });
+        else if (e.id.startsWith("cacao-")) mm.addImage(e.id, cacaoIcon(ZONE_HEX[e.id.slice(6) as Zone] ?? "#96c9b2"), { pixelRatio: 2 });
       });
       mm.on("style.load", () => { styleOk.current = true; setReady((n) => n + 1); });
       mm.on("error", (e) => {
@@ -400,7 +399,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
             <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label="Tipo de mapa">
               {(Object.keys(BASEMAPS) as BasemapId[]).map((id) => (
                 <button key={id} type="button" role="radio" aria-checked={opts.base === id} title={BASEMAPS[id].detail} onClick={() => set("base", id)} className={chip(opts.base === id)}>
-                  <span className={thumb(opts.base === id)} style={{ backgroundImage: BASEMAPS[id].thumb, backgroundColor: "#12291f" }} />
+                  <span className={thumb(opts.base === id)} style={{ backgroundImage: BASEMAPS[id].thumb, backgroundColor: "#1c231e" }} />
                   {BASEMAPS[id].label}
                 </button>
               ))}
@@ -450,7 +449,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
         )}
         <button type="button" onClick={() => setPanel((v) => !v)} aria-expanded={panel}
           className="group relative size-20 overflow-hidden rounded-xl border-2 border-white bg-cover bg-center shadow-lg cursor-pointer"
-          style={{ backgroundImage: BASEMAPS[opts.base === "satelite" ? "predeterminado" : "satelite"].thumb, backgroundColor: "#12291f" }}>
+          style={{ backgroundImage: BASEMAPS[opts.base === "satelite" ? "predeterminado" : "satelite"].thumb, backgroundColor: "#1c231e" }}>
           <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-black/55 py-1 text-[12px] font-bold text-white">
             <Icon name="layers" size={16} />Capas
           </span>

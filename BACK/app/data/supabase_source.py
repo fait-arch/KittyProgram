@@ -2,12 +2,14 @@
 
 Cada método devuelve dicts/listas planas; los servicios no saben de dónde vienen.
 """
+import logging
 from typing import Any
 
 from ..core.supabase import anon_client, user_client
 from .common import name_key, to_geojson
 
 PAGE = 1000  # PostgREST corta en 1000 filas por defecto
+log = logging.getLogger(__name__)
 
 
 class SupabaseSource:
@@ -180,10 +182,20 @@ class SupabaseSource:
     # ── pérdidas ──────────────────────────────────────
     _LOSS_COLS = ("area_id,name,kind,region,province,area_ha,crop_id,scenario_id,loss_pct,loss_pct_low,"
                   "loss_pct_high,exposed_ha,loss_t,loss_usd,risk_class,top_factors,model_name")
+    # columnas de la migración 0010 (modelo de ML); si aún no está aplicada, se leen sin ellas
+    _LOSS_ML_COLS = ",evidence,extrapolated,prob_loss_gt20,inherited_from"
+    _has_ml_cols: bool | None = None
 
     def losses(self, crop: str, scenario: str | None = None, kind: str | None = None,
                province: str | None = None, area_id: str | None = None, with_geom: bool = False) -> list[dict]:
-        cols = self._LOSS_COLS + (",geom" if with_geom else "")
+        if self._has_ml_cols is None:
+            try:
+                self.db.table("v_loss_map").select("evidence").limit(1).execute()
+                SupabaseSource._has_ml_cols = True
+            except Exception:  # noqa: BLE001 — falta la migración 0010
+                log.warning("v_loss_map sin columnas del modelo (aplicar supabase/migrations/0010_modelo_ml.sql)")
+                SupabaseSource._has_ml_cols = False
+        cols = self._LOSS_COLS + (self._LOSS_ML_COLS if self._has_ml_cols else "") + (",geom" if with_geom else "")
         q = self.db.table("v_loss_map").select(cols).eq("crop_id", crop)
         if scenario:
             q = q.eq("scenario_id", scenario)
@@ -202,7 +214,13 @@ class SupabaseSource:
     def loss_full(self, model_version_id: str, area_id: str, crop: str, scenario: str) -> dict | None:
         rows = (self.db.table("loss_predictions").select("*").eq("model_version_id", model_version_id)
                 .eq("area_id", area_id).eq("crop_id", crop).eq("scenario_id", scenario).limit(1).execute().data)
-        return rows[0] if rows else None
+        if not rows:
+            return None
+        row = rows[0]
+        if row.get("inherited_from_area_id"):      # nombre de la provincia cuyo índice usa el cantón
+            prov = self.area(row["inherited_from_area_id"])
+            row["inherited_from"] = prov["name"] if prov else None
+        return row
 
     def available_scenarios(self, crop: str) -> set[str]:
         rows = self._all(self.db.table("v_loss_map").select("scenario_id").eq("crop_id", crop))

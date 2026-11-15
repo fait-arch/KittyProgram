@@ -28,6 +28,10 @@ export const useAreasGeojson = (kind: AreaKind = "canton") =>
 export const useLosses = (scenario: ScenarioId | null) =>
   useSWR(scenario ? ["losses", scenario] : null, ([, s]) => api.getLosses(s), opts);
 
+/** Pérdida por provincia (t y USD): el detalle de un cantón la muestra cuando el cantón no tiene hectáreas medidas. */
+export const useProvinceLosses = (scenario: ScenarioId | null) =>
+  useSWR(scenario ? ["losses", scenario, "province"] : null, ([, s]) => api.getLosses(s as ScenarioId, "province"), opts);
+
 export const useLossSummary = (scenario: ScenarioId, province?: string) =>
   useSWR(["losses/summary", scenario, province ?? ""], ([, s, p]) => api.getLossSummary(s, p || undefined), opts);
 

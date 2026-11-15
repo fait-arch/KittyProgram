@@ -47,7 +47,7 @@ leyó con GDAL; falta probarlos abriéndolos en QGIS.
 
 ## Capas y campos
 
-Matriz de zonas: `segura` `#007c83` · `manejo` `#ebc831` · `transicion` `#de6f00` · `critica` `#b7191c`.
+Matriz de zonas: `segura` `#2f7f73` · `manejo` `#d9b04f` · `transicion` `#c4722f` · `critica` `#963a25`.
 
 Capas del GeoPackage: `perdida_normal`, `perdida_nino`, `perdida_actual`,
 `perdida_ssp245_2050`, `perdida_ssp585_2050` y `zonas_2050`.

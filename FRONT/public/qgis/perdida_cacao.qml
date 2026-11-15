@@ -20,7 +20,7 @@
         <layer class="SimpleFill" enabled="1" locked="0" pass="0">
           <Option type="Map">
             <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-            <Option name="color" type="QString" value="178,255,216,255"/>
+            <Option name="color" type="QString" value="243,227,163,255"/>
             <Option name="joinstyle" type="QString" value="bevel"/>
             <Option name="offset" type="QString" value="0,0"/>
             <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -32,7 +32,7 @@
             <Option name="style" type="QString" value="solid"/>
           </Option>
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="color" v="178,255,216,255"/>
+          <prop k="color" v="243,227,163,255"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -63,7 +63,7 @@
         <layer class="SimpleFill" enabled="1" locked="0" pass="0">
           <Option type="Map">
             <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-            <Option name="color" type="QString" value="250,230,30,255"/>
+            <Option name="color" type="QString" value="242,181,75,255"/>
             <Option name="joinstyle" type="QString" value="bevel"/>
             <Option name="offset" type="QString" value="0,0"/>
             <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -75,7 +75,7 @@
             <Option name="style" type="QString" value="solid"/>
           </Option>
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="color" v="250,230,30,255"/>
+          <prop k="color" v="242,181,75,255"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -106,7 +106,7 @@
         <layer class="SimpleFill" enabled="1" locked="0" pass="0">
           <Option type="Map">
             <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-            <Option name="color" type="QString" value="230,120,0,255"/>
+            <Option name="color" type="QString" value="226,115,31,255"/>
             <Option name="joinstyle" type="QString" value="bevel"/>
             <Option name="offset" type="QString" value="0,0"/>
             <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -118,7 +118,7 @@
             <Option name="style" type="QString" value="solid"/>
           </Option>
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="color" v="230,120,0,255"/>
+          <prop k="color" v="226,115,31,255"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -149,7 +149,7 @@
         <layer class="SimpleFill" enabled="1" locked="0" pass="0">
           <Option type="Map">
             <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-            <Option name="color" type="QString" value="200,0,0,255"/>
+            <Option name="color" type="QString" value="184,48,31,255"/>
             <Option name="joinstyle" type="QString" value="bevel"/>
             <Option name="offset" type="QString" value="0,0"/>
             <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -161,7 +161,7 @@
             <Option name="style" type="QString" value="solid"/>
           </Option>
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="color" v="200,0,0,255"/>
+          <prop k="color" v="184,48,31,255"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -192,7 +192,7 @@
         <layer class="SimpleFill" enabled="1" locked="0" pass="0">
           <Option type="Map">
             <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-            <Option name="color" type="QString" value="100,0,0,255"/>
+            <Option name="color" type="QString" value="94,15,26,255"/>
             <Option name="joinstyle" type="QString" value="bevel"/>
             <Option name="offset" type="QString" value="0,0"/>
             <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -204,7 +204,7 @@
             <Option name="style" type="QString" value="solid"/>
           </Option>
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="color" v="100,0,0,255"/>
+          <prop k="color" v="94,15,26,255"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -343,7 +343,7 @@
         <layer class="SimpleFill" enabled="1" locked="0" pass="0">
           <Option type="Map">
             <Option name="border_width_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
-            <Option name="color" type="QString" value="230,120,0,255"/>
+            <Option name="color" type="QString" value="226,115,31,255"/>
             <Option name="joinstyle" type="QString" value="bevel"/>
             <Option name="offset" type="QString" value="0,0"/>
             <Option name="offset_map_unit_scale" type="QString" value="3x:0,0,0,0,0,0"/>
@@ -355,7 +355,7 @@
             <Option name="style" type="QString" value="solid"/>
           </Option>
           <prop k="border_width_map_unit_scale" v="3x:0,0,0,0,0,0"/>
-          <prop k="color" v="230,120,0,255"/>
+          <prop k="color" v="226,115,31,255"/>
           <prop k="joinstyle" v="bevel"/>
           <prop k="offset" v="0,0"/>
           <prop k="offset_map_unit_scale" v="3x:0,0,0,0,0,0"/>
@@ -378,21 +378,21 @@
     </source-symbol>
     <colorramp type="gradient" name="[source]">
       <Option type="Map">
-        <Option name="color1" type="QString" value="178,255,216,255"/>
-        <Option name="color2" type="QString" value="100,0,0,255"/>
+        <Option name="color1" type="QString" value="243,227,163,255"/>
+        <Option name="color2" type="QString" value="94,15,26,255"/>
         <Option name="direction" type="QString" value="ccw"/>
         <Option name="discrete" type="QString" value="1"/>
         <Option name="rampType" type="QString" value="gradient"/>
         <Option name="spec" type="QString" value="rgb"/>
-        <Option name="stops" type="QString" value="0.2;250,230,30,255;rgb;ccw:0.4;230,120,0,255;rgb;ccw:0.6;200,0,0,255;rgb;ccw:0.8;100,0,0,255;rgb;ccw"/>
+        <Option name="stops" type="QString" value="0.2;242,181,75,255;rgb;ccw:0.4;226,115,31,255;rgb;ccw:0.6;184,48,31,255;rgb;ccw:0.8;94,15,26,255;rgb;ccw"/>
       </Option>
-      <prop k="color1" v="178,255,216,255"/>
-      <prop k="color2" v="100,0,0,255"/>
+      <prop k="color1" v="243,227,163,255"/>
+      <prop k="color2" v="94,15,26,255"/>
       <prop k="direction" v="ccw"/>
       <prop k="discrete" v="1"/>
       <prop k="rampType" v="gradient"/>
       <prop k="spec" v="rgb"/>
-      <prop k="stops" v="0.2;250,230,30,255;rgb;ccw:0.4;230,120,0,255;rgb;ccw:0.6;200,0,0,255;rgb;ccw:0.8;100,0,0,255;rgb;ccw"/>
+      <prop k="stops" v="0.2;242,181,75,255;rgb;ccw:0.4;226,115,31,255;rgb;ccw:0.6;184,48,31,255;rgb;ccw:0.8;94,15,26,255;rgb;ccw"/>
     </colorramp>
     <classificationMethod id="Pretty">
       <symmetricMode enabled="0" symmetrypoint="0" astride="0"/>

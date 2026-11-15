@@ -8,6 +8,7 @@ import { useMapState } from "@/lib/state/useMapState";
 import { fmt2, fmtDeltaT, fmtDeltaUsd, fmtInt, fmtPct, fmtT, fmtUsd } from "@/lib/design/format";
 import { Icon } from "@/components/atoms/Icon";
 import { Skeleton } from "@/components/atoms/Skeleton";
+import { CountUp } from "@/components/molecules/CountUp";
 import { ScenarioSelector } from "@/components/molecules/ScenarioSelector";
 import { PanelCard, StatCard } from "@/components/molecules/StatCard";
 import { ClassMixChart } from "@/components/organisms/ClassMixChart";
@@ -60,7 +61,7 @@ export function PanelScreen() {
     <div className="mx-auto flex max-w-[1400px] flex-col gap-6 p-4 lg:p-8">
       <header className="flex flex-wrap items-end gap-4">
         <div className="mr-auto">
-          <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">Panel general · Costa del Ecuador</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">Panel general · Costa y Amazonía del Ecuador</span>
           <h1 className="font-display text-[30px] font-extrabold leading-9">¿Cómo va el cacao esta temporada?</h1>
         </div>
         <ScenarioSelector compact value={scenario} onChange={st.setScenario} scenarios={scenarios} />
@@ -68,9 +69,9 @@ export function PanelScreen() {
 
       {/* Indicadores */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon="grass" loading={isLoading} value={sum ? fmtT(sum.loss_t) : "—"} label={`Cacao perdido · ${scLabel}`}
+        <StatCard icon="grass" loading={isLoading} value={<CountUp value={sum?.loss_t} format={fmtT} />} label={`Cacao perdido · ${scLabel}`}
           foot={sum?.vs_normal ? `${fmtDeltaT(sum.vs_normal.loss_t)} frente a un año normal` : "Año de referencia"} />
-        <StatCard icon="payments" loading={isLoading} value={sum ? fmtUsd(sum.loss_usd) : "—"} label="Valor en riesgo"
+        <StatCard icon="payments" loading={isLoading} value={<CountUp value={sum?.loss_usd} format={fmtUsd} />} label="Valor en riesgo"
           foot={sum?.vs_normal ? `${fmtDeltaUsd(sum.vs_normal.loss_usd)} frente a un año normal` : undefined} />
         <StatCard icon="notifications_active" loading={isLoading} value={sum ? `${red} de ${sum.n_areas}` : "—"} label="Cantones en alerta roja"
           foot="Pérdida mayor a 30 % (IPC 4–5 · SNGR roja)" />
@@ -80,7 +81,7 @@ export function PanelScreen() {
 
       {/* Alerta principal (lenguaje natural) */}
       {topAlert && (
-        <Link href="/alertas" className="state-layer relative flex flex-wrap items-center gap-4 overflow-hidden rounded-xl border border-outline-variant bg-surface-lowest p-5 pl-7 shadow-sm">
+        <Link href="/alertas" className="lift state-layer relative flex flex-wrap items-center gap-4 overflow-hidden rounded-xl border border-outline-variant bg-surface-lowest p-5 pl-7 shadow-sm">
           <span aria-hidden className="absolute inset-y-0 left-0 w-2" style={{ background: LOSS_RAMP[lossClassIndex(topAlert.perdida_pct)] }} />
           <Icon name="campaign" fill size={30} className="text-primary" />
           <span className="flex min-w-[240px] flex-1 flex-col gap-0.5">
@@ -108,7 +109,7 @@ export function PanelScreen() {
           <Link href="/metodologia#enso" className="text-sm font-bold text-link">¿Qué significa para mi cacao? →</Link>
         </PanelCard>
 
-        <PanelCard title="Cacao en la Costa" icon="eco">
+        <PanelCard title="Cacao en Costa y Amazonía" icon="eco">
           <div className="grid grid-cols-2 gap-3">
             <div><p className="font-display text-2xl font-extrabold tabular">{haTotal ? fmtInt(haTotal) : "—"}</p><p className="text-xs text-on-surface-variant">hectáreas de cacao</p></div>
             <div><p className="font-display text-2xl font-extrabold tabular">{apt.length || "—"}</p><p className="text-xs text-on-surface-variant">cantones con aptitud alta</p></div>

@@ -13,10 +13,10 @@ import type { RiskClass, Zone } from "@/lib/api/types";
 export type Theme = "mision" | "campo";
 export type LossLevel = 0 | 1 | 2 | 3 | 4;
 
-export const LOSS_RAMP = ["#b2ffd8", "#fae61e", "#e67800", "#c80000", "#640000"] as const;
+export const LOSS_RAMP = ["#e8dc9a", "#d9b04f", "#c4722f", "#963a25", "#4a1a17"] as const;
 /** Texto legible sobre cada color de la escala (contraste ≥ 4,5:1) */
-export const LOSS_ON = ["#14261c", "#14261c", "#14261c", "#ffffff", "#ffffff"] as const;
-export const LOSS_OUTLINE = "#232323";
+export const LOSS_ON = ["#2b221c", "#2b221c", "#2b221c", "#ffffff", "#ffffff"] as const;
+export const LOSS_OUTLINE = "#2b221c";
 /** Nivel con rayado (Crítica). En el mapa se pinta con fill="url(#cr-hatch)". */
 export const HATCH_LEVEL: LossLevel = 4;
 export const HATCH_FILL = "url(#cr-hatch)";
@@ -73,10 +73,10 @@ export const ZONE_META: Record<Zone, { label: string; icon: string; quadrant: st
  * Semáforo de zonas (igual en ambos temas y en qgis/estilos/zonas_2050.qml).
  * "Segura" es verde azulado y no verde puro: con protanopía el verde se confunde con el amarillo.
  */
-const ZONE_HEX: Record<Zone, string> = { segura: "#007c83", manejo: "#ebc831", transicion: "#de6f00", critica: "#b7191c" };
+const ZONE_HEX: Record<Zone, string> = { segura: "#2f7f73", manejo: "#d9b04f", transicion: "#c4722f", critica: "#963a25" };
 export const ZONE_COLORS: Record<Theme, Record<Zone, string>> = { mision: ZONE_HEX, campo: ZONE_HEX };
 /** Texto legible sobre cada color de zona */
-const ZONE_ON_HEX: Record<Zone, string> = { segura: "#ffffff", manejo: "#14261c", transicion: "#14261c", critica: "#ffffff" };
+const ZONE_ON_HEX: Record<Zone, string> = { segura: "#ffffff", manejo: "#2b221c", transicion: "#2b221c", critica: "#ffffff" };
 export const ZONE_ON: Record<Theme, Record<Zone, string>> = { mision: ZONE_ON_HEX, campo: ZONE_ON_HEX };
 
 /** Colores del lienzo del mapa por tema */
@@ -96,8 +96,8 @@ export const MAP_THEME: Record<
     north: string;
   }
 > = {
-  mision: { context: "#0e1b10", contextStroke: "#1f2d20", outline: "#050c06", selected: "#ffffff", halo: "#050c06", graticule: "#1f2d20", noData: "#2c4b31", north: "#edf4ee", province: "#9cf59a" },
-  campo: { context: "#d1e0cd", contextStroke: "#bccbb8", outline: LOSS_OUTLINE, selected: "#131e14", halo: "#ffffff", graticule: "#d1e0cd", noData: "#b9d6b3", north: "#131e14", province: "#0a5c09" },
+  mision: { context: "#2b3b32", contextStroke: "#435a4d", outline: "#14201a", selected: "#ffffff", halo: "#14201a", graticule: "#24464a", noData: "#34463c", north: "#eceff1", province: "#dfe4dc" },
+  campo: { context: "#e6e9e3", contextStroke: "#c3cbc1", outline: "#6e6656", selected: "#2b221c", halo: "#ffffff", graticule: "#b8cfc8", noData: "#d6dbd3", north: "#2b221c", province: "#4b3a2f" },
 };
 
 export const STATUS = {

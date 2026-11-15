@@ -9,6 +9,7 @@ import { fmt2, fmtPct, fmtPctRange, fmtT, fmtUsd } from "@/lib/design/format";
 import { useMapState } from "@/lib/state/useMapState";
 import { useTheme } from "@/lib/theme";
 import { SegmentedButton } from "@/components/molecules/SegmentedButton";
+import { EmptyCacao } from "@/components/atoms/Anim";
 import { Icon } from "@/components/atoms/Icon";
 import { Badge } from "@/components/atoms/Badge";
 import { LossRangeChart } from "@/components/organisms/LossRangeChart";
@@ -18,7 +19,7 @@ import { Swatch } from "@/components/atoms/Swatch";
 import { ZoneMatrix } from "@/components/organisms/ZoneMatrix";
 
 const LossMap = dynamic(() => import("@/components/organisms/LossMap"), { ssr: false });
-const SCEN: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual"];
+const ALL_SCEN: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual", "ssp245_2050", "ssp585_2050"];
 
 /** Fase 2: el mismo cantón en cuatro climas + matriz de zonas 2050. */
 export function CompareScreen() {
@@ -26,13 +27,22 @@ export function CompareScreen() {
   const { theme } = useTheme();
   const { data: areas } = useAreas("canton");
   const { data: scenarios } = useScenarios();
+  // Solo los escenarios con estimación del modelo (2050 aparece cuando están las predicciones)
+  const SCEN = ALL_SCEN.filter((s) => !scenarios || scenarios.find((x) => x.id === s)?.available);
   const { data: geo } = useAreasGeojson("canton");
   const { data: context } = useSWR("geo/contexto", () => fetch("/geo/ecuador-contexto.geojson").then((r) => r.json() as Promise<FeatureCollection>), { revalidateOnFocus: false });
   // Cantón de la URL o, por defecto, Vinces (cantón de ejemplo) o el primero que entregue el backend
   const id = st.canton ?? areas?.find((a) => /^vinces$/i.test(a.name))?.id ?? areas?.[0]?.id ?? null;
   const { data: cmp } = useCompare(id, SCEN);
-  const l0 = useLosses("normal"), l1 = useLosses("nino"), l2 = useLosses("ssp245_2050"), l3 = useLosses("ssp585_2050");
-  const lossBy: Record<string, LossesResponse | undefined> = { normal: l0.data, nino: l1.data, ssp245_2050: l2.data, ssp585_2050: l3.data };
+  const l0 = useLosses("normal");
+  const l1 = useLosses("nino");
+  const l2 = useLosses("nino_extremo");
+  const l3 = useLosses("actual");
+  const l4 = useLosses("ssp245_2050");
+  const l5 = useLosses("ssp585_2050");
+  const lossBy: Record<string, LossesResponse | undefined> = {
+    normal: l0.data, nino: l1.data, nino_extremo: l2.data, actual: l3.data, ssp245_2050: l4.data, ssp585_2050: l5.data,
+  };
   const [future, setFuture] = useState<ScenarioId>("ssp245_2050");
   const { data: zones } = useZones(future);
   const zoneMap = useMemo(() => new Map<string, Zone>(zones?.items.map((z) => [z.area_id, z.zone]) ?? []), [zones]);
@@ -46,23 +56,23 @@ export function CompareScreen() {
             Comparar escenarios
             <Badge>FASE 2</Badge>
           </span>
-          <h1 className="font-display text-[32px] leading-10 font-extrabold">El mismo cantón en cuatro escenarios</h1>
-          <p className="text-[15px] text-on-surface-variant">Pérdida estimada por el modelo en un año normal, un año Niño, un Niño costero extremo (1983, 1998) y la temporada actual. El clima de 2041–2060 se agregará cuando estén las proyecciones.</p>
+          <h1 className="font-display text-[32px] leading-10 font-extrabold">El mismo cantón en cada escenario</h1>
+          <p className="text-[15px] text-on-surface-variant">Pérdida estimada por el modelo en un año normal, un año Niño, un Niño costero extremo (1983, 1998), la temporada actual y el clima de 2041–2060 (NASA NEX-GDDP-CMIP6, método delta).</p>
         </div>
         <label className="flex h-14 min-w-[260px] flex-col justify-center rounded-sm border border-outline px-4">
           <span className="text-xs text-on-surface-variant">Cantón</span>
-          <select value={id ?? ""} onChange={(e) => st.selectCanton(e.target.value)} className="bg-transparent text-base font-semibold outline-none">
+          <select style={{ colorScheme: "inherit" }} value={id ?? ""} onChange={(e) => st.selectCanton(e.target.value)} className="bg-transparent text-base font-semibold outline-none">
             {areas?.map((a) => <option key={a.id} value={a.id}>{a.name} · {a.province}</option>)}
           </select>
         </label>
       </div>
 
-      <section aria-label="Comparación lado a lado" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Comparación lado a lado" className="stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {SCEN.map((s) => {
           const it = cmp?.items.find((i) => i.scenario === s);
           const values = new Map(lossBy[s]?.items.map((i) => [i.area_id, i.loss_pct]) ?? []);
           return (
-            <article key={s} className={`flex flex-col overflow-hidden rounded-lg border bg-surface-low ${s === "nino" ? "border-primary" : "border-outline-variant"}`}>
+            <article key={s} className={`lift flex flex-col overflow-hidden rounded-lg border bg-surface-low ${s === "actual" ? "border-primary" : "border-outline-variant"}`}>
               <div className="px-4 pt-3.5">
                 <h2 className="font-display text-base font-bold">{label(s)}</h2>
                 <p className="text-xs text-on-surface-variant">{s.endsWith("2050") ? "Clima 2041–2060" : s === "nino_extremo" ? "Como 1983 o 1998" : s === "actual" ? "Temporada 2027" : "Promedio 2001–2025"}</p>
@@ -85,7 +95,7 @@ export function CompareScreen() {
                     {(it.extrapolation || it.loss.extrapolated) && <span className="text-xs text-on-surface-muted">Extrapolación: leer como tendencia.</span>}
                   </>
                 ) : cmp ? (
-                  <p className="text-sm text-on-surface-variant">Sin estimación del modelo para este cantón en este escenario.</p>
+                  <EmptyCacao title="Sin estimación">El modelo no cubre este cantón en este escenario.</EmptyCacao>
                 ) : (
                   <div className="h-28 animate-pulse rounded-md bg-surface-high" />
                 )}

@@ -5,6 +5,7 @@ import { baseOption, useChartTokens } from "@/lib/charts/tokens";
 import { fmt2, MONTHS_NAME } from "@/lib/design/format";
 import { ChartFrame, ChartTable } from "@/components/molecules/ChartFrame";
 import { Skeleton } from "@/components/atoms/Skeleton";
+import { EmptyCacao } from "@/components/atoms/Anim";
 
 const EChart = dynamic(() => import("@/components/atoms/EChart").then((m) => m.EChart), { ssr: false, loading: () => <Skeleton className="h-[220px]" /> });
 
@@ -15,6 +16,16 @@ const EChart = dynamic(() => import("@/components/atoms/EChart").then((m) => m.E
 export function MonthlyRiskChart({ data }: { data: MonthlyRisk[] }) {
   const t = useChartTokens();
   const b = baseOption(t);
+  // La base puede no tener riesgo mensual para un cantón o escenario: se avisa en vez de romper la ficha
+  if (!data?.length) {
+    return (
+      <section aria-label="Riesgo mensual" className="rounded-lg bg-surface-high p-5">
+        <EmptyCacao title="Sin riesgo mensual para este escenario">
+          Todavía no hay índice de riesgo de enfermedad mes a mes para este cantón en este escenario.
+        </EmptyCacao>
+      </section>
+    );
+  }
   const peak = data.reduce((a, x) => (x.monilia > a.monilia ? x : a), data[0]);
   const series = (name: string, key: "monilia" | "phytophthora", color: string) => ({
     name, type: "line" as const, smooth: 0.35, symbol: "circle", symbolSize: 8, showSymbol: false,

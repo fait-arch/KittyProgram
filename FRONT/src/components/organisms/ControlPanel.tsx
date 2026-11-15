@@ -6,6 +6,8 @@ import { ScenarioSelector } from "@/components/molecules/ScenarioSelector";
 import { SummaryCard } from "@/components/organisms/SummaryCard";
 import { TopCantons } from "@/components/organisms/TopCantons";
 import { useAreas } from "@/lib/api/hooks";
+import { useStoredBool } from "@/lib/uiPrefs";
+import { IconButton } from "@/components/atoms/Button";
 
 
 /** Panel izquierdo del mapa (escritorio): pregunta, escenario, provincia, resumen y top 5. */
@@ -25,10 +27,23 @@ export function ControlPanel(p: {
   // Provincias que hay en la base (Costa y Amazonía), ordenadas por región y nombre
   const { data: provs } = useAreas("province");
   const provinces = [...new Set((provs ?? []).map((a) => a.province || a.name))].sort((a, b) => a.localeCompare(b, "es"));
+  // Oculto a pedido: queda una franja con el botón para volver a mostrarlo (se recuerda en este navegador)
+  const [hidden, setHidden] = useStoredBool("cr-panel-mapa-oculto");
+  if (hidden) {
+    return (
+      <aside aria-label="Panel de controles oculto" className="hidden w-14 shrink-0 flex-col items-center gap-2 border-r border-outline-variant bg-surface py-4 lg:flex no-print">
+        <IconButton icon="left_panel_open" label="Mostrar el panel de resumen" onClick={() => setHidden(false)} className="text-primary" />
+        <span className="mt-1 text-[11px] font-semibold text-on-surface-variant [writing-mode:vertical-rl] rotate-180">Resumen y filtros</span>
+      </aside>
+    );
+  }
   return (
     <aside aria-label="Controles y resumen" className={`hidden w-[380px] shrink-0 flex-col gap-6 overflow-y-auto border-r border-outline-variant bg-surface p-6 no-print ${p.collapsed ? "2xl:flex" : "lg:flex"}`}>
       <div className="flex flex-col gap-1.5">
-        <h1 className="font-display text-[26px] leading-8 font-extrabold">¿Cuánto cacao se pierde?</h1>
+        <div className="flex items-start gap-2">
+          <h1 className="flex-1 font-display text-[26px] leading-8 font-extrabold">¿Cuánto cacao se pierde?</h1>
+          <IconButton icon="left_panel_close" label="Ocultar el panel (más espacio para el mapa)" onClick={() => setHidden(true)} className="-mt-2 -mr-3" />
+        </div>
         <p className="text-sm text-on-surface-variant">Pérdida estimada por enfermedades asociadas a El Niño (moniliasis y mazorca negra), por provincia y cantón.</p>
       </div>
       <ScenarioSelector value={p.scenario} onChange={p.onScenario} scenarios={p.scenarios} />
@@ -45,7 +60,8 @@ export function ControlPanel(p: {
       <TopCantons items={p.items} areas={p.areas} province={p.province} selectedId={p.selectedId} onSelect={p.onSelect} />
       <p className="mt-auto flex gap-2 text-xs leading-[18px] text-on-surface-variant">
         <Icon name="info" size={18} />
-        Estimación con datos NASA y estadísticas oficiales. Apoya, no reemplaza, al técnico: valide con INIAP o MAG.
+        Estimación con datos NASA y estadísticas oficiales. Apoya, no reemplaza, al técnico: valide con INIAP o MAG.{" "}
+        <a href="/terminos" className="underline underline-offset-2 hover:text-on-surface">Términos y privacidad</a>
       </p>
     </aside>
   );

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { saveCantonOffline } from "@/lib/offlineSave";
 import { useOnline, useSavedCantons } from "@/lib/offline";
+import { SuccessCheck } from "@/components/atoms/Anim";
 import { Button } from "@/components/atoms/Button";
 
 const fmtDate = (iso: string) => new Intl.DateTimeFormat("es-EC", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
@@ -31,7 +32,7 @@ export function SaveOfflineButton({ id, name }: { id: string; name: string }) {
         {label}
       </Button>
       <span id={`off-${id}`} className="text-xs text-on-surface-muted" aria-live="polite">
-        {err ? <span className="text-error">No se pudo guardar. Revise la conexión.</span> : saved ? `Disponible sin conexión · ${fmtDate(saved.savedAt)}` : null}
+        {err ? <span className="text-error">No se pudo guardar. Revise la conexión.</span> : saved ? <span className="inline-flex items-center gap-1.5"><SuccessCheck size={18} />Disponible sin conexión · {fmtDate(saved.savedAt)}</span> : null}
       </span>
     </span>
   );

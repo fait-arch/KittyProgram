@@ -5,13 +5,14 @@ import { rememberConsulta, type Consulta } from "@/lib/whatsapp";
 import { WhatsAppButton } from "@/components/molecules/WhatsAppButton";
 import { fmtMae, fmtYears } from "@/lib/design/format";
 import Link from "next/link";
-import { useAreaDetail, useAreaStrategies, useRequirements, useScenarios } from "@/lib/api/hooks";
+import { useAreaDetail, useAreas, useAreaStrategies, useProvinceLosses, useRequirements, useScenarios } from "@/lib/api/hooks";
 import type { ScenarioId } from "@/lib/api/types";
 import { fmtInt } from "@/lib/design/format";
 import { cn } from "@/lib/cn";
 import { IconButton, LinkButton } from "@/components/atoms/Button";
 import { SaveOfflineButton } from "@/components/molecules/SaveOfflineButton";
 import { Icon } from "@/components/atoms/Icon";
+import { CacaoLoader } from "@/components/atoms/Anim";
 import { LossHero } from "@/components/organisms/LossHero";
 import { FactorBars } from "@/components/organisms/FactorBars";
 import { MonthlyRiskChart } from "@/components/organisms/MonthlyRiskChart";
@@ -31,6 +32,8 @@ export function AreaSheet({ id, scenario, onClose }: { id: string; scenario: Sce
   const [copied, setCopied] = useState(false);
   const d = detail.data;
   const scLabel = scenarios?.find((s) => s.id === scenario)?.label ?? scenario;
+  const { data: provLosses } = useProvinceLosses(scenario);
+  const { data: provAreas } = useAreas("province");
 
   // Consulta concreta: el botón de WhatsApp (aquí y en la barra superior) la lleva al chat
   const consulta: Consulta | null = d ? {
@@ -96,11 +99,11 @@ export function AreaSheet({ id, scenario, onClose }: { id: string; scenario: Sce
           ) : detail.error ? (
             <p className="text-error">No se pudo cargar el cantón. {String(detail.error.message ?? "")}</p>
           ) : (
-            <div className="h-28 animate-pulse rounded-md bg-surface-high" />
+            <CacaoLoader label="Cargando el cantón" className="self-start py-6" />
           )}
         </div>
 
-        {d && <LossHero d={d} scenarioLabel={scLabel} />}
+        {d && <LossHero d={d} scenarioLabel={scLabel} province={provinceTotals(d.area.province, provAreas, provLosses?.items)} />}
         {d && (
           <div className="-mt-3 flex flex-col gap-1.5">
             <WhatsAppButton consulta={consulta} />
@@ -132,4 +135,13 @@ export function AreaSheet({ id, scenario, onClose }: { id: string; scenario: Sce
       </div>
     </aside>
   );
+}
+
+/** Totales de la provincia del cantón (t y USD) para el escenario elegido. */
+function provinceTotals(name: string | undefined, areas: { id: string; name: string }[] | undefined, items: { area_id: string; loss_t: number | null; loss_usd: number | null }[] | undefined) {
+  if (!name || !areas || !items) return null;
+  const norm = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const prov = areas.find((a) => norm(a.name) === norm(name));
+  const it = prov && items.find((i) => i.area_id === prov.id);
+  return it ? { name: prov!.name, loss_t: it.loss_t, loss_usd: it.loss_usd } : null;
 }

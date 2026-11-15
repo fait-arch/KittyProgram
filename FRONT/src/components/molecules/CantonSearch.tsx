@@ -29,7 +29,7 @@ export function CantonSearch() {
         e.preventDefault();
         go(q);
       }}
-      className="flex h-12 w-full max-w-[560px] items-center gap-3 rounded-full bg-surface-high px-4 text-on-surface-variant"
+      className="flex h-12 w-full max-w-[560px] items-center gap-3 rounded-full border border-appbar-outline bg-appbar-container px-4 text-on-appbar-variant"
     >
       <Icon name="search" />
       <label htmlFor={`${listId}-in`} className="sr-only">Buscar cantón</label>
@@ -43,7 +43,7 @@ export function CantonSearch() {
           if (areas?.some((a) => `${a.name} · ${a.province}` === e.target.value)) go(e.target.value);
         }}
         placeholder="Buscar cantón"
-        className="min-w-0 flex-1 bg-transparent text-base text-on-surface outline-none placeholder:text-on-surface-variant"
+        className="min-w-0 flex-1 bg-transparent text-base text-on-appbar outline-none placeholder:text-on-appbar-variant"
       />
       <datalist id={listId}>
         {areas?.map((a) => <option key={a.id} value={`${a.name} · ${a.province}`} />)}

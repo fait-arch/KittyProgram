@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#06140e",
+  themeColor: "#4b3a2f",
   width: "device-width",
   initialScale: 1,
 };
@@ -34,7 +34,7 @@ const ICONS = [
   "download", "error", "expand_less", "expand_more", "handyman", "help", "info", "layers", "light_mode", "map",
   "picture_as_pdf", "radio_button_checked", "radio_button_unchecked", "refresh", "remove", "report", "science", "search", "share",
   "swap_horiz", "table_rows", "table_view", "thunderstorm", "touch_app", "trending_down", "trending_up", "verified",
-  "warning", "waves", "zoom_out_map", "agriculture", "arrow_back", "hourglass_top", "ios_share", "monitoring", "print", "cloud_off", "download_for_offline", "install_mobile", "offline_pin", "wifi_off", "bookmark_add", "delete", "my_location", "pin_drop", "polyline", "undo", "eco", "landscape", "public", "view_in_ar", "rainy", "forest", "local_fire_department", "device_thermostat", "air", "straighten", "dashboard", "satellite_alt", "notifications_active", "payments", "grass", "trending_flat", "bolt", "tips_and_updates", "priority_high", "water_drop", "partly_cloudy_day", "image", "travel_explore", "casino", "chat", "campaign", "auto_awesome", "schedule", "forum", "support_agent", "notifications",
+  "warning", "waves", "zoom_out_map", "agriculture", "arrow_back", "hourglass_top", "ios_share", "monitoring", "print", "cloud_off", "download_for_offline", "install_mobile", "offline_pin", "wifi_off", "bookmark_add", "delete", "my_location", "pin_drop", "polyline", "undo", "eco", "landscape", "public", "view_in_ar", "rainy", "forest", "local_fire_department", "device_thermostat", "air", "straighten", "dashboard", "satellite_alt", "notifications_active", "payments", "grass", "trending_flat", "bolt", "tips_and_updates", "priority_high", "water_drop", "partly_cloudy_day", "image", "travel_explore", "casino", "chat", "campaign", "auto_awesome", "schedule", "forum", "support_agent", "notifications", "left_panel_open", "left_panel_close", "shield", "lock", "policy", "database", "gavel",
 ].sort();
 const ICON_FONT = `https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,0&icon_names=${ICONS.join(",")}&display=block`;
 

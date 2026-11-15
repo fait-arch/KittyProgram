@@ -36,8 +36,8 @@ const SCENARIO_TEXT: Partial<Record<ScenarioId, string>> = {
   nino_extremo: "Un Niño costero como 1983 o 1998, con lluvia extrema durante meses en la Costa.",
   nina: "Año con La Niña (Pacífico más frío).",
   actual: "Temporada 2027. Hoy el mar frente a Ecuador está más caliente que en 1997. De los años parecidos, uno fue desastre (1998) y dos no (2016, 2024): rango amplio.",
-  ssp245_2050: "En preparación: proyecciones CMIP6 (emisiones moderadas). Leer como tendencia.",
-  ssp585_2050: "En preparación: proyecciones CMIP6 (emisiones altas). Leer como tendencia.",
+  ssp245_2050: "Clima 2041–2060 con emisiones moderadas (NASA NEX-GDDP-CMIP6, 4 modelos, método delta). Leer como tendencia.",
+  ssp585_2050: "Clima 2041–2060 con emisiones altas (NASA NEX-GDDP-CMIP6, 4 modelos, método delta). Leer como tendencia.",
 };
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 

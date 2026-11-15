@@ -99,7 +99,7 @@ export const isUsingMock = () => usingMock;
  * los datos de demostración ya vienen en ese tipo.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function apiGet<T>(path: string, params: Params | undefined, mock: () => Promise<T>, adapt?: (raw: any) => T | Promise<T>): Promise<T> {
+export async function apiGet<T>(path: string, params: Params | undefined, mock: () => Promise<T>, adapt?: (raw: any) => T | Promise<T>, timeoutMs = 10_000): Promise<T> {
   if (DATA_MODE === "mock") return mock();
   const auto = DATA_MODE === "auto";
   const fallback = () => {
@@ -112,7 +112,7 @@ export async function apiGet<T>(path: string, params: Params | undefined, mock: 
   try {
     res = await fetch(buildUrl(path, params), {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch {
     if (auto) {

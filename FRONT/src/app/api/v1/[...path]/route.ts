@@ -32,7 +32,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
     const res = await fetch(target, {
       headers: { accept: req.headers.get("accept") ?? "application/json" },
       cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
+      // Las respuestas redactadas por IA (alertas, insights, preguntas) tardan más la primera vez
+      signal: AbortSignal.timeout(/^(alerts|ask)$|\/(insights|ask)$/.test(path.join("/")) || path[0] === "alerts" ? 120_000 : 15_000),
     });
     const headers = new Headers();
     for (const h of PASS_HEADERS) {

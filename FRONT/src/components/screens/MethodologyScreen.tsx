@@ -6,6 +6,7 @@ import { fmt2 } from "@/lib/design/format";
 import { useTheme } from "@/lib/theme";
 import { Icon } from "@/components/atoms/Icon";
 import { AlertScale } from "@/components/organisms/AlertScale";
+import Link from "next/link";
 
 /** Pantalla · metodología, fuentes, métricas del modelo y explicación de El Niño (GET /meta, /enso/current). */
 export function MethodologyScreen() {
@@ -88,6 +89,10 @@ export function MethodologyScreen() {
           <b>Apoya, no reemplaza, al técnico.</b> Las cifras son estimaciones con datos satelitales y estadísticos; antes de invertir, valide con INIAP o MAG.
         </p>
       </section>
+      <p className="flex items-center gap-2 border-t border-outline-variant pt-6 text-sm text-on-surface-variant">
+        <Icon name="shield" size={18} />
+        Uso de los datos, privacidad y seguridad: <Link href="/terminos" className="font-semibold text-link underline underline-offset-2">Términos y privacidad</Link>
+      </p>
     </div>
   );
 }

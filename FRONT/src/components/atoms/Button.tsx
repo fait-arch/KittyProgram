@@ -13,8 +13,8 @@ export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 const base =
   "state-layer inline-flex items-center justify-center gap-2 rounded-full font-sans text-sm font-bold leading-5 transition-shadow disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none cursor-pointer whitespace-nowrap";
 const variants: Record<ButtonVariant, string> = {
-  filled: "tex-filled bg-cta text-on-cta h-10 pl-4 pr-5",
-  tonal: "tex-tonal bg-secondary-container text-on-secondary-container h-10 pl-4 pr-5",
+  filled: "lift tex-filled bg-cta text-on-cta h-10 pl-4 pr-5",
+  tonal: "lift tex-tonal bg-secondary-container text-on-secondary-container h-10 pl-4 pr-5",
   outlined: "border border-outline text-on-surface h-10 pl-4 pr-5",
   text: "text-link h-10 px-3",
 };
