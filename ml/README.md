@@ -90,7 +90,8 @@ pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_ni
 - **Target**: anomalía % respecto a la tendencia (LOWESS sin el propio año). Nacional: media
   geométrica de **producción** (FAOSTAT 1961–2025) y **exportaciones** en equivalente de grano
   (FAOSTAT comercio 1961–2024), dos medidas independientes de la cosecha. Provincias:
-  **rendimiento** (ESPAC 2002–2025).
+  **producción por hectárea sembrada** (ESPAC 2002–2025): incluye el área que se pierde en los años
+  húmedos, que con la hectárea cosechada no se veía.
 - Se compararon líneas base, Ridge, GBR cuantílico y su ensamble (peso anidado): el ensamble no
   mejora al Ridge y el GBR no es monótono con pérdida cuantílica → **modelo final = Ridge**.
 - **Validación leave-one-year-out** (el año de test sale del entrenamiento, de la tendencia del
@@ -104,17 +105,18 @@ pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_ni
 | GBR cuantílico | 11,4 | 15,2 | 0,55 | 0,30 |
 | **Ridge (modelo final)** | **10,1** | **13,8** | **0,65** | **0,42** |
 | Ridge, evaluado contra la producción sola | 11,8 | 14,7 | 0,58 | 0,34 |
-| Ridge en **provincias** (n = 137) | 18,0 vs 18,5 | 23,5 vs 23,9 | **0,20** | **0,04** |
+| Ridge en **provincias** (n = 137, vs "año normal") | 17,7 vs 18,4 | 22,7 vs 23,6 | **0,28** | **0,07** |
 
 - **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −48 %, real −50 %;
   1998 → −38 %, real −64 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,67.
-- **Provincias**: con el verdor de MODIS aparece por primera vez algo de skill (corr 0,20, R² 0,04;
-  sin MODIS 0,10 y 0,00). Test de permutación provincial: **p = 0,08**, sugerente pero no concluyente.
+- **Provincias**: skill pequeño pero **significativo**: corr 0,28, R² 0,07, test de permutación
+  provincial **p = 0,01** (al empezar: 0,10 y 0,00). Viene del verdor de MODIS y del target por hectárea
+  sembrada. Bloques de 3 años: 0,22.
 - **Lo que no** (auditoría independiente, también en la model card):
   - Depende sobre todo de la **lluvia extrema**: sin 1983/1998 la correlación baja a 0,44 (el MAE sí
     mejora a "año normal": 10,0 vs 11,2). Entrenando sin ambos, cada uno se predice en solo −18 %.
-  - En **provincias el skill es débil** (R² 0,04, p = 0,08; ruido ESPAC 15–31 %): la salida por zona
-    sigue llevando `evidence = "indice_subnacional_no_validado"`.
+  - En **provincias el skill es pequeño** (R² 0,07; ruido ESPAC 15–31 %): explica poco de cada año.
+    La salida por zona sigue llevando `evidence = "indice_subnacional_no_validado"`.
   - El verdor (EVI) se **observa**: sirve para la temporada en curso (desde julio) pero no existe para
     2050 ni para 1983/1998; ahí entra como "verdor normal".
   - El índice Niño 1+2 no aporta una vez conocida la lluvia: hace falta el clima de ene–jun.
@@ -207,6 +209,7 @@ de `model_versions`.
 | Ventanas de meses (ene–abr, feb–may, mar–jun…) y lluvia oct–dic previa | 0,37–0,55 | 15,3–16,8 | Ninguna supera a ene–jun |
 | Producción o área como target provincial | prov 0,07–0,13 | — | Sin skill provincial igual |
 | **Target nacional = producción + exportaciones (ADOPTADO)** | **0,64** (0,56 vs producción sola) | **14,1** | Dos medidas independientes de la cosecha: menos ruido |
+| **Target provincial = producción por ha SEMBRADA (ADOPTADO)** | nacional 0,65; prov 0,20 → **0,28** (p = 0,01) | 13,8 | Cuenta el área perdida por enfermedad o inundación (la fracción cosechada baja con la lluvia: r = −0,2) |
 | Verdor solo en píxeles de cultivo (ESA WorldCover), NDVI, otros meses, temporada previa (26 variantes) | 0,61–0,65; prov 0,10–0,22 | 13,8–14,5 | Ninguna mejora a la vez nacional y provincias; elegir la mejor sería inflar |
 | + 4 provincias andinas (Bolívar, Cotopaxi, Pichincha, Cañar), +96 filas | 0,66; prov 0,20 → 0,18 | — | Su ESPAC es aún más ruidoso (±46–75 %). Su clima se usa solo para el índice por zona |
 | **+ verdor MODIS EVI ene–jun (ADOPTADO)** | **0,65**; provincias 0,10 → **0,20** | **13,8** | Medida satelital del estado del cultivo, independiente de la encuesta (recurso del reto) |

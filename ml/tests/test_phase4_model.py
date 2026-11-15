@@ -244,7 +244,8 @@ def test_trained_model_validation_metrics(trained):
     ev = {e["year"]: e for e in v["nino_events_national"]}
     assert ev[1983]["pred"] < -20 and ev[1998]["pred"] < -20     # anticipa los dos Niños extremos
     if v["permutation_test"]:
-        assert v["permutation_test"]["p_value"] < 0.05
+        assert v["permutation_test"]["national"]["p_value"] < 0.05
+        assert v["permutation_test"]["province"]["p_value"] < 0.05
 
 
 def test_trained_model_scenarios(trained):

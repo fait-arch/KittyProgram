@@ -8,8 +8,10 @@ R = resultado del año; T = tendencia del área estimada SIN el propio año (LOW
 log R, dejando un año fuera). pérdida % = max(0, −y).
 
 R es la columna `output` del panel (ver `OUTPUT_BY_LEVEL`):
-  · provincias → rendimiento (t/ha): en la encuesta ESPAC producción y superficie salen de la
-    misma muestra, y su cociente es más estable que cada una por separado.
+  · provincias → producción por hectárea SEMBRADA (t/ha sembrada, ESPAC): en la encuesta
+    producción y superficie salen de la misma muestra, y su cociente es más estable que cada una.
+    Sobre la superficie sembrada (no la cosechada) para que cuente también el área perdida por
+    enfermedad o inundación, que es justo el daño de El Niño.
   · nacional   → producción (t): antes de 2002 la superficie cosechada de FAOSTAT son
     estimaciones redondeadas con saltos (163 000 ha en 1964 → 240 000 en 1965; 301 000 en
     1999 → 403 000 en 2000) que contaminan el rendimiento; la producción es el dato fiable.
@@ -33,7 +35,7 @@ LAG_FEATURES = ["y_anom_prev"]
 FEATURES = CLIMATE_FEATURES + ENSO_FEATURES + LAG_FEATURES
 TARGET = "y_anom_pct"
 OUTPUT = "output"                                    # columna R del target en el panel real
-OUTPUT_BY_LEVEL = {"national": "sqrt(production_t · export_beq_t)", "province": "yield_t_ha"}
+OUTPUT_BY_LEVEL = {"national": "sqrt(production_t · export_beq_t)", "province": "production_t / planted_ha"}
 
 # Ancho de la ventana LOWESS en AÑOS (se convierte a fracción según la longitud de la serie)
 TREND_SPAN_YEARS = 15
@@ -99,7 +101,7 @@ def load_production() -> pd.DataFrame:
     # Solo PROVINCES: las andinas (EXTRA_PROVINCES) se probaron y empeoran el modelo (ruido ESPAC
     # ±46–75 %); su clima sí se descarga para dar el índice de riesgo en esas zonas.
     prov = p[(p.level == "province") & p.area_name.isin(PROVINCES)]
-    cols = ["area_name", "level", "year", "harvested_ha", "production_t", "yield_t_ha", "source"]
+    cols = ["area_name", "level", "year", "planted_ha", "harvested_ha", "production_t", "yield_t_ha", "source"]
     out = pd.concat([nat, prov])[cols].sort_values(["area_name", "year"]).reset_index(drop=True)
     path = DATA_PROCESSED / "exports.parquet"
     if path.exists():
@@ -108,7 +110,7 @@ def load_production() -> pd.DataFrame:
     else:
         out["export_beq_t"] = np.nan
     nat_value = np.sqrt(out.production_t * out.export_beq_t).fillna(out.production_t)
-    out[OUTPUT] = np.where(out.level == "national", nat_value, out[OUTPUT_BY_LEVEL["province"]])
+    out[OUTPUT] = np.where(out.level == "national", nat_value, out.production_t / out.planted_ha)
     return out
 
 

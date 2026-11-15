@@ -202,10 +202,11 @@ def strict_climate(panel: pd.DataFrame, spec: FeatureSpec, years=EXTREME_YEARS) 
 
 
 # ── Test de permutación ───────────────────────────────────────────────────────────────
-def permutation_test(panel, climate, spec, targets, n: int, seed: int = 0) -> dict:
+def permutation_test(panel, climate, spec, targets, n: int, seed: int = 0,
+                     level: str = "national") -> dict:
     """¿La relación clima → producción es real? Se barajan los años del clima (todas las áreas a
     la vez, para conservar su estructura) y se repite la validación: p = fracción de barajados
-    con correlación nacional ≥ la observada."""
+    con correlación ≥ la observada en el nivel `level` (national o province)."""
     feats = [c for c in spec.inputs if c in climate.columns]
     enso = [c for c in spec.inputs if c not in feats]
     enso_by_year = panel.drop_duplicates("year").set_index("year")[enso]
@@ -214,8 +215,8 @@ def permutation_test(panel, climate, spec, targets, n: int, seed: int = 0) -> di
 
     def stat(p):
         cv = loyo(p, make, spec.columns, value=OUTPUT, targets=targets, allow_nan=spec.fill_zero)
-        nat = cv[cv.level == "national"]
-        return float(nat.y_cv.corr(nat.pred)) if nat.pred.std() > 0 else 0.0
+        sub = cv[cv.level == level]
+        return float(sub.y_cv.corr(sub.pred)) if sub.pred.std() > 0 else 0.0
 
     obs = stat(panel)
     rng = np.random.default_rng(seed)
@@ -229,7 +230,7 @@ def permutation_test(panel, climate, spec, targets, n: int, seed: int = 0) -> di
             p[enso] = enso_by_year.reindex(src).to_numpy()
         null.append(stat(p))
     null = np.array(null)
-    return {"n_permutations": n, "corr_national_observed": obs,
+    return {"n_permutations": n, "level": level, "corr_observed": obs,
             "corr_null_mean": float(null.mean()), "corr_null_p95": float(np.quantile(null, 0.95)),
             "p_value": float((1 + (null >= obs).sum()) / (n + 1))}
 
@@ -291,6 +292,8 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
 
     nat_panel = panel[panel.level == "national"]
     yld = panel.assign(**{OUTPUT: panel.yield_t_ha})
+    prov_harvested = panel.assign(**{OUTPUT: np.where(panel.level == "national", panel[OUTPUT],
+                                                      panel.yield_t_ha)})
     prod_only = panel.assign(**{OUTPUT: np.where(panel.level == "national", panel.production_t,
                                                  panel.yield_t_ha)})
     robust = {
@@ -303,6 +306,8 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
         "sin_umbral": cv_of(partial(RidgeModel, spec_with(hinges=()), climate), CORE.columns),
         "sin_signos": cv_of(partial(RidgeModel, CORE, climate, True, False), CORE.columns),
         "sin_evi_modis": cv_of(partial(RidgeModel, CLIMATE_CORE, climate), CLIMATE_CORE.columns),
+        "prov_target_ha_cosechada": loyo(prov_harvested, partial(RidgeModel, CORE, climate), CORE.columns,
+                                         value=OUTPUT, allow_nan=CORE.fill_zero),
         "sin_pesos": cv_of(partial(RidgeModel, CORE, climate, False), CORE.columns),
         "solo_nacional": loyo(nat_panel, partial(RidgeModel, CORE, climate), CORE.columns, value=OUTPUT,
                               allow_nan=CORE.fill_zero),
@@ -314,6 +319,8 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
     rob = {k: score(v[v.level == "national"]) for k, v in robust.items()}
     rob["provincias_con_evi"] = score(ens[ens.level == "province"].drop(columns=["p10", "p90"]))
     rob["provincias_sin_evi"] = score(robust["sin_evi_modis"][robust["sin_evi_modis"].level == "province"])
+    rob["provincias_target_ha_cosechada"] = score(
+        robust["prov_target_ha_cosechada"][robust["prov_target_ha_cosechada"].level == "province"])
     nat_cv = ens[ens.level == "national"]
     rob["eval_sin_1983_1998"] = score(nat_cv[~nat_cv.year.isin(EXTREME_YEARS)])
     rob["eval_desde_1999"] = score(nat_cv[nat_cv.year >= 1999])
@@ -346,8 +353,11 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
 
     perm_res = None
     if perm:
-        perm_res = permutation_test(panel, climate, CORE, targets, perm)
-        say("\nTest de permutación:", {k: round(v, 3) for k, v in perm_res.items()})
+        perm_res = {lvl: permutation_test(panel, climate, CORE, targets, perm, level=lvl)
+                    for lvl in ("national", "province")}
+        for lvl, r in perm_res.items():
+            say(f"\nTest de permutación ({lvl}):", {k: (round(v, 3) if isinstance(v, float) else v)
+                                                     for k, v in r.items()})
 
     # 3. Modelo final ----------------------------------------------------------------
     cols = CORE.columns
@@ -424,6 +434,8 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
             "un escenario 'solo ENSO'; hace falta el clima (observado o pronosticado) de ene–jun.",
             "El intervalo p10–p90 cubre ~80 % en promedio pero casi no es más estrecho que el de "
             "'año normal' (interval_width_vs_normal); en años de pérdida grande cubre peor.",
+            "Target provincial = producción por hectárea SEMBRADA (ESPAC): incluye el área que se "
+            "pierde en los años húmedos (antes, con ha cosechada, esa pérdida no se veía).",
             "Target nacional = media geométrica de producción y exportaciones (FAOSTAT): reduce el "
             "error de medición. Contra la producción sola la mejora es pequeña (eval_vs_produccion "
             "frente a eval_vs_produccion_entrenado_produccion).",

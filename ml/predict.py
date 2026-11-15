@@ -37,12 +37,16 @@ def load_bundle(path=None) -> dict:
 
 
 def exposure(panel: pd.DataFrame) -> pd.DataFrame:
-    """Último año disponible de cada área: hectáreas cosechadas y rendimiento esperado (tendencia)."""
+    """Último año disponible de cada área: hectáreas expuestas y rendimiento esperado (tendencia).
+
+    Provincias: el target es t por ha SEMBRADA → exposed_ha = ha sembradas.
+    Nacional: la tendencia es de producción (t) → rendimiento = tendencia / ha cosechadas.
+    """
     last = panel.sort_values("year").groupby("area_name").tail(1).set_index("area_name")
     nat = last.index == "national"
-    # nacional: la tendencia es de PRODUCCIÓN (t) → rendimiento esperado = tendencia / ha
+    exposed = np.where(nat, last.harvested_ha, last.planted_ha)
     expected = np.where(nat, last.trend / last.harvested_ha, last.trend)
-    return pd.DataFrame({"exposed_ha": last.harvested_ha, "expected_yield_t_ha": expected,
+    return pd.DataFrame({"exposed_ha": exposed, "expected_yield_t_ha": expected,
                          "exposure_year": last.year})
 
 
@@ -103,7 +107,8 @@ def model_version_row(bundle: dict) -> dict:
                     "interval_coverage_p10_p90": nat["coverage_80"],
                     "nino_years_hit": ev, "best": "ridge",
                     "province_skill": v["models"]["ridge"]["province"]["r2_oos"],
-                    "permutation_p": (v.get("permutation_test") or {}).get("p_value")},
+                    "permutation_p": ((v.get("permutation_test") or {}).get("national") or {}).get("p_value"),
+                    "permutation_p_province": ((v.get("permutation_test") or {}).get("province") or {}).get("p_value")},
         "train_start_year": m.meta["years"][0], "train_end_year": m.meta["years"][1],
         "n_samples": int(v["models"]["ridge"]["national"]["n"] + v["models"]["ridge"]["province"]["n"]),
         "artifact_path": f"ml/artifacts/cacao_loss_{VERSION}.joblib", "is_active": True,
