@@ -106,3 +106,35 @@ Se buscaron y descargaron todas las series de comercio que se pueden bajar autom
 `ml.experiments.eu_imports` reproduce la prueba de Eurostat (`results/exp7_eu_imports.json`).
 Dato llamativo: en 1998 las importaciones de la UE desde Ecuador cayeron un 41 % (15 936 → 9 396 t),
 coherente con la pérdida que estima el modelo.
+
+## Exp. 8 — Limpieza robusta de los datos · NO mejora
+
+`ml.experiments.robust`. Huber (IRLS: los años con error enorme pierden peso solos) y recorte del
+target al entrenar; evaluación con el dato crudo.
+
+| Variante | Nacional corr / R² | Provincias corr / R² | Predicción 1998 (real −64 %) |
+|---|---|---|---|
+| Actual | 0,643 / 0,408 | 0,325 / 0,103 | −36 % |
+| Huber c = 1,345 | 0,648 / 0,406 | 0,326 / 0,104 | −37 % |
+| Huber c = 2,5 | 0,643 / 0,407 | 0,323 / 0,102 | −36 % |
+| Recorte ±2 sd | 0,621 / 0,365 | 0,324 / 0,101 | −27 % |
+| Recorte ±2,5 sd | 0,632 / 0,387 | 0,325 / 0,102 | −30 % |
+
+Huber ±0,005 (ruido). El recorte empeora: corta justo los desastres reales. Años que Huber marca como
+raros (vienen así de FAOSTAT/ESPAC): nacional 1968 (+60 %), Esmeraldas 2004 (+55 %), Manabí 2014 (+60 %).
+
+## Exp. 9 — Aprender también de Colombia y Perú · NO mejora
+
+`ml.experiments.intl_climate` (clima GEE de sus zonas cacaoteras, 1961–2025) y
+`ml.experiments.multicountry` (producción FAOSTAT; validación solo en Ecuador).
+
+| Entrenando con | Nacional corr / R² | Pred. 1983 (real −50 %) | Provincias corr / R² |
+|---|---|---|---|
+| Solo Ecuador (actual) | 0,643 / **0,408** | **−54 %** | 0,325 / **0,103** |
+| + Colombia | 0,657 / 0,372 | −33 % | 0,359 / 0,090 |
+| + Perú | 0,667 / 0,361 | −33 % | 0,335 / 0,076 |
+| + Colombia + Perú | 0,657 / 0,343 | −31 % | 0,336 / 0,067 |
+
+En Colombia la lluvia casi no daña al cacao (r = −0,13 con el target) y en la Amazonía peruana más
+lluvia es incluso buena (r = +0,23). El daño fuerte por lluvia extrema es propio de la **costa
+ecuatoriana**: mezclar países diluye la respuesta y el modelo subestima los desastres (R² baja).
