@@ -27,7 +27,7 @@ HERE = Path(__file__).resolve().parent
 DATA = HERE / "data"
 PARTS = {
     1: "01_territorio.sql", 2: "02_el_nino.sql", 3: "03_clima.sql",
-    4: "04_riesgo_y_escenarios.sql", 5: "05_produccion_y_precios.sql", 6: "06_modelo_demo_y_observaciones.sql",
+    4: "04_riesgo_y_escenarios.sql", 5: "05_produccion_y_precios.sql", 6: "06_observaciones.sql",
     7: "07_espac_real.sql",   # producción REAL ESPAC 2002–2025 (reemplaza la sintética); tools/espac_to_sql.py
 }
 COUNT_TABLES = [
@@ -63,13 +63,17 @@ def seed_area_ids() -> list[str]:
 def reset_sql(ids: list[str]) -> list[str]:
     arr = "'{" + ",".join(ids) + "}'::uuid[]"
     return [
+        # restos de versiones anteriores del seed (que incluían datos sintéticos)
         "delete from public.loss_predictions where model_version_id in (select id from public.model_versions where name like 'cacao_loss_demo%')",
+        "delete from public.crop_production_stats where source_id = 'seed_sintetico'",
+        "delete from public.crop_exposure where source_id = 'seed_sintetico'",
         "delete from public.model_versions where name like 'cacao_loss_demo%'",
         "delete from public.field_observations where source = 'gbif'",
         "delete from public.etl_runs where script = 'seed_pruebas'",
-        "delete from public.crop_prices where source_id = 'fred'",
+        "delete from public.crop_prices where source_id in ('fred', 'sipa')",
         "delete from public.enso_events",
         "delete from public.enso_index",
+        "delete from public.data_sources ds where ds.id = 'seed_sintetico' and not exists (select 1 from public.crop_production_stats where source_id = 'seed_sintetico') and not exists (select 1 from public.crop_exposure where source_id = 'seed_sintetico')",
         f"delete from public.areas where id = any({arr}) and not exists (select 1 from public.areas f where f.kind = 'field' and f.parent_id = any({arr}))",
     ]
 

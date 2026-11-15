@@ -7,7 +7,8 @@ producción **real** por provincia (antes solo 2023–2025 eran reales; 2001–2
 
 La **ESPAC del INEC empieza en 2002**: no existe tabulado de 2001. Consecuencias:
 
-- 2001 **sigue siendo sintético** por provincia en el seed (`source_id = 'seed_sintetico'`).
+- 2001 **no tiene producción por provincia** en la base: el seed ya **no contiene datos sintéticos**
+  (actualización 2026-11-14), solo el dato nacional real de FAOSTAT.
 - Para 2001 solo hay dato **nacional** real: FAOSTAT (76 030 t, 429 547 ha cosechadas), ya cargado.
 - Al entrenar el modelo, usar **2002 en adelante** con datos reales, o descartar 2001
   (`where source_id = 'espac'`).
@@ -92,7 +93,7 @@ import pandas as pd
 df = pd.read_csv("supabase/seed/data/espac_cacao_provincias.csv")   # para ML, sin pasar por Supabase
 ```
 
-## Cómo inyectar (no se ha ejecutado todavía)
+## Cómo inyectar (**ya aplicado** en Supabase el 2026-11-14 como parte 07 de `inject.py`)
 
 ```bash
 # regenerar (si cambian los Excel)

@@ -10,8 +10,10 @@
 | 1.4 Clima mensual | 🟡 ERA5; cantones con 5–6 años (faltan 2014, 2015, 2016 parcial, 2022) |
 | 1.5 Riesgo de enfermedad | 🟡 la moniliasis casi no discrimina |
 | 1.6 Aptitud ECOCROP | 🟡 solo provincias |
-| 1.7–1.8 Producción, precios, exposición | 🟡 ESPAC real 2023–2025; resto sintético; precio internacional |
-| 1.9–1.14 Modelo real, estrategias, API, front, demo | ⏳ pendiente |
+| 1.7 Producción por provincia | ✅ ESPAC real 2002–2025 (220 filas) |
+| 1.8 Hectáreas y precios | 🟡 hectáreas solo por provincia (ESPAC 2025); precio internacional (FRED) |
+| 1.9 Entrenar el modelo real | ⏳ **listo para empezar** (220 filas reales) |
+| 1.10–1.14 Predicciones, estrategias, API, front, demo | ⏳ pendiente |
 | Fase 2 y 3 | ⏳ pendiente |
 
 Detalle y cómo completar cada punto: [09-como-conseguir-los-datos-que-faltan.md](09-como-conseguir-los-datos-que-faltan.md).

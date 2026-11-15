@@ -1,14 +1,14 @@
 """Genera los archivos SQL de carga (seed) para probar la base de datos y el backend.
 
-Uso:  python build_seed.py <carpeta_raw> <carpeta_salida> [--sample] [--no-synthetic]
+Uso:  python build_seed.py <carpeta_raw> <carpeta_salida> [--sample]
 
 Entradas (en <raw>): adm1.geojson, adm2.geojson, oni.txt, sstoi.txt, fred_cocoa.csv,
 faostat_americas.zip, gbif_*.json, areas.json, weather/*.json (ver fetch_weather.py).
 
-DATOS REALES : límites (geoBoundaries/INEC), El Niño (NOAA), clima (ERA5 vía Open-Meteo),
-               producción nacional (FAOSTAT), precio (FRED/FMI), observaciones (GBIF).
-DATOS SINTÉTICOS (marcados en la columna notes / fuente 'seed_sintetico'):
-               producción provincial, hectáreas por cantón, modelo y predicciones DEMO.
+DATOS REALES : límites (geoBoundaries/INEC), DPA (INEC), El Niño (NOAA), clima (ERA5 vía Open-Meteo),
+               suelo/terreno (SoilGrids, SRTM), producción (FAOSTAT, ESPAC), precio (FRED/FMI), observaciones (GBIF).
+NO SE GENERA NINGÚN DATO SINTÉTICO. La producción por provincia (ESPAC 2002-2025) viene del
+               CSV versionado y se carga con la parte 07.
 """
 import csv
 import io
@@ -29,11 +29,9 @@ from shapely.validation import make_valid
 RAW = Path(sys.argv[1])
 OUT = Path(sys.argv[2])
 SAMPLE = "--sample" in sys.argv
-NO_SYN = "--no-synthetic" in sys.argv   # no genera producción sintética (solo años con dato real de ESPAC)
 OUT.mkdir(parents=True, exist_ok=True)
 rnd = random.Random(42)
 
-SYN = "SINTÉTICO (seed de pruebas)"
 NS = uuid.UUID("6f1c0a9e-5b7e-4f0a-9a52-0c0a11ce0001")
 YEAR0, YEAR1 = (2024 if SAMPLE else 2001), 2025
 
@@ -292,7 +290,6 @@ parts = defaultdict(list)
 src = [
     ["hdx_cod_ecu", "Códigos DPA — COD-AB Ecuador (INEC / OCHA)", "INEC / OCHA ROLAC", "other", "ecu_admgz.xlsx", "static", "2024-01-01", "https://data.humdata.org/dataset/cod-ab-ecu", "CC BY-IGO — INEC, OCHA"],
     ["opentopodata", "SRTM 30 m vía OpenTopoData", "NASA / OpenTopoData", "other", "api.opentopodata.org/v1/srtm30m", "static", "2000-02-11", "https://www.opentopodata.org", "NASA SRTM; datos servidos por OpenTopoData"],
-    ["seed_sintetico", "Datos sintéticos del seed de pruebas", "KittyProgram", "other", "supabase/seed", "static", None, None, "No usar como evidencia: solo para probar el sistema"],
     ["fred", "FRED — Global price of Cocoa (PCOCOUSDM)", "FMI / FRED", "other", "fredgraph.csv?id=PCOCOUSDM", "monthly", "1990-01-01", "https://fred.stlouisfed.org/series/PCOCOUSDM", "IMF Primary Commodity Prices via FRED"],
     ["open_meteo", "Open-Meteo Historical Weather (ERA5 / ERA5-Land)", "Open-Meteo / ECMWF", "other", "archive-api.open-meteo.com/v1/archive", "daily", "1940-01-01", "https://open-meteo.com", "Weather data by Open-Meteo.com (CC BY 4.0); contains modified Copernicus Climate Change Service information"],
     ["geoboundaries", "geoBoundaries ECU ADM1/ADM2", "geoBoundaries / INEC", "other", "gbOpen/ECU", "static", "2019-01-01", "https://www.geoboundaries.org", "CC BY 3.0 IGO — fuente: INEC, OCHA ROLAC"],
@@ -414,118 +411,25 @@ for a in prov:
     suit.append([a["id"], "cacao", "normal", s, cl, [k for k, v in sc.items() if v < 1], {**{k: round(v, 3) for k, v in sc.items()}, "temp_mean_c": round(t_mean, 2), "rain_annual_mm": round(rain)}])
 parts[4].append(ins("crop_suitability", ["area_id", "crop_id", "scenario_id", "score", "class", "limiting_factors", "details"], suit))
 
-# P5: producción — ESPAC (INEC) real 2023–2025 por provincia, FAOSTAT nacional real, sintética en los demás años
-def parse_espac(year):
-    fp = RAW / f"espac_tab{year}.xlsx"
-    if not fp.exists():
-        return {}
-    wb = openpyxl.load_workbook(fp, read_only=True, data_only=True)
-    num = None
-    for r in wb["ÍNDICE"].iter_rows(values_only=True):
-        t = " ".join(str(x) for x in r if x)
-        if "cacao" in t.lower() and "provincia" in t.lower():
-            num = t.split(".")[0].strip()
-            break
-    out, cur = {}, None
-    for r in wb[num].iter_rows(values_only=True):
-        c1 = r[1] if len(r) > 1 and isinstance(r[1], str) else None
-        c2 = r[2] if len(r) > 2 and isinstance(r[2], str) else None
-        if c1 is None and c2 != "Asociado":
-            continue
-        if c1 is not None:
-            up = c1.strip().upper()
-            if up.startswith(("REGIÓN", "REGION", "ZONA", "FUENTE")):
-                cur = None
-                continue
-            cur = "__nacional__" if up == "TOTAL NACIONAL" else key(c1)
-            out.setdefault(cur, [0.0, 0.0, 0.0])
-        if cur is None:
-            continue
-        v = [x if isinstance(x, (int, float)) else 0.0 for x in r[3:7]]   # plantada, cosechada, producción, ventas
-        out[cur][0] += v[0]   # superficie plantada (ha)
-        out[cur][1] += v[1]   # superficie cosechada (ha)
-        out[cur][2] += v[2]   # producción (t)
-    return out
-
-
-espac = {}
-for y in range(2014, 2026):
-    if not (RAW / f"espac_tab{y}.xlsx").exists():
-        continue
-    try:
-        espac[y] = parse_espac(y)
-    except Exception as e:  # formato distinto en años antiguos
-        print(f"ESPAC {y}: no se pudo leer ({e}); se omite", flush=True)
-espac_years = []
-for y in sorted(espac):   # control: las provincias deben sumar ≈ total nacional (±2 %)
-    if not espac[y] or "__nacional__" not in espac[y]:
-        print(f"ESPAC {y}: sin tabla de cacao reconocible; se omite", flush=True)
-        continue
-    tot = sum(v[2] for k, v in espac[y].items() if k != "__nacional__")
-    nat = espac[y]["__nacional__"][2]
-    ok = nat > 0 and abs(tot - nat) / nat < 0.02
-    print(f"ESPAC {y}: producción nacional {nat:,.0f} t; suma de provincias {tot:,.0f} t -> {'OK' if ok else 'NO CUADRA, se omite'}", flush=True)
-    if ok:
-        espac_years.append(y)
-
-for a in prov:
-    ys_, hs_ = [], []
-    for y in espac_years:
-        v = espac[y].get(a["name_key"])
-        n_ = espac[y]["__nacional__"]
-        if v and v[1] > 0 and n_[1] > 0:
-            ys_.append((v[2] / v[1]) / (n_[2] / n_[1]))
-            hs_.append(v[1] / n_[1])
-    a["ratio"] = sum(ys_) / len(ys_) if ys_ else 1.0
-    a["share"] = sum(hs_) / len(hs_) if hs_ else 0.005
-
+# P5: producción REAL. Nacional: FAOSTAT 2001-2024. Por provincia: ESPAC 2002-2025 → parte 07
+# (espac_cacao_provincias.csv → 07_espac_real.sql, tools/espac_to_sql.py). NO se genera ningún dato sintético.
 prod = []
 cid = uid("country_ecuador")
 for y in fao_years:
     prod.append([cid, "cacao", y, None, None, fao["Area harvested"][y], None, fao["Production"][y], "faostat", "Dato real FAOSTAT (nacional)"])
-for y in espac_years:
-    if y >= YEAR0:
-        n_ = espac[y]["__nacional__"]
-        prod.append([cid, "cacao", y, n_[0], None, n_[1], None, n_[2], "espac", f"ESPAC {y} T14 total nacional (solo + asociado)"])
-for a in prov:
-    base = [sum((MONTHS[(a["key"], yy, m)][1]["monilia"][2] + MONTHS[(a["key"], yy, m)][1]["phytophthora"][2]) / 2
-                for m in range(1, 7) if (a["key"], yy, m) in MONTHS) / 6 for yy in range(YEAR0, YEAR1 + 1)]
-    mean_base = sum(base) / len(base)
-    for y in range(YEAR0, YEAR1 + 1):
-        v = espac.get(y, {}).get(a["name_key"]) if y in espac_years else None
-        if v and v[1] > 0:       # dato REAL del INEC
-            prod.append([a["id"], "cacao", y, v[0], None, v[1], None, v[2], "espac", f"ESPAC {y} T14 (solo + asociado)"])
-            a.setdefault("ha", {})[y] = v[1]
-            a.setdefault("yld", {})[y] = v[2] / v[1]
-            continue
-        if NO_SYN or y not in fao["Area harvested"]:
-            continue
-        rk = [(MONTHS[(a["key"], y, m)][1]["monilia"][2] + MONTHS[(a["key"], y, m)][1]["phytophthora"][2]) / 2
-              for m in range(1, 7) if (a["key"], y, m) in MONTHS]
-        if not rk:
-            continue
-        loss = max(0.0, min(40.0, 60 * (sum(rk) / len(rk) - mean_base))) + abs(rnd.gauss(0, 1.5))
-        yld = base_yield(y) * a["ratio"] * (1 + rnd.gauss(0, 0.04)) * (1 - loss / 100)
-        h = fao["Area harvested"][y] * a["share"]
-        prod.append([a["id"], "cacao", y, h * 1.08, h * 1.02, h, h * loss / 100 * 0.2, yld * h, "seed_sintetico",
-                     SYN + f" — pérdida sembrada {loss:.1f}% (proporciones ancladas en ESPAC)"])
-        a.setdefault("ha", {})[y] = h
-        a.setdefault("yld", {})[y] = yld
 parts[5].append(ins("crop_production_stats", ["area_id", "crop_id", "year", "planted_ha", "productive_ha", "harvested_ha", "lost_ha", "production_t", "source_id", "notes"], prod))
 
+# Exposición REAL: superficie cosechada de cacao por provincia del último año de ESPAC (CSV versionado).
+# No hay dato real de hectáreas por cantón, por eso los cantones NO tienen exposición ni pérdida estimada.
 expo = []
-y_ref = max(espac_years) if espac_years else max(y for y in fao["Area harvested"] if y <= YEAR1)
+espac_csv = Path(__file__).resolve().parents[1] / "data" / "espac_cacao_provincias.csv"
+rows_csv = list(csv.DictReader(open(espac_csv, encoding="utf-8")))
+y_ref = max(int(r["year"]) for r in rows_csv)
+ha_by_dpa = {r["dpa"]: float(r["harvested_ha"]) for r in rows_csv if int(r["year"]) == y_ref and r["harvested_ha"]}
 for a in prov:
-    ha = a.get("ha", {}).get(y_ref)
-    if not ha:
-        continue
-    real = y_ref in espac_years and a["name_key"] in espac[y_ref]
-    expo.append([a["id"], "cacao", y_ref, ha, "espac_direct" if real else "manual", "espac" if real else "seed_sintetico"])
-    kids = [c for c in cant if c["pid"] == a["id"]]
-    tot = sum(c["geom"].area for c in kids)
-    for c in kids:
-        c["ha_ref"] = ha * c["geom"].area / tot if tot else 0
-        expo.append([c["id"], "cacao", y_ref, c["ha_ref"], "manual", "seed_sintetico"])
+    ha = ha_by_dpa.get(a["dpa"])
+    if ha:
+        expo.append([a["id"], "cacao", y_ref, ha, "espac_direct", "espac"])
 parts[5].append(ins("crop_exposure", ["area_id", "crop_id", "ref_year", "crop_ha", "method", "source_id"], expo))
 
 prices = []
@@ -542,57 +446,10 @@ if sipa_fp.exists():
         sp.append(["cacao", m_, "nacional", "grano_seco", v_, "sipa"])
     parts[5].append(ins("crop_prices", ["crop_id", "month_date", "market", "product_form", "price_usd_t", "source_id"],
                         [x for x in sp if x[1] >= f"{YEAR0}-01-01"]))
-    prices = sp
     print(f"SIPA: {len(sp)} meses de precio de Ecuador", flush=True)
-price_now = sum(p[4] for p in sorted(prices, key=lambda x: x[1])[-12:]) / 12
 
-# P6: modelo DEMO + predicciones + observaciones GBIF + etl_runs
-mv = uid("model_demo")
-parts[6].append(ins("model_versions", ["id", "name", "crop_id", "target", "algorithm", "features", "metrics", "n_samples", "is_active"],
-                    [[mv, "cacao_loss_demo_sintetico", "cacao", "yield_anomaly_pct", "formula_demo",
-                      ["fav_days_monilia", "fav_days_phytophthora", "risk_index_mean"],
-                      {"nota": "DEMO: loss = clip(10 + 150*(riesgo_ene_jun - riesgo_medio_del_área), 0, 60). NO entrenado ni validado."}, 0, True]]))
+# P6: observaciones de campo (GBIF). Sin modelo ni predicciones: se cargan cuando exista un modelo REAL entrenado.
 pred = []
-
-
-def window_risk(a, years):
-    vals = [(MONTHS[(a["key"], y, m)][1]["monilia"][2] + MONTHS[(a["key"], y, m)][1]["phytophthora"][2]) / 2
-            for y in years for m in range(1, 7) if (a["key"], y, m) in MONTHS]
-    fav = [MONTHS[(a["key"], y, m)][1]["monilia"][0] for y in years for m in range(1, 7) if (a["key"], y, m) in MONTHS]
-    return (sum(vals) / len(vals), sum(fav) / max(1, len(years))) if vals else None
-
-
-def base_risk(a):
-    allm = [(MONTHS[(a["key"], y, m)][1]["monilia"][2] + MONTHS[(a["key"], y, m)][1]["phytophthora"][2]) / 2
-            for (k, y, m) in MONTHS if k == a["key"] and m <= 6]
-    return sum(allm) / len(allm)
-
-
-prov_by_id = {p["id"]: p for p in prov}
-for a in prov + cant:
-    pa = a if a["kind"] == "province" else prov_by_id.get(a["pid"])
-    ha = pa.get("ha", {}).get(y_ref) if a["kind"] == "province" else a.get("ha_ref")
-    ys = [v for y_, v in (pa or {}).get("yld", {}).items() if y_ in espac_years]
-    yld = (sum(ys) / len(ys)) if ys else max((pa or {}).get("yld", {}).values(), default=None)
-    if not ha or not yld:
-        continue
-    for sc in ("normal", "nino"):
-        yrs = [y for y, c in cls_year.items() if c == ("neutral" if sc == "normal" else "nino")
-               and any((a["key"], y, m) in MONTHS for m in range(1, 7))]
-        wr = window_risk(a, yrs)
-        if not wr:
-            continue
-        risk, fav = wr
-        loss = max(0.0, min(60.0, 10 + 150 * (risk - base_risk(a))))
-        lt = ha * yld * loss / 100
-        rc = "bajo" if loss < 5 else "medio" if loss < 15 else "alto" if loss < 30 else "muy_alto"
-        pred.append([uid(f"pred_{a['key']}_{sc}"), mv, a["id"], "cacao", sc, loss, loss * 0.7, min(100.0, loss * 1.3), ha, yld, lt, price_now, lt * price_now, rc,
-                     [{"feature": "fav_days_monilia", "label": "Días favorables a moniliasis (ene–jun)", "value": round(fav, 1)},
-                      {"feature": "risk_index_mean", "label": "Índice de riesgo medio", "value": round(risk, 3)},
-                      {"feature": "n_years", "label": "Años usados en el escenario", "value": len(yrs)}]])
-parts[6].append(ins("loss_predictions", ["id", "model_version_id", "area_id", "crop_id", "scenario_id", "loss_pct", "loss_pct_low", "loss_pct_high",
-                                         "exposed_ha", "expected_yield_t_ha", "loss_t", "price_usd_t", "loss_usd", "risk_class", "top_factors"], pred))
-
 obs = []
 for fn, pid in (("gbif_monilia.json", "monilia"), ("gbif_perniciosa.json", "escoba_bruja")):
     fp = RAW / fn
@@ -609,10 +466,10 @@ for fn, pid in (("gbif_monilia.json", "monilia"), ("gbif_perniciosa.json", "esco
 parts[6].append(ins("field_observations", ["area_id", "pathogen_id", "observed_on", "lat", "lon", "source", "external_id", "notes"], obs,
                     " on conflict (source, external_id) do nothing"))
 parts[6].append(ins("etl_runs", ["script", "params", "status", "rows_written", "notes"],
-                    [["seed_pruebas", {"sample": SAMPLE, "years": f"{YEAR0}-{YEAR1}"}, "done", len(series) + len(hazard) + len(risk_rows), "Carga de datos de prueba (ver supabase/seed/README.md)"]]))
+                    [["seed_pruebas", {"sample": SAMPLE, "years": f"{YEAR0}-{YEAR1}"}, "done", len(series) + len(hazard) + len(risk_rows), "Carga de datos reales (ver supabase/seed/README.md)"]]))
 
 # ── Escritura ───────────────────────────────────────────────────────────
-names = {1: "01_territorio", 2: "02_el_nino", 3: "03_clima", 4: "04_riesgo_y_escenarios", 5: "05_produccion_y_precios", 6: "06_modelo_demo_y_observaciones"}
+names = {1: "01_territorio", 2: "02_el_nino", 3: "03_clima", 4: "04_riesgo_y_escenarios", 5: "05_produccion_y_precios", 6: "06_observaciones"}
 suffix = "_muestra" if SAMPLE else ""
 full = []
 for n in sorted(parts):

@@ -1,7 +1,7 @@
 # 2. Base de datos — diccionario de datos
 
 Supabase · Postgres 17 + PostGIS · proyecto `chjgktgkilxjuwuuekah`.
-Estado desplegado el 2026-11-14: **32 tablas, 6 vistas, 0 alertas de seguridad.** Con datos de prueba cargados (ver [08-informe-datos.md](08-informe-datos.md)).
+Estado desplegado el 2026-11-14: **32 tablas, 6 vistas, 0 alertas de seguridad.** Con **datos reales** cargados, sin datos sintéticos (ver [08-informe-datos.md](08-informe-datos.md)).
 
 Migraciones aplicadas, en orden: `0001_init` → `0002_fk_indexes` → `0003_field_rpc` →
 `0004_more_sources` → `0005_cacaoresiliente` → `0006_revision` → `0007_limpieza` → `0008_politicas_internas` → `0009_cobertura`.
@@ -564,7 +564,7 @@ Solo incluye el modelo activo.
 |-------|-------------|
 | `v_variable_coverage` | Por variable del catálogo: filas cargadas, áreas, primer y último mes, y `status` (`cargada` / `pendiente`) |
 | `v_area_coverage` | Por territorio: `has_dpa`, `has_terrain`, `has_soil`, años de clima, años de producción **real** y **sintética**, `has_exposure`, nº de predicciones |
-| `v_production_provenance` | Producción por año y fuente, con `is_real` (falso para `seed_sintetico`) |
+| `v_production_provenance` | Producción por año y fuente, con `is_real` (falso solo para fuentes de prueba; hoy no hay ninguna) |
 
 Se recalculan solas; son la forma más rápida de ver qué falta ([guía](09-como-conseguir-los-datos-que-faltan.md)).
 

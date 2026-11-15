@@ -37,7 +37,7 @@ Resumen de lo pendiente, de lo más fácil a lo más difícil:
 | 6 | Datos NASA: GPM, SMAP, MODIS, WorldCover | Difícil (Earth Engine + ETL) | Backend |
 | 7 | Proyecciones 2050 (NEX-GDDP-CMIP6) | Difícil (Earth Engine + ETL) | Backend |
 | 8 | Provincias de la Sierra con cacao | Media | Datos |
-| 9 | Entrenar el modelo real | Depende de 2 | ML |
+| 9 | Entrenar el modelo real | **Ya se puede** (hay 220 filas reales) | ML |
 
 ---
 
@@ -57,27 +57,11 @@ Comprobar: `select climate_years, count(*) from v_area_coverage where kind='cant
 
 ---
 
-## 2. Producción real por provincia 2014–2022 (ESPAC, INEC)
+## 2. Producción real por provincia (ESPAC) — ✅ resuelto
 
-> ✅ **Hecho (2026-11-14):** ESPAC 2002–2025 descargada y convertida a `supabase/seed/data/07_espac_real.sql`
-> (pendiente de inyectar con `inject.py --only 7`). Detalle y aviso de que **2001 no existe en ESPAC**:
-> [10-espac-produccion-real.md](10-espac-produccion-real.md).
-
-**Por qué importa:** hoy solo 2023–2025 son reales (36 filas). Con 2014–2022 habría ~144 filas reales
-y se podría entrenar el modelo de verdad. Es **el dato más valioso que falta**.
-
-1. Abrir https://www.ecuadorencifras.gob.ec/estadisticas-agropecuarias-2/ y entrar a
-   **"Información de años anteriores ESPAC"** (https://www.ecuadorencifras.gob.ec/informacion-de-anos-anteriores-espac/).
-2. Elegir el año y descargar los **tabulados en Excel** (el archivo que contiene la tabla
-   *"Superficie, producción y ventas, según región y provincia — cacao (almendra seca)"*).
-3. Guardar cada uno como **`supabase/seed/raw/espac_tab<AÑO>.xlsx`** (por ejemplo `espac_tab2019.xlsx`).
-4. Regenerar y recargar (comandos de arriba).
-
-El generador lee solo los años cuyo archivo exista y **comprueba que las provincias sumen el total
-nacional (±2 %)**; si un año no cuadra o tiene otro formato, lo avisa y lo omite en vez de cargar datos
-malos. Los años con dato real reemplazan automáticamente a los sintéticos.
-
-Comprobar: `select * from v_production_provenance where year between 2014 and 2022;` → `is_real = true`.
+Ya está cargada la producción real 2002–2025 de las 12 provincias (220 filas). Detalle, URLs y
+control de cuadre en [10-espac-produccion-real.md](10-espac-produccion-real.md). Para agregar Sierra u otro año,
+regenerar con `tools/espac_to_sql.py`.
 
 ---
 
@@ -187,17 +171,7 @@ Bolívar, Cañar, Pichincha y Cotopaxi tienen entre 3 800 y 11 000 ha de cacao (
 
 ## 9. Entrenar el modelo real
 
-Requisito: los puntos 1 y 2 (producción real 2014–2025 y clima completo). Con eso
-`v_training_area_year` tendrá ~144 filas con rendimiento **real**. Luego seguir
-[05-modelo-predictivo.md](05-modelo-predictivo.md) (`ml/train.py`) y guardar en `model_versions`,
-`training_samples` y `loss_predictions`. Para quitar el modelo demo y los datos sintéticos:
-
-```bash
-python supabase/seed/inject.py --reset-only      # borra TODO el seed (incluida la producción sintética)
-```
-y volver a generar **sin producción sintética**:
-```bash
-python supabase/seed/tools/build_seed.py supabase/seed/raw supabase/seed/data --no-synthetic
-python supabase/seed/inject.py --reset --yes
-```
-(Las hectáreas por cantón y el modelo demo seguirán marcados como sintéticos/demo hasta que haya datos y modelo reales.)
+**Ya hay datos suficientes:** `v_training_area_year` tiene 220 filas **reales** (12 provincias, 2002–2025).
+Seguir [05-modelo-predictivo.md](05-modelo-predictivo.md) (`ml/train.py`): quitar la tendencia del rendimiento por
+provincia, validar dejando un año fuera y guardar el resultado en `model_versions`, `training_samples` y
+`loss_predictions` (solo provincias: no hay hectáreas reales por cantón).

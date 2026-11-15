@@ -11,7 +11,7 @@
 | 4 | [Frontend](04-frontend.md) | Pantallas, componentes, qué endpoint usa cada uno |
 | 5 | [Modelo predictivo](05-modelo-predictivo.md) | Target, features, modelos, validación, incertidumbre, código |
 | 6 | [Fases y tareas](06-fases.md) | Fase 1 (El Niño hoy) → Fase 2 (2050) → Fase 3 (extras) |
-| 8 | [Informe de datos](08-informe-datos.md) | Qué hay cargado, real vs sintético, hallazgos de calidad |
+| 8 | [Informe de datos](08-informe-datos.md) | Qué hay cargado (solo datos reales), hallazgos de calidad y pendientes |
 | 9 | [**Cómo conseguir los datos que faltan**](09-como-conseguir-los-datos-que-faltan.md) | Pasos para ESPAC, SIPA, NASA, CMIP6 y expertos |
 | 10 | [**Producción real ESPAC 2002–2025**](10-espac-produccion-real.md) | De dónde y cómo se bajó, control de cuadre, qué se carga; **no hay datos de 2001** |
 | — | [**APIs y fuentes de datos**](APIS-DATOS.md) | Endpoints, IDs de Earth Engine y código para sacar cada dato |

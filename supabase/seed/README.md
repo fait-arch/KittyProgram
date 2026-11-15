@@ -2,12 +2,11 @@
 
 Datos para **probar la base de datos y el backend** sin esperar al ETL real:
 139 áreas con polígono (Ecuador, 12 provincias de Costa y Amazonía, 126 cantones), El Niño 1990–2026,
-clima diario resumido por mes, altitud/pendiente/suelo, índices de riesgo, producción (ESPAC real 2023–2025), precios, un modelo
-**DEMO** y sus predicciones. Qué es real y qué es sintético: [`docs/08-informe-datos.md`](../../docs/08-informe-datos.md).
+clima mensual, altitud/pendiente/suelo, índices de riesgo, **producción real de ESPAC 2002–2025 por provincia**,
+precios y observaciones de campo. Qué hay cargado, de dónde sale y qué falta: [`docs/08-informe-datos.md`](../../docs/08-informe-datos.md).
 
-> ⚠️ Contiene datos **sintéticos** (producción provincial 2001–2022, hectáreas por cantón, modelo y
-> predicciones demo). Están marcados (`source_id = 'seed_sintetico'`, `notes`, modelo
-> `cacao_loss_demo_sintetico`). **No los presentes como resultados.**
+> ✅ **Solo datos reales.** No hay datos sintéticos, modelo demo ni predicciones: se cargan cuando exista un
+> modelo entrenado. Detalle: [`docs/08-informe-datos.md`](../../docs/08-informe-datos.md).
 
 ## Inyectar en Supabase (3 pasos)
 
@@ -42,33 +41,19 @@ Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.p
 
 | Parte | Tablas | Filas |
 |-------|--------|------:|
-| 01_territorio | `areas`, `area_static_features`, `data_sources` (+6 fuentes) | 139 + 138 + 6 |
+| 01_territorio | `areas`, `area_static_features`, `data_sources` (+5 fuentes) | 139 + 138 + 5 |
 | 02_el_nino | `enso_index`, `enso_events` | 2 209 + 24 |
 | 03_clima | `area_monthly_series`, `area_monthly_hazard` | 84 546 + 7 686 |
 | 04_riesgo_y_escenarios | `disease_risk_monthly`, `area_scenario_climate`, `disease_risk_scenario`, `crop_suitability` | 23 058 + 5 832 + 5 832 + 12 |
-| 05_produccion_y_precios | `crop_production_stats`, `crop_exposure`, `crop_prices` | 327 + 138 + 309 |
-| 06_modelo_demo_y_observaciones | `model_versions`, `loss_predictions`, `field_observations`, `etl_runs` | 1 + 276 + 12 + 1 |
-| **07_espac_real** | `crop_production_stats` (reales, `source_id='espac'`) y borra las sintéticas del mismo provincia × año | 220 provinciales + 24 nacionales |
-
-## Producción real ESPAC 2002–2025 (parte 07)
-
-```bash
-# 1. Descargar los 24 tabulados del INEC a supabase/seed/raw/espac/espac_tab<AÑO>.xlsx (URLs en tools/espac_to_sql.py · ml/etl/production.py)
-# 2. Generar CSV + SQL (no toca la base)
-python -I supabase/seed/tools/espac_to_sql.py supabase/seed/raw/espac supabase/seed/data
-# 3. Inyectar solo esta parte (después de 01–06)
-python supabase/seed/inject.py --only 7
-```
-
-Control: provincias + agregados no provinciales (Amazonía 2002–2011 por subregión, zonas no delimitadas)
-= total nacional ±2 % en los 24 años. Las provincias que no están en `areas` (Sierra) quedan en el CSV
-(`raw/espac/espac_cacao_provincias.csv`) y el SQL las omite. **2001 no existe en ESPAC**: sigue sintético por provincia.
+| 05_produccion_y_precios | `crop_production_stats` (FAOSTAT nacional), `crop_exposure`, `crop_prices` | 24 + 12 + 309 |
+| 06_observaciones | `field_observations`, `etl_runs` | 12 + 1 |
+| 07_espac_real | `crop_production_stats` (ESPAC por provincia y nacional) | 220 + 24 |
 
 ## Probar después de cargar
 
 ```sql
--- Mapa: pérdida demo por cantón
-select name, province, scenario_id, loss_pct, risk_class from public.v_loss_map order by loss_pct desc limit 10;
+-- Producción real por año y fuente
+select * from public.v_production_provenance order by year desc limit 10;   -- v_loss_map estará vacía hasta entrenar el modelo real
 -- Años Niño / Niña / neutro
 select year, enso_class, is_coastal_nino from public.v_enso_year_class order by year desc limit 10;
 -- Dataset de entrenamiento (provincia × año)
@@ -94,8 +79,7 @@ retoma al día siguiente. SoilGrids permite ~5 peticiones/min.
 
 Ver [`docs/09-como-conseguir-los-datos-que-faltan.md`](../../docs/09-como-conseguir-los-datos-que-faltan.md).
 
-## Cuando lleguen los datos reales
+## Recargar
 
-Reemplazar, no mezclar: `python inject.py --reset-only`, y cargar con el ETL real. Las filas
-del seed se reconocen por `source_id = 'seed_sintetico'`, el modelo `cacao_loss_demo_sintetico`
-y los ids de `areas` generados por UUID5 (reproducibles).
+Todo lo cargado es real. Para recargar desde cero: `python inject.py --reset --yes` (borra solo lo del seed;
+los ids de `areas` son UUID5 reproducibles). El modelo y las predicciones se cargan cuando exista un modelo entrenado.

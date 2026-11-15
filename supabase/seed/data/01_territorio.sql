@@ -2,7 +2,6 @@
 insert into public.data_sources (id, name, provider, access, dataset_ref, temporal_res, period_start, url, citation) values
 ('hdx_cod_ecu','Códigos DPA — COD-AB Ecuador (INEC / OCHA)','INEC / OCHA ROLAC','other','ecu_admgz.xlsx','static','2024-01-01','https://data.humdata.org/dataset/cod-ab-ecu','CC BY-IGO — INEC, OCHA'),
 ('opentopodata','SRTM 30 m vía OpenTopoData','NASA / OpenTopoData','other','api.opentopodata.org/v1/srtm30m','static','2000-02-11','https://www.opentopodata.org','NASA SRTM; datos servidos por OpenTopoData'),
-('seed_sintetico','Datos sintéticos del seed de pruebas','KittyProgram','other','supabase/seed','static',NULL,NULL,'No usar como evidencia: solo para probar el sistema'),
 ('fred','FRED — Global price of Cocoa (PCOCOUSDM)','FMI / FRED','other','fredgraph.csv?id=PCOCOUSDM','monthly','1990-01-01','https://fred.stlouisfed.org/series/PCOCOUSDM','IMF Primary Commodity Prices via FRED'),
 ('open_meteo','Open-Meteo Historical Weather (ERA5 / ERA5-Land)','Open-Meteo / ECMWF','other','archive-api.open-meteo.com/v1/archive','daily','1940-01-01','https://open-meteo.com','Weather data by Open-Meteo.com (CC BY 4.0); contains modified Copernicus Climate Change Service information'),
 ('geoboundaries','geoBoundaries ECU ADM1/ADM2','geoBoundaries / INEC','other','gbOpen/ECU','static','2019-01-01','https://www.geoboundaries.org','CC BY 3.0 IGO — fuente: INEC, OCHA ROLAC') on conflict (id) do nothing;
