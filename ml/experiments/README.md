@@ -138,3 +138,25 @@ raros (vienen así de FAOSTAT/ESPAC): nacional 1968 (+60 %), Esmeraldas 2004 (+5
 En Colombia la lluvia casi no daña al cacao (r = −0,13 con el target) y en la Amazonía peruana más
 lluvia es incluso buena (r = +0,23). El daño fuerte por lluvia extrema es propio de la **costa
 ecuatoriana**: mezclar países diluye la respuesta y el modelo subestima los desastres (R² baja).
+
+## Exp. 10 — Exportaciones mensuales del Banco Central (1990–2026) · NO mejoran la predicción
+
+`ml.etl.bce` (Excel bajado a mano del visualizador del BCE, subpartida 1801, en
+`ml/data/raw/Externo/`) y `ml.experiments.bce_monthly`.
+
+- El **total anual del BCE es el mismo dato que FAOSTAT** (r = 1,00; FAOSTAT lo toma del BCE).
+  Aporta 2025 y ene–sep 2026, que FAOSTAT aún no publica.
+- **Perfil mensual** (2000–2025): se exporta sobre todo oct–ene y mar–abr; mayo–julio es lo más bajo.
+- **1998 mes a mes**: las exportaciones caen desde julio de 1997, tocan fondo a mitad de 1998
+  (114 t en julio frente a ~2 900 t normales) y se recuperan desde noviembre de 1998.
+
+| Medida de la cosecha nacional | Corr. propio target | R² | **Corr. contra producción sola** | 1998 (real según la medida) |
+|---|---|---|---|---|
+| A. Actual: producción · exportaciones FAOSTAT | 0,643 | 0,41 | **0,578** | −64 % |
+| B. producción · BCE año calendario | 0,666 | 0,44 | 0,579 | −70 % |
+| C. producción · BCE abr–sep | 0,674 | 0,45 | 0,582 | −77 % |
+| D. producción · FAOSTAT · BCE abr–sep | 0,665 | 0,44 | 0,581 | −75 % |
+
+La correlación "contra su propio target" sube porque las exportaciones de solo grano reaccionan más
+al clima (el objetivo se vuelve más fácil), pero **la prueba justa contra la producción no cambia**
+(0,578 → 0,582): no predice mejor la cosecha real. No se adopta como target.
