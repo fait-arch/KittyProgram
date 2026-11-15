@@ -91,3 +91,18 @@ se evalúa contra el dato provincial crudo.
 | 0,25 | 0,643 | 0,313 / 0,094 | 0,298 |
 
 Diferencias de ±0,01: ruido. El modelo está en el techo que permiten estos datos de producción.
+
+## Exp. 7 — Más fuentes de producción (comercio exterior) · NO mejoran
+
+Se buscaron y descargaron todas las series de comercio que se pueden bajar automáticamente:
+
+| Fuente | Qué se consiguió | Resultado |
+|---|---|---|
+| Banco Central del Ecuador (Información Estadística Mensual, tabla 3.1.2) | Solo totales anuales en USD 2020–2025 | La serie mensual larga está en un visualizador interactivo sin descarga automática |
+| ANECACAO InfoCacao | — | Requiere usuario y contraseña |
+| **Eurostat Comext**: importaciones de la UE desde Ecuador (grano, pasta, manteca, polvo) | **Mensual 1988–2025** (`ml/data/raw/eurostat/`) | Como 3.ª medida de la cosecha: corr nacional 0,64 → 0,57 (año) / 0,51 (abr–sep); contra la producción sola 0,578 → 0,575. La cuota de Europa en las compras cambió mucho (Asia), mete ruido |
+| **UN Comtrade**: exportaciones de Ecuador, HS 1801 | Mensual 2010–2025, con huecos (2022–2023, límite de la API gratuita) (`ml/data/raw/comtrade/`) | Cosecha principal (abr–sep) vs año completo: la predicción del modelo se relaciona más con el año completo (0,67) que con abr–sep (0,51). Sin Niños extremos en 2010–2025 |
+
+`ml.experiments.eu_imports` reproduce la prueba de Eurostat (`results/exp7_eu_imports.json`).
+Dato llamativo: en 1998 las importaciones de la UE desde Ecuador cayeron un 41 % (15 936 → 9 396 t),
+coherente con la pérdida que estima el modelo.
