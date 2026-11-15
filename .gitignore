@@ -12,6 +12,7 @@ client_secret*.json
 .gee-key.json
 
 # Variables de entorno (el .env.example SI se versiona, ver excepcion abajo)
+.env
 .env.*
 !.env.example
 !.env.*.example
