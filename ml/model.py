@@ -95,11 +95,15 @@ CLIMATE_CORE = FeatureSpec(
 # + verdor de la vegetación medido por satélite (MODIS EVI, ene–jun): medida objetiva del estado
 # del cultivo en cada provincia, independiente de la encuesta ESPAC. Solo existe desde 2000: sin
 # dato (años anteriores, escenarios 2050) se toma anomalía 0 = verdor normal.
+# + control de PRECIO (no climático): precio de exportación del año anterior frente a los 3 previos.
+# Limpia el efecto del clima (un año malo con precio bajo ya no se le atribuye todo al clima).
+# En los escenarios el precio se deja en "normal" (anomalía 0): la pérdida reportada es climática.
+NON_CLIMATE = ("price_vs3_prev",)
 CORE = FeatureSpec(
-    anom=CLIMATE_CORE.anom + ("evi_jan_jun",),
+    anom=CLIMATE_CORE.anom + ("evi_jan_jun", "price_vs3_prev"),
     hinges=CLIMATE_CORE.hinges,
-    signs=CLIMATE_CORE.signs + (("evi_jan_jun", 1),),
-    fill_zero=("evi_jan_jun",),
+    signs=CLIMATE_CORE.signs + (("evi_jan_jun", 1), ("price_vs3_prev", 1)),
+    fill_zero=("evi_jan_jun", "price_vs3_prev"),
 )
 
 # Grupos para explicar el resultado (las variables de humedad están muy correlacionadas:
@@ -112,6 +116,7 @@ FACTOR_GROUPS = {
     "temperatura": ["t_mean", "tmax_mean", "tmin_mean"],
     "radiacion_solar": ["solar_mean", "et0_total"],
     "verdor_satelite": ["evi_jan_jun"],
+    "precio_cacao": ["price_vs3_prev"],
     "el_nino_oceano": ["nino12_jan_jun", "oni_jan_jun", "nino34_jan_jun", "oni_djf"],
 }
 GROUP_OF = {f: g for g, fs in FACTOR_GROUPS.items() for f in fs}

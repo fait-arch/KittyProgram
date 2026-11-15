@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 
 from .config import ARTIFACTS, DATA_PROCESSED
-from .dataset import OUTPUT, OUTPUT_BY_LEVEL, TARGET, TREND_SPAN_YEARS
+from .dataset import OUTPUT, OUTPUT_BY_LEVEL, TARGET, TREND_SPAN_YEARS, load_price_features
 from .model import (CLIMATE_CORE, CORE, EXCLUDE_AREAS, FACTOR_GROUPS, CacaoLossModel, FeatureSpec,
                     QuantileGBR, RidgeModel, hinge_name)
 from .inference import build_bundle
@@ -192,7 +192,7 @@ def strict_climate(panel: pd.DataFrame, spec: FeatureSpec, years=EXTREME_YEARS) 
     rows = []
     for yr in years:
         bc = BiasCorrection.fit(daily[daily.date.dt.year != yr], wc, meta)
-        feats = build_features(daily, bc)
+        feats = build_features(daily, bc).merge(load_price_features(), on="year", how="left")
         p = panel.drop(columns=[c for c in feats.columns if c not in KEY], errors="ignore") \
                  .merge(feats, on=KEY, how="left")
         cv = loyo(p, partial(RidgeModel, spec, feats), spec.columns, years=[yr], value=OUTPUT,

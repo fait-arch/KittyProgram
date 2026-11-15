@@ -125,6 +125,20 @@ def load_enso() -> pd.DataFrame:
               "nino12_prev_ond", "enso_class", "nino_strength"]]
 
 
+def load_price_features() -> pd.DataFrame:
+    """Control de precio (no climático): precio de exportación del año ANTERIOR frente a la media
+    de los 3 años previos, en log. Si el cacao está caro, se cuida y cosecha más.
+        price_vs3_prev(t) = log P(t−1) − mean(log P(t−4..t−2))
+    """
+    path = DATA_PROCESSED / "exports.parquet"
+    if not path.exists():
+        return pd.DataFrame(columns=["year", "price_vs3_prev"])
+    e = pd.read_parquet(path).set_index("year").export_price_usd_t.dropna()
+    lp = np.log(e)
+    return pd.DataFrame({"year": lp.index + 1,
+                         "price_vs3_prev": (lp - lp.shift(1).rolling(3).mean()).to_numpy()})
+
+
 def fit_bias_correction() -> tuple[BiasCorrection, pd.DataFrame]:
     daily = pd.read_parquet(DATA_PROCESSED / "climate_daily.parquet")
     bc = BiasCorrection.fit(daily, pd.read_parquet(DATA_PROCESSED / "worldclim_monthly.parquet"),
@@ -134,7 +148,7 @@ def fit_bias_correction() -> tuple[BiasCorrection, pd.DataFrame]:
 
 def build_panel(exclude: set[int] | None = None) -> pd.DataFrame:
     bc, daily = fit_bias_correction()
-    feats = build_features(daily, bc)
+    feats = build_features(daily, bc).merge(load_price_features(), on="year", how="left")
     panel = (add_target(load_production(), exclude, value=OUTPUT)
              .merge(feats, on=["area_name", "year"], how="left")
              .merge(load_enso(), on="year", how="left"))
@@ -144,7 +158,7 @@ def build_panel(exclude: set[int] | None = None) -> pd.DataFrame:
 
 def main():
     bc, daily = fit_bias_correction()
-    feats = build_features(daily, bc)
+    feats = build_features(daily, bc).merge(load_price_features(), on="year", how="left")
     feats.to_parquet(DATA_PROCESSED / "features_area_year.parquet", index=False)
     joblib.dump(bc, ARTIFACTS / "bias_correction.joblib")
     panel = build_panel()

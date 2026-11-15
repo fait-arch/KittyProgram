@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 
 from .config import DATA_PROCESSED
+from .model import NON_CLIMATE
 
 KEY = ["area_name", "year"]
 SCENARIO_PERIOD = (2001, 2025)                 # periodo de la tabla `scenarios`
@@ -93,6 +94,8 @@ def scenario_features(climate: pd.DataFrame, features: list[str], years: dict[st
             if sel.empty:
                 continue
             v = sel[cols].mean().round(4).dropna().to_dict()     # sin MODIS antes de 2000: se omite
+            for c in NON_CLIMATE:                                 # escenario climático: precio normal
+                v.pop(c, None)
             v["_area"], v["_years"] = area, [int(y) for y in sel.year]
             out[area][sc] = v
     return out

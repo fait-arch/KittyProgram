@@ -82,6 +82,7 @@ z_k   = (x_k − μ_a,k) / σ_a,k                    anomalía del área a (norm
 ŷ     = b0 + β_sat·z(suelo saturado) + β_fav·z(días favorables a mazorca negra)
            + β_sol·z(radiación solar) + β_llu·z(lluvia) + β_ext·max(0, z(lluvia) − 2)
            + β_evi·z(verdor MODIS EVI ene–jun)            (sin dato antes de 2000 → z = 0)
+           + β_pre·z(precio del año anterior vs 3 previos) (CONTROL; en escenarios = 0 → pérdida climática)
         signos fijados por la física (humedad y lluvia ↓, sol y verdor ↑), penalización Ridge (λ por GCV),
         cada término recortado al rango de entrenamiento (no extrapola)
 pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_nivel   (conformal)
@@ -102,16 +103,20 @@ pérdida % = min(100, max(0, −ŷ))        [p10, p90] = ŷ + s_a·[q10, q90]_ni
 | "Año normal" (sin clima) | 12,6 | 18,1 | — | 0,00 |
 | Niño sí/no según ONI | 12,6 | 17,9 | 0,22 | 0,02 |
 | Escalón "lluvia > +100 %" | 11,3 | 15,2 | 0,54 | 0,30 |
-| GBR cuantílico | 11,4 | 15,2 | 0,55 | 0,30 |
-| **Ridge (modelo final)** | **10,1** | **13,8** | **0,65** | **0,42** |
-| Ridge, evaluado contra la producción sola | 11,8 | 14,7 | 0,58 | 0,34 |
-| Ridge en **provincias** (n = 137, vs "año normal") | 17,7 vs 18,4 | 22,7 vs 23,6 | **0,28** | **0,07** |
+| GBR cuantílico | 11,0 | 15,2 | 0,55 | 0,30 |
+| **Ridge (modelo final)** | **10,0** | **13,9** | **0,64** | **0,41** |
+| Ridge, evaluado contra la producción sola | 11,5 | 14,8 | 0,58 | 0,33 |
+| Ridge en **provincias** (n = 137, vs "año normal") | 17,2 vs 18,4 | 22,3 vs 23,6 | **0,32** | **0,10** |
 
-- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −48 %, real −50 %;
-  1998 → −38 %, real −64 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,67.
-- **Provincias**: skill pequeño pero **significativo**: corr 0,28, R² 0,07, test de permutación
-  provincial **p = 0,01** (al empezar: 0,10 y 0,00). Viene del verdor de MODIS y del target por hectárea
-  sembrada. Bloques de 3 años: 0,22.
+- **Lo que demuestra**: anticipa los Niños extremos sin haberlos visto (1983 → −54 %, real −50 %;
+  1998 → −36 %, real −64 %). Test de permutación p = 0,005. Bloques de 3 años: corr 0,65.
+- **Precio como control**: el precio de exportación del año anterior (FAOSTAT, valor/cantidad) explica
+  parte de lo que no es clima. Al controlarlo, los coeficientes climáticos casi no cambian (el efecto
+  del clima no era un precio disfrazado). En los escenarios el precio se fija en "normal": la pérdida
+  que se reporta es solo climática.
+- **Provincias**: skill pequeño pero **significativo**: corr 0,32, R² 0,10, test de permutación
+  provincial **p = 0,01** (al empezar: 0,10 y 0,00). Viene del verdor de MODIS, del target por hectárea
+  sembrada y del control de precio.
 - **Lo que no** (auditoría independiente, también en la model card):
   - Depende sobre todo de la **lluvia extrema**: sin 1983/1998 la correlación baja a 0,44 (el MAE sí
     mejora a "año normal": 10,0 vs 11,2). Entrenando sin ambos, cada uno se predice en solo −18 %.
@@ -184,15 +189,15 @@ de `model_versions`.
 | `normal` | ENSO neutros 2001–2025 | 2 % |
 | `nino` | El Niño (ONI) 2001–2025 | 0 % |
 | `nina` | La Niña 2001–2025 | 2 % |
-| `nino_extremo` | 1983, 1998 | 54 % |
-| `actual` | análogos: Niño 1+2 ago–oct previo ≥ +2 °C → 1998, 2016, 2024 | 20 % |
+| `nino_extremo` | 1983, 1998 | 53 % |
+| `actual` | análogos: Niño 1+2 ago–oct previo ≥ +2 °C → 1998, 2016, 2024 | 21 % |
 
 - La pérdida de un escenario es la **media de las pérdidas de sus años** (un año promedio no
   existe y diluye los extremos).
 - El "Niño" según el ONI casi no da pérdidas: en 2001–2025 esos años no fueron lluviosos en la
   costa. Lo que daña es el **Niño costero con lluvia extrema** (`nino_extremo`).
 - `actual`: hoy (oct 2026) Niño 1+2 está en +5,3 °C, más que en 1997. De los 3 análogos, uno fue
-  extremo (1998) y dos no (2016, 2024): por eso 20 % con un rango amplio. Se actualiza solo al
+  extremo (1998) y dos no (2016, 2024): por eso 21 % con un rango amplio. Se actualiza solo al
   re-ejecutar con los datos ENSO nuevos.
 - Toneladas y USD: hectáreas y rendimiento de tendencia del último año, precio FAOSTAT del último
   año disponible (2024: 5 602 USD/t, año de precio récord).
@@ -214,6 +219,7 @@ de `model_versions`.
 | + suelo saturado de GLDAS (2000→) | nacional 0,61; prov 0,31 | 14,3 | Igual que la anterior: no compensa la pérdida nacional |
 | Ancho de la tendencia 10 / 20 / 30 / 60 años (actual 15) | nacional 0,49–0,66; prov 0,18–0,28 | — | 15 años (fijado en la Fase 2) es el mejor equilibrio |
 | Sensibilidad propia por provincia (encogida hacia 1) | prov 0,28 → 0,30 | — | Se estima sin ningún Niño extremo (2002–2025): a El Oro le da ×0,14 y borraría su pérdida en un Niño como 1998 |
+| **+ precio del año anterior como control (ADOPTADO)** | nacional 0,64; prov 0,28 → **0,32** (precio barajado: p = 0,04) | 13,9 | Separa la parte de precio; los escenarios reportan solo clima |
 | Verdor solo en píxeles de cultivo (ESA WorldCover), NDVI, otros meses, temporada previa (26 variantes) | 0,61–0,65; prov 0,10–0,22 | 13,8–14,5 | Ninguna mejora a la vez nacional y provincias; elegir la mejor sería inflar |
 | + 4 provincias andinas (Bolívar, Cotopaxi, Pichincha, Cañar), +96 filas | 0,66; prov 0,20 → 0,18 | — | Su ESPAC es aún más ruidoso (±46–75 %). Su clima se usa solo para el índice por zona |
 | **+ verdor MODIS EVI ene–jun (ADOPTADO)** | **0,65**; provincias 0,10 → **0,20** | **13,8** | Medida satelital del estado del cultivo, independiente de la encuesta (recurso del reto) |

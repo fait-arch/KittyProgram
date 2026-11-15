@@ -41,6 +41,13 @@ def load_exports() -> pd.DataFrame:
     long["year"] = long.year.str[1:].astype(int)
     long["beq_t"] = long.t.astype(float).fillna(0) * long.Item.map(BEAN_EQUIVALENT)
     out = long.groupby("year").beq_t.sum().rename("export_beq_t").reset_index()
+    # precio de exportación del grano (USD/t) = valor / cantidad: sigue al precio al productor (r = 0.98)
+    qty_t = ec[ec.Item == "Cocoa beans"][years].iloc[0].astype(float)
+    value_kusd = df[(df.Area == "Ecuador") & (df.Item == "Cocoa beans")
+                    & (df.Element == "Export value")][years].iloc[0].astype(float)
+    price = pd.DataFrame({"year": [int(c[1:]) for c in years],
+                          "export_price_usd_t": (value_kusd * 1000 / qty_t).to_numpy()})
+    out = out.merge(price, on="year", how="left")
     return out[out.export_beq_t > 0].reset_index(drop=True)
 
 

@@ -25,7 +25,7 @@ import pandas as pd
 
 from .config import ARTIFACTS, DATA_PROCESSED
 from .dataset import OUTPUT
-from .model import EXCLUDE_AREAS, ID_COLS, risk_class
+from .model import EXCLUDE_AREAS, ID_COLS, NON_CLIMATE, risk_class
 from .scenarios import load_climate
 
 VERSION = "v1"
@@ -64,6 +64,7 @@ def predict_scenarios(bundle: dict, climate: pd.DataFrame, areas: list[str]) -> 
         for sc, years in bundle["scenario_years"].items():
             X = climate[(climate.area_name == area) & climate.year.isin(years)][ID_COLS + cols]
             X = X.dropna(subset=[c for c in cols if c not in m.model.spec.fill_zero])
+            X = X.assign(**{c: np.nan for c in NON_CLIMATE if c in X})   # pérdida climática: precio normal
             if X.empty:
                 continue
             out = m.predict(X)
