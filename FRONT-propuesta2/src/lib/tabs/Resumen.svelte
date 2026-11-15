@@ -40,6 +40,7 @@
 		{#if L}
 			<div class="row chips">
 				{#if L.evidence === 'indice_subnacional_no_validado'}<span class="pill" title="El modelo se valida a nivel nacional; por zona es un índice de riesgo.">Estimación por zona{L.inherited_from ? ` · índice de ${L.inherited_from}` : ''}</span>{/if}
+				{#if L.evidence === 'proyeccion_cmip6_no_validada'}<span class="pill" title="Clima 2041–2060 de los modelos NASA NEX-GDDP-CMIP6 aplicado al modelo; no se puede validar con datos observados.">Proyección 2050 (CMIP6) · por validar</span>{/if}
 				{#if L.extrapolated}<span class="pill" title="Clima más extremo que los años de entrenamiento, o región fuera del entrenamiento.">Extrapolación: leer como tendencia</span>{/if}
 				{#if L.prob_loss_gt20 != null}<span class="pill">{Math.round(L.prob_loss_gt20 * 100)} % de prob. de perder &gt; 20 %</span>{/if}
 			</div>

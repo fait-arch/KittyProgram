@@ -47,12 +47,8 @@ def test_bundle_matches_backend_contract(bundle):
         assert set(SCENARIOS) <= set(scs), area
         for v in scs.values():
             required = set(bundle["features"]) - set(bundle["model"].model.spec.fill_zero)
-<<<<<<< HEAD
-            assert required <= set(v) and v["_area"] == area and v["_sens"]
-=======
             known = set(bundle["model"].model.pre_.mean_.index)     # nombre o uuid con normal climática
             assert required <= set(v) and v["_area"] in known and v["_sens"]
->>>>>>> beltranfuego
 
 
 def test_backend_flow_what_if(bundle):
@@ -186,8 +182,6 @@ def test_model_version_row():
     for k in ("mae", "mae_baseline", "skill_vs_baseline", "interval_coverage_p10_p90", "nino_years_hit", "best"):
         assert k in row["metrics"], k
     assert row["metrics"]["nino_years_hit"]["1983"] and row["metrics"]["nino_years_hit"]["1998"]
-<<<<<<< HEAD
-=======
 
 
 # ── Probabilidad de año malo y cantones ──────────────────────────────────────────────
@@ -221,7 +215,8 @@ def test_canton_predictions(areas_batch):
     assert c.area_id.nunique() >= 100                                  # ~125 de 126 cantones
     assert c.area_id.str.match(r"^[0-9a-f-]{36}$").all()                # uuid de Supabase
     assert c.loss_pct.between(0, 100).all() and c.prob_loss_gt20.between(0, 1).all()
-    assert (c.evidence == "indice_subnacional_no_validado").all()
+    hist = c[~c.scenario_id.str.endswith("_2050")]                      # 2050: proyeccion_cmip6_no_validada
+    assert (hist.evidence == "indice_subnacional_no_validado").all()
     assert not c[["area_id", "scenario_id"]].duplicated().any()
     assert set(areas_batch.kind) == {"country", "province", "canton"}
     ext = c[c.scenario_id == "nino_extremo"].loss_pct.mean()
@@ -235,4 +230,3 @@ def test_bundle_knows_cantons(bundle, areas_batch):
         pytest.skip("bundle sin cantones (regenerar con ml.cantons_predict)")
     r = predict(bundle, bundle["scenario_features"][cid]["normal"])
     assert r["area_used"] == cid and 0 <= r["loss_pct"] <= 100
->>>>>>> beltranfuego

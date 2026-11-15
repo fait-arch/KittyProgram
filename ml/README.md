@@ -227,8 +227,6 @@ de `model_versions`.
 CHIRPS queda en el ETL (`--datasets chirps`) y en `BiasCorrection.fit(rain_ref=…, use_obs=…)` por si
 se quiere revisar. El límite de precisión está en los datos de producción (solo dos Niños extremos y
 estadísticas provinciales ruidosas), no en el modelo.
-<<<<<<< HEAD
-=======
 
 ## Cantones y probabilidad de año malo
 
@@ -263,4 +261,3 @@ Validación (ver `ml/experiments/`): AUC 0,87 y Brier skill 0,29 nacional; AUC 0
 |---|---|---|---|
 | Nacional | 9 % | 98 % | 36 % |
 | Provincias | 12–28 % | 74–100 % | 37–48 % |
->>>>>>> beltranfuego

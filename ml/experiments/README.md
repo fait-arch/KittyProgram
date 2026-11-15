@@ -63,8 +63,6 @@ El mar caliente en oct–dic no garantiza lluvia extrema en la costa en ene–ju
 alarmas). Para avisar antes de la temporada haría falta un **pronóstico estacional de lluvia**
 (p. ej. Copernicus C3S o NMME), no solo el índice de El Niño. Por eso el escenario `actual` usa
 años análogos con un rango amplio.
-<<<<<<< HEAD
-=======
 
 ## Exp. 5 — Clima provincial = promedio de sus cantones ponderado por cultivo · NO mejora
 
@@ -93,4 +91,3 @@ se evalúa contra el dato provincial crudo.
 | 0,25 | 0,643 | 0,313 / 0,094 | 0,298 |
 
 Diferencias de ±0,01: ruido. El modelo está en el techo que permiten estos datos de producción.
->>>>>>> beltranfuego

@@ -1,6 +1,6 @@
 -- 0010 — Campos del modelo de ML en las predicciones (cacao_loss_v1, rama beltranfuego)
 --
--- evidence               'validado_nacional' | 'indice_subnacional_no_validado'
+-- evidence               'validado_nacional' | 'indice_subnacional_no_validado' | 'proyeccion_cmip6_no_validada'
 -- extrapolated           el clima del escenario es más extremo que cualquier año de entrenamiento
 -- prob_loss_gt20         probabilidad (0–1) de perder más del 20 % (cuando el modelo la entregue)
 -- inherited_from_area_id el cantón usa el índice de esta provincia (el modelo se entrena por provincia)
@@ -9,12 +9,17 @@
 
 alter table public.loss_predictions
   add column if not exists evidence text
-    check (evidence in ('validado_nacional', 'indice_subnacional_no_validado')),
+    check (evidence in ('validado_nacional', 'indice_subnacional_no_validado', 'proyeccion_cmip6_no_validada')),
   add column if not exists extrapolated boolean not null default false,
   add column if not exists prob_loss_gt20 numeric check (prob_loss_gt20 between 0 and 1),
   add column if not exists inherited_from_area_id uuid references public.areas(id) on delete set null;
 
-comment on column public.loss_predictions.evidence is 'Nivel de validación: nacional validado o índice por zona no validado.';
+-- Si la columna ya existía (carga anterior), se rehace el check para aceptar las proyecciones 2050 del modelo
+alter table public.loss_predictions drop constraint if exists loss_predictions_evidence_check;
+alter table public.loss_predictions add constraint loss_predictions_evidence_check
+  check (evidence in ('validado_nacional', 'indice_subnacional_no_validado', 'proyeccion_cmip6_no_validada'));
+
+comment on column public.loss_predictions.evidence is 'Nivel de validación: nacional validado, índice por zona no validado o proyección CMIP6 2050 no validada.';
 comment on column public.loss_predictions.extrapolated is 'true si el clima del escenario sale del rango de entrenamiento.';
 comment on column public.loss_predictions.prob_loss_gt20 is 'Probabilidad de perder más del 20 % (0–1).';
 comment on column public.loss_predictions.inherited_from_area_id is 'Provincia cuyo índice usa el cantón.';

@@ -39,6 +39,9 @@ def load() -> dict:
         if not s.model_file.exists():
             _state["error"] = f"No existe {s.model_file} (ML debe copiar ahí el .joblib)"
             return status()
+        # Primero el path: el .joblib guarda objetos de ml/ (CacaoLossModel) y al cargarlo hay que poder importarlos
+        if str(REPO_DIR) not in sys.path:
+            sys.path.append(str(REPO_DIR))   # para importar ml/ de la raíz del repo
         try:
             import joblib
             b = joblib.load(s.model_file)
@@ -48,8 +51,6 @@ def load() -> dict:
         except Exception as e:  # noqa: BLE001 — se reporta en /health
             _state["error"] = f"No se pudo cargar el modelo: {e}"
             log.exception("Error cargando el modelo")
-        if str(REPO_DIR) not in sys.path:
-            sys.path.append(str(REPO_DIR))   # para importar ml/ de la raíz del repo
         try:
             _state["inference"] = importlib.import_module(s.ml_inference_module)
         except ModuleNotFoundError:

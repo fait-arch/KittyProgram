@@ -10,10 +10,17 @@ shapely==2.2.0
 anthropic==2.8.0
 
 # Modelo ML dentro del backend: MISMA versión de scikit-learn que use ML al entrenar
-scikit-learn==1.5.2
+scikit-learn==1.9.1
 joblib==1.6.0
 numpy==2.5.4
 pandas==3.1.1
+pyarrow>=17
+threadpoolctl>=3.5
+python-dotenv>=1.0
+statsmodels>=0.14
+
+# Carga del modelo a Supabase (supabase/seed/tools/cargar_modelo.py)
+psycopg[binary]>=3.2
 
 # Tests
 pytest==9.2.0

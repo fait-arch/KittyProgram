@@ -64,6 +64,13 @@ class ModelArtifacts:
         for path in [self.csv_path, *extra]:
             with path.open(encoding="utf-8") as fh:
                 rows = list(csv.DictReader(fh))
+            # loss_predictions_areas_v1.csv (por uuid de área, columna `name`) se carga a Supabase con
+            # build_predictions_areas.py; aquí solo se usan las tablas por nombre (`area_name`)
+            if rows and "area_name" not in rows[0]:
+                rows = [{**r, "area_name": r.get("name") or ""} for r in rows if r.get("kind") in ("country", "province")]
+                for r in rows:
+                    if r.get("kind") == "country":
+                        r["area_name"] = "national"
             out.extend(rows)
             log.info("Predicciones del modelo: %d filas de %s", len(rows), path.name)
         return out

@@ -23,7 +23,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 MIGRATION = ROOT / "supabase/migrations/0010_modelo_ml.sql"
 DATA = ROOT / "supabase/seed/data/13_predicciones_modelo.sql"
-AMAZONIA = ROOT / "supabase/seed/data/14_predicciones_amazonia.sql"  # extrapolación, va después de la 13
 PART10 = "supabase/seed/data/10_proyecciones_2050.sql"
 PART10_BRANCH = "origin/diego/supabase-docs"
 
@@ -74,9 +73,6 @@ def main() -> int:
         cur.execute(body(MIGRATION))
         print(f"→ {DATA.name}")
         cur.execute(body(DATA))
-        if AMAZONIA.exists():
-            print(f"→ {AMAZONIA.name} (Amazonía: extrapolación desde Sucumbíos)")
-            cur.execute(body(AMAZONIA))
         cur.execute("select count(*) from public.zone_classification")
         if cur.fetchone()[0] == 0 and not a.sin_2050:
             p10 = part10()

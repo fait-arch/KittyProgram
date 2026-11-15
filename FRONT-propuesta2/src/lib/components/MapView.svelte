@@ -1,6 +1,10 @@
 <script lang="ts">
 	import * as maplibregl from 'maplibre-gl';
 	import 'maplibre-gl/dist/maplibre-gl.css';
+	// El worker de MapLibre (procesa los GeoJSON de cantones y provincias) debe ir en el build de producción:
+	// sin esto el navegador no lo encuentra y el mapa solo muestra el fondo, sin datos.
+	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
+	maplibregl.setWorkerUrl(workerUrl);
 	import { onMount } from 'svelte';
 	import { api } from '#lib/api';
 	import { app } from '#lib/state.svelte';
@@ -17,6 +21,7 @@
 	let styleTick = $state(0);
 	const styleKey = () => (app.view === '3d' ? `3d|${app.base3d}` : `2d|${app.base2d}|${app.base2d === 'tema' ? app.theme : ''}`);
 	let appliedKey = styleKey();
+	let styleReady = false;
 	let is3d = app.view === '3d';
 	let error = $state('');
 	let loading = $state(false);
@@ -61,6 +66,7 @@
 		map.addControl(new maplibregl.NavigationControl({ showCompass: true, visualizePitch: true }), 'top-right');
 		map.on('style.load', () => {
 			const m = map!, dark = app.theme === 'dark';
+			styleReady = true;
 			is3d = app.view === '3d';
 			// En satélite: bordes claros y relleno más transparente para ver el terreno debajo
 			const t = is3d ? { ...BASE.dark, line: '#ffffff', lineOp: 0.55 } : BASE[dark ? 'dark' : 'light'];
@@ -182,14 +188,19 @@
 		const k = styleKey();
 		if (!map || k === appliedKey) return;
 		appliedKey = k;
-		map.setTerrain(null);
+		// El terreno solo se puede quitar con el estilo ya cargado (si no, MapLibre lanza «Style is not done loading»)
+		try { if (styleReady) map.setTerrain(null); } catch { /* el estilo nuevo lo reemplaza igual */ }
+		styleReady = false;
 		map.setStyle(styleFor());
 	});
 
 	// Opciones del 3D que no recargan el estilo: globo, relieve y nombres
 	function apply3d() {
 		const m = map;
-		if (!m || app.view !== '3d') return;
+		if (!m || app.view !== '3d' || !styleReady) return;
+		try { apply3dNow(m); } catch (e) { console.warn('3D', e); }
+	}
+	function apply3dNow(m: maplibregl.Map) {
 		m.setProjection({ type: app.globe ? 'globe' : 'mercator' });
 		m.setTerrain(app.terrain && m.getSource('dem') ? { source: 'dem', exaggeration: 1.6 } : null);
 		if (m.getLayer('relieve')) m.setLayoutProperty('relieve', 'visibility', app.terrain || app.base3d === 'hidrografico' ? 'visible' : 'none');
@@ -199,7 +210,10 @@
 	/** 2D con un tipo de mapa: sin relieve 3D, pero con sombreado y nombres a elección */
 	function apply2d() {
 		const m = map;
-		if (!m || app.view !== '2d' || app.base2d === 'tema') return;
+		if (!m || app.view !== '2d' || app.base2d === 'tema' || !styleReady) return;
+		try { apply2dNow(m); } catch (e) { console.warn('2D', e); }
+	}
+	function apply2dNow(m: maplibregl.Map) {
 		if (m.getLayer('relieve')) m.setLayoutProperty('relieve', 'visibility', app.terrain || app.base2d === 'hidrografico' ? 'visible' : 'none');
 		if (m.getLayer('labels')) m.setLayoutProperty('labels', 'visibility', app.labels ? 'visible' : 'none');
 		else for (const l of m.getStyle().layers ?? []) if (l.type === 'symbol' && l.id !== 'cacao') m.setLayoutProperty(l.id, 'visibility', app.labels ? 'visible' : 'none');
