@@ -47,7 +47,8 @@ def test_bundle_matches_backend_contract(bundle):
         assert set(SCENARIOS) <= set(scs), area
         for v in scs.values():
             required = set(bundle["features"]) - set(bundle["model"].model.spec.fill_zero)
-            assert required <= set(v) and v["_area"] == area and v["_sens"]
+            known = set(bundle["model"].model.pre_.mean_.index)     # nombre o uuid con normal climática
+            assert required <= set(v) and v["_area"] in known and v["_sens"]
 
 
 def test_backend_flow_what_if(bundle):
@@ -181,3 +182,50 @@ def test_model_version_row():
     for k in ("mae", "mae_baseline", "skill_vs_baseline", "interval_coverage_p10_p90", "nino_years_hit", "best"):
         assert k in row["metrics"], k
     assert row["metrics"]["nino_years_hit"]["1983"] and row["metrics"]["nino_years_hit"]["1998"]
+
+
+# ── Probabilidad de año malo y cantones ──────────────────────────────────────────────
+def test_prob_loss_gt20_is_consistent(bundle):
+    f0 = base(bundle, "national", "normal")
+    r0 = predict(bundle, f0)
+    r1 = predict(bundle, base(bundle, "national", "nino_extremo"))
+    assert 0 <= r0["prob_loss_gt20"] <= 1 and 0 <= r1["prob_loss_gt20"] <= 1
+    assert r1["prob_loss_gt20"] > 0.8 > r0["prob_loss_gt20"]
+    probs = [predict(bundle, adjust_features(f0, {"rain_delta_pct": d}, {}))["prob_loss_gt20"]
+             for d in (0, 40, 80, 120)]
+    assert np.all(np.diff(probs) >= -1e-9)                            # más lluvia, más riesgo
+
+
+def test_batch_has_probability(batch):
+    assert batch.prob_loss_gt20.between(0, 1).all()
+    nat = batch[batch.area_name == "national"].set_index("scenario_id")
+    assert nat.prob_loss_gt20["nino_extremo"] > 0.8
+
+
+@pytest.fixture(scope="module")
+def areas_batch():
+    path = ARTIFACTS / f"loss_predictions_areas_{VERSION}.parquet"
+    if not path.exists():
+        pytest.skip("sin predicciones por cantón: ml/.venv/bin/python -m ml.cantons_predict")
+    return pd.read_parquet(path)
+
+
+def test_canton_predictions(areas_batch):
+    c = areas_batch[areas_batch.kind == "canton"]
+    assert c.area_id.nunique() >= 100                                  # ~125 de 126 cantones
+    assert c.area_id.str.match(r"^[0-9a-f-]{36}$").all()                # uuid de Supabase
+    assert c.loss_pct.between(0, 100).all() and c.prob_loss_gt20.between(0, 1).all()
+    assert (c.evidence == "indice_subnacional_no_validado").all()
+    assert not c[["area_id", "scenario_id"]].duplicated().any()
+    assert set(areas_batch.kind) == {"country", "province", "canton"}
+    ext = c[c.scenario_id == "nino_extremo"].loss_pct.mean()
+    nor = c[c.scenario_id == "normal"].loss_pct.mean()
+    assert ext > nor + 15
+
+
+def test_bundle_knows_cantons(bundle, areas_batch):
+    cid = areas_batch[areas_batch.kind == "canton"].area_id.iloc[0]
+    if cid not in bundle["scenario_features"]:
+        pytest.skip("bundle sin cantones (regenerar con ml.cantons_predict)")
+    r = predict(bundle, bundle["scenario_features"][cid]["normal"])
+    assert r["area_used"] == cid and 0 <= r["loss_pct"] <= 100

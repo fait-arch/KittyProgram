@@ -80,6 +80,7 @@ def predict_scenarios(bundle: dict, climate: pd.DataFrame, areas: list[str]) -> 
                 "loss_pct_low": round(float(out.loss_p10.mean()), 2),
                 "loss_pct_high": round(float(out.loss_p90.mean()), 2),
                 "risk_class": risk_class(loss), "top_factors": factors,
+                "prob_loss_gt20": round(float(out.prob_loss_gt20.mean()), 3) if "prob_loss_gt20" in out else None,
                 "y_anom_pct": round(float(out.y_anom_pct.mean()), 2),
                 "loss_pct_max_year": round(float(out.loss_pct.max()), 2),
                 "evidence": out.evidence.iloc[0], "extrapolated": bool(out.extrapolated.any()),
@@ -131,7 +132,7 @@ def run(save: bool = True, verbose: bool = True) -> pd.DataFrame:
     pred["loss_usd"] = (pred.loss_t * price).round(0)
     order = ["model_version", "area_name", "crop_id", "scenario_id", "loss_pct", "loss_pct_low",
              "loss_pct_high", "exposed_ha", "expected_yield_t_ha", "loss_t", "price_usd_t", "loss_usd",
-             "risk_class", "top_factors", "y_anom_pct", "loss_pct_max_year", "evidence", "extrapolated",
+             "risk_class", "prob_loss_gt20", "top_factors", "y_anom_pct", "loss_pct_max_year", "evidence", "extrapolated",
              "scenario_years", "exposure_year", "price_year"]
     pred = pred[order]
     if verbose:

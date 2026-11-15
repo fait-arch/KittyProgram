@@ -155,6 +155,7 @@ def predict(bundle: dict, features: dict) -> dict:
         "loss_pct": float(r.loss_pct), "loss_pct_low": float(r.loss_p10),
         "loss_pct_high": float(r.loss_p90), "top_factors": factors[:5],
         "out_of_range": bool(r.extrapolated),
+        "prob_loss_gt20": float(r.prob_loss_gt20) if "prob_loss_gt20" in r else None,
         "y_anom_pct": float(r.y_anom_pct), "risk_class": r.risk_class, "evidence": r.evidence,
         "area_used": area, "model_version": bundle["version"],
     }

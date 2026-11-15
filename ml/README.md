@@ -227,3 +227,37 @@ de `model_versions`.
 CHIRPS queda en el ETL (`--datasets chirps`) y en `BiasCorrection.fit(rain_ref=…, use_obs=…)` por si
 se quiere revisar. El límite de precisión está en los datos de producción (solo dos Niños extremos y
 estadísticas provinciales ruidosas), no en el modelo.
+
+## Cantones y probabilidad de año malo
+
+```bash
+ml/.venv/bin/python -m ml.etl.cantons          # clima diario de los 126 cantones (GEE, ~1 h; una vez)
+ml/.venv/bin/python -m ml.train --perm 200      # (guarda también los residuos para la probabilidad)
+ml/.venv/bin/python -m ml.predict               # país y provincias
+ml/.venv/bin/python -m ml.cantons_predict       # → artifacts/loss_predictions_areas_v1.csv/.parquet
+```
+
+**`loss_predictions_areas_v1.csv`**: una fila por área (país, provincia, **cantón**) × escenario, con
+`area_id` = **uuid de la tabla `areas` de Supabase** (`ml/data/cantons_supabase.csv`,
+`ml/data/provinces_supabase.csv`). 125 de 126 cantones (Logroño no tiene polígono en GAUL 2015).
+
+- **Clima del cantón**: ERA5-Land 1983 y 1991–2025, GPM 1998–2025 y MODIS 2000–2025 sobre su polígono
+  (FAO GAUL nivel 2) por debajo de 900 m. 12 cantones de montaña sin tierra < 900 m a esa escala usan
+  todo el cantón (`mask_fallback`).
+- **Corrección de sesgo propia**: temperatura = WorldClim − ERA5(1991–2020) + calentamiento nacional
+  desde 1961–1990; lluvia = quantile mapping ERA5 → GPM del cantón.
+- **El modelo nacional se aplica a la anomalía climática del cantón** (normal 1991–2020 propia).
+  `evidence = indice_subnacional_no_validado`: no hay producción por cantón para validarlo.
+- **Exposición**: ha sembradas de la provincia (ESPAC 2025) repartidas por la superficie de cultivo +
+  árboles < 900 m de cada cantón (ESA WorldCover). El total por provincia es real; el reparto, aproximado.
+- **Amazonía**: el Niño costero casi no le afecta (Niño extremo ≈ 3–5 %), coherente con la física, pero
+  sin validar (régimen de lluvia distinto al de entrenamiento).
+
+**`prob_loss_gt20`** (nuevo en todas las salidas): P(pérdida > 20 %) = fracción de los errores fuera de
+muestra (normalizados, guardados en el modelo) que llevarían la predicción por debajo de −20 %.
+Validación (ver `ml/experiments/`): AUC 0,87 y Brier skill 0,29 nacional; AUC 0,66 en provincias.
+
+| P(pérdida > 20 %) | normal | nino_extremo | actual |
+|---|---|---|---|
+| Nacional | 9 % | 98 % | 36 % |
+| Provincias | 12–28 % | 74–100 % | 37–48 % |

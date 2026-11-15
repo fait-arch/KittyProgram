@@ -365,8 +365,10 @@ def run(perm: int = 0, save: bool = True, verbose: bool = True) -> dict:
     final = RidgeModel(CORE, climate).fit(train[cols], train[TARGET])
     scale = _area_scale(ens)
     resid_q = level_q(ens, scale)
+    r_norm = (ens.y_cv - ens.pred) / ens.area_name.map(scale)
+    resid = {lvl: [round(float(v), 4) for v in r_norm[ens.level == lvl]] for lvl in ("national", "province")}
     model = CacaoLossModel(
-        model=final, resid_q=resid_q, noise_scale=scale.round(3).to_dict(),
+        model=final, resid_q=resid_q, noise_scale=scale.round(3).to_dict(), resid=resid,
         default_scale=float(scale.drop("national").median()), version=VERSION,
         meta={"trained": date.today().isoformat(), "years": [int(train.year.min()), int(train.year.max())]})
 
