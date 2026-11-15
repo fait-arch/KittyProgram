@@ -303,3 +303,40 @@ literatura, no una salida del modelo.
 Los escenarios `ssp245_2050` y `ssp585_2050` (año típico 2050) se añaden a
 `loss_predictions_areas_v1.csv` con `evidence = "proyeccion_cmip6_no_validada"`, el rango entre modelos
 (`loss_pct_models_min/max`) y la pérdida anual esperada (`annual_loss_pct_*`).
+
+## Aptitud a largo plazo (FAO GAEZ v4) y matriz de decisión
+
+```bash
+ml/.venv/bin/python -m ml.etl.gaez     # aptitud del cacao GAEZ v4 por área (hoy y 2050)
+ml/.venv/bin/python -m ml.zones        # → artifacts/zones_v1.csv (después de ml.projections)
+```
+
+**FAO GAEZ v4** (recurso del reto): índice de aptitud del cacao de secano (0–10 000), histórico 1981–2010
+y 2050s (2041–2070, ensamble, RCP4.5/8.5), promediado en cada polígono. No entra al modelo de pérdida
+(es un mapa fijo de 30 años); responde otra pregunta: **¿seguirá siendo buena la zona para el cacao?**
+
+| Área | Aptitud hoy | Aptitud 2050 (RCP8.5) | Cambio | Pérdida Niño extremo | Zona 2050 |
+|---|---|---|---|---|---|
+| Ecuador | 4 489 (media) | 5 168 (media) | +15 % | 53 % | manejo |
+| Esmeraldas | 7 516 (alta) | 7 841 (alta) | +4 % | 30 % | manejo |
+| Santo Domingo | 6 664 (buena) | 7 783 (alta) | +17 % | 47 % | manejo |
+| Los Ríos | 4 179 (media) | 4 961 (media) | +19 % | 44 % | manejo |
+| Manabí | 4 038 (media) | 4 928 (media) | +22 % | 53 % | manejo |
+| Guayas | 2 599 (moderada) | 3 466 (moderada) | +33 % | 56 % | crítica* |
+| El Oro | 128 (muy marginal) | 390 (muy marginal) | — | 57 % | crítica* |
+
+**Matriz** (aptitud 2050 ≥ 4 000 = apta; pérdida en Niño extremo ≥ 30 % = riesgo alto), mismos nombres
+que `zone_classification` de Supabase y el ZoneMatrix del front:
+
+| | Riesgo bajo | Riesgo alto |
+|---|---|---|
+| **Apta** | segura (27 cantones) | **manejo (29)**: invertir en drenaje, cosecha sanitaria, poda, seguro |
+| **Poco apta** | transición (18): diversificar | crítica (51): otro cultivo o sistema mixto |
+
+Cantones prioritarios de "manejo": Jama, Baba, Muisne, Pedernales, Santo Domingo, Chone, La Concordia,
+Manga del Cura, Vinces, Puebloviejo.
+
+\* GAEZ evalúa el cacao **de secano**: en Guayas y El Oro buena parte del cacao es **con riego**, así que
+su aptitud real es mayor. Los cortes (4 000 y 30 %) son decisiones del equipo (`ml/zones.py`).
+GAEZ proyecta que la aptitud **mejora** hacia 2050 en la costa (más lluvia y calor), mientras el riesgo
+por Niños extremos sigue igual o crece: la costa seguirá siendo cacaotera, pero más expuesta.

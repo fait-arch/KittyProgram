@@ -64,6 +64,7 @@ los experimentos en [`experiments/README.md`](experiments/README.md).
 | **NASA SRTM** | Altitud: solo se mide donde puede haber cacao (< 900 m) | estático |
 | **NOAA CPC** | Índices de El Niño (ONI, Niño 1+2, Niño 3.4) | 1950–2026 |
 | **NASA NEX-GDDP-CMIP6** | Clima futuro: 4 modelos, 2 escenarios de emisiones | 1995–2060 |
+| **FAO GAEZ v4** | Aptitud del cacao hoy y en 2050 (capa complementaria) | 1981–2010, 2041–2070 |
 
 Todo se descarga con scripts propios desde Google Earth Engine para cada área: el país, las
 provincias cacaoteras de la costa (Los Ríos, Guayas, Manabí, Esmeraldas, El Oro, Santo Domingo)
@@ -278,6 +279,22 @@ calentamiento, los Niños extremos pasan de ~1 cada 20 años a ~1 cada 10.
 
 ---
 
+### 6.4 ¿Seguirá siendo buena la zona para el cacao? (FAO GAEZ v4)
+
+Con los mapas oficiales de aptitud de la FAO (GAEZ v4, recurso del reto) la **aptitud del cacao mejora
+hacia 2050 en la costa** (nacional +15 %; Los Ríos +19 %, Manabí +22 %, Santo Domingo +17 %) por más
+lluvia y calor. Cruzando aptitud y riesgo por El Niño sale una **matriz de decisión por cantón**:
+
+| | Pérdida baja en Niño extremo | Pérdida alta en Niño extremo |
+|---|---|---|
+| **Apta en 2050** | **segura** (27 cantones): seguir con cacao | **manejo** (29): invertir en drenaje, cosecha sanitaria, poda y seguro |
+| **Poco apta en 2050** | **transición** (18): diversificar de a poco | **crítica** (51): otro cultivo o sistema mixto |
+
+Los Ríos, Manabí, Esmeraldas y Santo Domingo quedan en **manejo**: seguirán siendo cacaoteras, pero muy
+expuestas a los Niños extremos. Cantones prioritarios: Jama, Baba, Muisne, Pedernales, Santo Domingo,
+Chone, La Concordia, Vinces. (Guayas y El Oro salen "críticas" porque GAEZ evalúa cacao de secano y allí
+se riega mucho: su aptitud real es mayor.) Archivo: [`artifacts/zones_v1.csv`](artifacts/zones_v1.csv).
+
 ## 7. Hallazgos principales
 
 1. **Lo que destruye el cacao no es "El Niño" en general, sino el Niño costero con lluvia
@@ -294,6 +311,9 @@ calentamiento, los Niños extremos pasan de ~1 cada 20 años a ~1 cada 10.
 5. **Ya hay señal de la temporada 2027**: el mar frente a Ecuador está más caliente que en 1997.
 6. **Hacia 2050 el peligro es que los Niños extremos sean más frecuentes**, no el calentamiento
    promedio. Prepararse para ellos (drenaje, cosecha sanitaria, poda) es la adaptación que más vale.
+7. **La costa seguirá siendo apta para el cacao en 2050** (FAO GAEZ: la aptitud incluso mejora), pero más
+   expuesta: por eso la mayoría de los cantones cacaoteros quedan en la zona de **manejo** (adaptarse,
+   no abandonar el cultivo).
 
 ---
 
@@ -362,6 +382,7 @@ rendimientos de ensayos del INIAP.
 | [`artifacts/projections_v1.csv`](artifacts/projections_v1.csv) | Trayectoria **año por año 2026–2050** por área y escenario de emisiones | Front (gráfico de evolución) |
 | [`artifacts/cacao_loss_v1.joblib`](artifacts/cacao_loss_v1.joblib) | El modelo para el backend (en memoria) | Backend (`MODEL_PATH`) |
 | [`inference.py`](inference.py) | `predict()` y `adjust_features()` (sliders de lluvia, temperatura y El Niño) | Backend (`ML_INFERENCE_MODULE=ml.inference`) |
+| [`artifacts/zones_v1.csv`](artifacts/zones_v1.csv) | Matriz de decisión por área: zona (segura/manejo/transición/crítica), recomendación, aptitud GAEZ hoy y 2050 | Front (ZoneMatrix) y Supabase (`zone_classification`) |
 | [`artifacts/model_card_v1.json`](artifacts/model_card_v1.json) | Ficha: fórmula con todos sus números, métricas y límites | Página de metodología |
 | [`artifacts/model_version_v1.json`](artifacts/model_version_v1.json) | Fila para la tabla `model_versions` | Supabase |
 

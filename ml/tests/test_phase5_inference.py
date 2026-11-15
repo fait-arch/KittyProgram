@@ -262,3 +262,18 @@ def test_2050_scenarios_in_area_predictions(areas_batch):
     assert s.groupby("scenario_id").area_id.nunique().eq(n_areas).all()
     assert (s.evidence == "proyeccion_cmip6_no_validada").all()
     assert s.loss_pct.between(0, 100).all()
+
+
+# ── Aptitud FAO GAEZ y matriz de decisión ────────────────────────────────────────────
+def test_zones_matrix():
+    path = ARTIFACTS / f"zones_{VERSION}.parquet"
+    if not path.exists():
+        pytest.skip("sin matriz de zonas: ml/.venv/bin/python -m ml.zones")
+    z = pd.read_parquet(path)
+    from ml.zones import RISK_MAX, SUIT_MIN, zone
+    assert set(z.zone_2050.dropna()) <= {"segura", "manejo", "transicion", "critica"}
+    assert z.si_2050_rcp85_alto.dropna().between(0, 10000).all()
+    assert (z.kind == "canton").sum() >= 100 and z.zone_2050.notna().mean() > 0.95
+    for r in z.dropna(subset=["zone_2050"]).itertuples():
+        assert r.zone_2050 == zone(r.si_2050_rcp85_alto, r.loss_pct_nino_extremo)
+    assert zone(SUIT_MIN + 1, RISK_MAX + 1) == "manejo" and zone(SUIT_MIN - 1, RISK_MAX - 1) == "transicion"
