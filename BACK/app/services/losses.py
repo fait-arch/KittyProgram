@@ -6,8 +6,11 @@ from ..core.config import get_settings
 from ..core.errors import not_found
 from ..data import get_source
 from . import labels
+from ..data.common import name_key as labels_key
 
 LOSS_FIELDS = ("loss_pct", "loss_pct_low", "loss_pct_high", "exposed_ha", "loss_t", "loss_usd", "risk_class")
+# Campos del modelo de ML (si la fila los trae): validez, extrapolación y probabilidad de año malo
+MODEL_FIELDS = ("evidence", "extrapolated", "prob_loss_gt20", "inherited_from")
 
 
 def _num(v):
@@ -20,6 +23,9 @@ def _item(r: dict) -> dict:
         item[k] = r.get(k) if k == "risk_class" else _num(r.get(k))
     if not item["risk_class"]:
         item["risk_class"] = labels.risk_class(item["loss_pct"])
+    for k in MODEL_FIELDS:
+        if r.get(k) is not None:
+            item[k] = r[k]
     return item
 
 
@@ -52,6 +58,12 @@ def summary(crop: str, scenario: str, province: str | None, vs: str | None) -> d
         kind = "province"
         items = list_losses(crop, scenario, kind, province)["items"]
 
+    # Sin toneladas por cantón (no hay hectáreas medidas): los totales salen de las provincias
+    tot_items = items
+    if kind == "canton" and not any(i["loss_t"] for i in items):
+        provs = list_losses(crop, scenario, "province", None)["items"]
+        tot_items = [p for p in provs if not province or labels_key(p["name"]) == labels_key(province)] or items
+
     def tot(rows, k):
         return round(sum(r[k] or 0 for r in rows), 1)
 
@@ -62,19 +74,22 @@ def summary(crop: str, scenario: str, province: str | None, vs: str | None) -> d
                        for r in rows if r["loss_pct"])
         return round(scaled("loss_pct_low")), round(scaled("loss_pct_high"))
 
-    low, high = low_high(items)
+    low, high = low_high(tot_items)
     out = {
         "scenario": scenario, "crop": crop, "level": kind,
         "scope": {"kind": "province", "name": province} if province else {"kind": "country", "name": "Ecuador"},
-        "totals": {"exposed_ha": tot(items, "exposed_ha"), "loss_t": tot(items, "loss_t"),
-                   "loss_t_low": low, "loss_t_high": high, "loss_usd": tot(items, "loss_usd")},
+        "totals": {"exposed_ha": tot(tot_items, "exposed_ha"), "loss_t": tot(tot_items, "loss_t"),
+                   "loss_t_low": low, "loss_t_high": high, "loss_usd": tot(tot_items, "loss_usd")},
         "by_class": dict(Counter(i["risk_class"] for i in items)),
         "top_areas": [{"area_id": i["area_id"], "name": i["name"], "loss_usd": i["loss_usd"], "loss_pct": i["loss_pct"]}
-                      for i in sorted(items, key=lambda i: -(i["loss_usd"] or 0))[:5]],
+                      for i in sorted(tot_items, key=lambda i: -(i["loss_usd"] or 0))[:5]],
         "note": "Los intervalos se suman (cota conservadora).",
     }
     if vs:
         other = list_losses(crop, vs, kind, province)["items"]
+        if tot_items is not items:
+            other = [p for p in list_losses(crop, vs, "province", None)["items"]
+                     if not province or labels_key(p["name"]) == labels_key(province)]
         o_t, o_usd = tot(other, "loss_t"), tot(other, "loss_usd")
         out["vs"] = {"scenario": vs, "loss_t": o_t, "loss_usd": o_usd,
                      "delta_t": round(out["totals"]["loss_t"] - o_t, 1),

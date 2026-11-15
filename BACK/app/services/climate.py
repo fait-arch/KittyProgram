@@ -5,7 +5,7 @@ from ..core.errors import bad_request
 from ..data import get_source
 from . import labels
 
-SCENARIOS = {"normal", "nino", "nina", "actual", "ssp245_2050", "ssp585_2050"}
+SCENARIOS = {"normal", "nino", "nino_extremo", "nina", "actual", "ssp245_2050", "ssp585_2050"}
 
 
 def check_scenario(s: str) -> str:

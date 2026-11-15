@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useMemo } from "react";
-import { useAreas, useEnso, useLosses, useLossSummary, useScenarios, useZones } from "@/lib/api/hooks";
+import { useAlerts, useAreas, useEnso, useLosses, useLossSummary, useScenarios, useZones } from "@/lib/api/hooks";
+import { LOSS_RAMP, lossClassIndex } from "@/lib/design/colors";
 import type { ScenarioId } from "@/lib/api/types";
 import { useMapState } from "@/lib/state/useMapState";
-import { fmt2, fmtInt, fmtPct, fmtT, fmtUsd } from "@/lib/design/format";
+import { fmt2, fmtDeltaT, fmtDeltaUsd, fmtInt, fmtPct, fmtT, fmtUsd } from "@/lib/design/format";
 import { Icon } from "@/components/atoms/Icon";
 import { Skeleton } from "@/components/atoms/Skeleton";
 import { ScenarioSelector } from "@/components/molecules/ScenarioSelector";
@@ -25,6 +26,8 @@ export function PanelScreen() {
   const { data: enso } = useEnso();
   const { data: zones } = useZones("ssp245_2050");
   const { data: areas } = useAreas("canton");
+  const { data: alerts } = useAlerts("actual");
+  const topAlert = alerts?.items[0];
   const scLabel = scenarios?.find((s) => s.id === scenario)?.label ?? scenario;
   const byId = useMemo(() => new Map((areas ?? []).map((a) => [a.id, a])), [areas]);
 
@@ -66,14 +69,28 @@ export function PanelScreen() {
       {/* Indicadores */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon="grass" loading={isLoading} value={sum ? fmtT(sum.loss_t) : "—"} label={`Cacao perdido · ${scLabel}`}
-          foot={sum?.vs_normal ? `+${fmtT(sum.vs_normal.loss_t)} frente a un año normal` : "Año de referencia"} />
+          foot={sum?.vs_normal ? `${fmtDeltaT(sum.vs_normal.loss_t)} frente a un año normal` : "Año de referencia"} />
         <StatCard icon="payments" loading={isLoading} value={sum ? fmtUsd(sum.loss_usd) : "—"} label="Valor en riesgo"
-          foot={sum?.vs_normal ? `+${fmtUsd(sum.vs_normal.loss_usd)} frente a un año normal` : undefined} />
+          foot={sum?.vs_normal ? `${fmtDeltaUsd(sum.vs_normal.loss_usd)} frente a un año normal` : undefined} />
         <StatCard icon="notifications_active" loading={isLoading} value={sum ? `${red} de ${sum.n_areas}` : "—"} label="Cantones en alerta roja"
           foot="Pérdida mayor a 30 % (IPC 4–5 · SNGR roja)" />
         <StatCard icon="waves" loading={!enso} value={enso ? `${enso.oni.value >= 0 ? "+" : ""}${fmt2(enso.oni.value)}` : "—"} label="Índice ONI · El Niño"
           foot={enso ? `Niño 1+2: ${enso.nino12.anomaly_c >= 0 ? "+" : ""}${fmt2(enso.nino12.anomaly_c)} °C · ${enso.source}` : undefined} />
       </div>
+
+      {/* Alerta principal (lenguaje natural) */}
+      {topAlert && (
+        <Link href="/alertas" className="state-layer relative flex flex-wrap items-center gap-4 overflow-hidden rounded-xl border border-outline-variant bg-surface-lowest p-5 pl-7 shadow-sm">
+          <span aria-hidden className="absolute inset-y-0 left-0 w-2" style={{ background: LOSS_RAMP[lossClassIndex(topAlert.perdida_pct)] }} />
+          <Icon name="campaign" fill size={30} className="text-primary" />
+          <span className="flex min-w-[240px] flex-1 flex-col gap-0.5">
+            <span className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">Alerta principal · temporada actual</span>
+            <b className="font-display text-lg leading-6">{topAlert.titulo}</b>
+            <span className="text-sm text-on-surface-variant">{topAlert.mensaje}</span>
+          </span>
+          <span className="text-sm font-bold text-link">Ver {alerts.items.length} alertas →</span>
+        </Link>
+      )}
 
       {/* Tres tarjetas */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

@@ -1,0 +1,62 @@
+Emilio crack
+Ya está cargado: probé la versión ampliada con rollback, la cargué de verdad y verifiqué el resultado. El revisor de seguridad de Supabase da 0 alertas.
+
+Qué conseguí y ya está en la base
+Lo que faltaba	Resultado
+Producción real por provincia	ESPAC 2023, 2024 y 2025 de las 12 provincias. Suman exactamente el total nacional (501.244 t en 2025).
+Códigos DPA del INEC	12 de 12 provincias y 124 de 126 cantones. Los 2 restantes (El Piedrero y Manga del Cura) son zonas no delimitadas, sin código oficial.
+Amazonía	Se agregaron 6 provincias y 41 cantones, con su clima. Total: 139 áreas.
+Suelo y pendiente	Altitud y pendiente en las 138 áreas, y suelo (pH, arcilla, arena, carbono, textura) en 133. Las otras 5 no tienen dato en SoilGrids.
+Clima de los cantones	2018, 2020, 2023, 2024 y 2025 completos, más 2016 en 51 cantones. Ahora tienen escenarios normal y Niño.
+Entrenamiento	La vista tiene 300 filas completas (12 provincias × 25 años). El mapa tiene 276 predicciones.
+Lo que no pude conseguir
+ESPAC 2014–2022: el INEC no publica esos años en una dirección predecible. Tendrías que bajar los tabulados de su página y pasármelos. Hasta entonces, la producción provincial de esos años sigue siendo sintética (con proporciones tomadas de los datos reales).
+Clima de cantones restante: se agotó el límite diario de Open-Meteo. Faltan 2016 en 75 cantones, más 2015, 2022 y 2014. Mañana se retoma con el mismo script sin repetir lo ya bajado. Por esto los cantones no tienen escenario Niña.
+Precio de Ecuador (SIPA): su sitio no permite descarga automática. Sigue el precio internacional.
+Hallazgos que conviene que sepas
+Moniliasis: con el umbral actual casi no distingue zonas (58 % de los meses sale con riesgo ≥ 0,95). Hay que ajustarlo con el INIAP.
+Lluvia de ERA5: sale muy inflada en la Costa y la Amazonía, así que la aptitud aparece “marginal” donde sí hay cacao.
+Sierra: Bolívar, Cañar y Pichincha tienen cacao (5.000 a 11.000 ha), pero quedaron fuera.
+Modelo y predicciones: siguen siendo un demo con fórmula fija. Con producción real de solo 3 años, aún no se puede entrenar el modelo de verdad.
+Qué falta para considerar la base terminada
+Que me pases los tabulados ESPAC de 2014 a 2022.
+Completar el clima de los cantones, con la descarga de mañana.
+Los porcentajes de reducción de cada estrategia y la validación de umbrales por un agrónomo (esos no los puedo inventar).
+Las proyecciones 2050, que necesitan Earth Engine conectado.
+
+El informe completo, con todas las cifras, está en docs/08-informe-datos.md. Todo quedó en tu rama diego/supabase-docs (commit 0a28df4, sin coautor).
+
+Recuerda cambiar la contraseña de la base: la usé para cargar los datos y quedó escrita en el chat y en tu BACK/.env.
+
+Emilio Cuenca subió dos commits: la producción real de ESPAC 2002–2025 por provincia, como CSV y como SQL “sin aplicar”. Los traigo y leo su documentación.
+
+Emilio ya produjo ESPAC 2002–2025 para las 12 provincias y cuadra con el total nacional. Voy a revisar sus 500 líneas de SQL antes de ejecutarlo en tu base.
+
+El SQL de Emilio es seguro y lo integro con tu pedido de no usar datos sintéticos: quito del generador la producción inventada, las hectáreas por cantón y el modelo demo.
+
+La prueba pasó con datos 100 % reales: 0 filas sintéticas y el dataset de entrenamiento tiene 220 filas reales (12 provincias, 2002–2025). Cargo de verdad.
+
+Cargué 268 filas (244 de ESPAC y 24 de FAOSTAT) sin modelo ni predicciones demo. Como el reset encontró 0 filas sintéticas, cuando debía haber 276, voy a verificar el estado real de la base y si alguien más la modificó.
+
+La base está verificada: 0 filas sintéticas, sin la fuente seed_sintetico, producción real de ESPAC en las 12 provincias, 220 filas de entrenamiento reales y 0 alertas. Ahora actualizo la documentación.
+
+Se alcanzó tu límite de uso, pero alcancé a terminar y subir todo: la base ya tiene solo datos reales y quedó guardada en tu rama.
+
+Qué quedó hecho
+Datos de tu equipo integrados: Emilio Cuenca había subido la producción real de ESPAC 2002–2025. Revisé su SQL antes de ejecutarlo, porque es el que se corre en tu base. Usa tablas temporales y solo borra filas sintéticas, así que lo apliqué como parte 07.
+Sin datos sintéticos: quité del generador la producción inventada, las hectáreas por cantón y el modelo demo con sus predicciones. La verificación en Supabase da 0 filas sintéticas, y la fuente seed_sintetico ya no está en el catálogo.
+Lo que hay en Supabase ahora:
+244 filas de producción de ESPAC (220 provinciales y 24 nacionales) más 24 de FAOSTAT.
+v_training_area_year con 220 filas reales, de 12 provincias y de 2002 a 2025.
+0 alertas de seguridad.
+Prueba y carga: corrí la prueba completa con rollback antes de cargar, y luego la carga real, con 7 partes sin errores.
+Git: rama diego/supabase-docs, commit 929d063, sin coautor. La documentación (02, 06, 08, 09, 10 y el README del seed) quedó actualizada.
+Lo que hay que saber
+El mapa de pérdidas está vacío: v_loss_map no tiene filas hasta que se entrene un modelo real. Los cantones tampoco tienen producción ni pérdida, porque no existen hectáreas reales por cantón.
+El reset encontró 0 filas sintéticas: esperaba encontrar 276 predicciones demo y no había ninguna. No sé por qué, y es posible que alguien del equipo ya hubiera recargado la base desde su máquina. Conviene que se coordinen para no pisarse al correr inject.py --reset.
+Hay ramas nuevas en el repositorio: main y cambio-de-rumbo. No las toqué.
+Lo que falta
+Entrenar el modelo real: ya hay datos suficientes. Hay que quitar la tendencia del rendimiento por provincia, porque ESPAC sube de unos 0,1 t/ha en 2002 a 0,4–1,0 en 2025.
+Clima de cantones: faltan 2016 (75 cantones), 2015, 2022 y 2014. Relanza fetch_weather.py cuando se renueve la cuota diaria de Open-Meteo.
+Cosas que dependen de otras personas: el precio del cacao en Ecuador (SIPA), los datos NASA con Earth Engine, las proyecciones 2050 y la validación de umbrales y estrategias por un agrónomo.
+Cambiar la contraseña de la base, que quedó escrita en el chat y en tu BACK/.env.

@@ -6,6 +6,8 @@ import { Badge } from "@/components/atoms/Badge";
 const SHORT: Record<ScenarioId, string> = {
   normal: "Normal",
   nino: "Año Niño",
+  nino_extremo: "Niño extremo",
+  nina: "Año Niña",
   actual: "Actual",
   ssp245_2050: "SSP2-4.5",
   ssp585_2050: "SSP5-8.5",
@@ -19,7 +21,7 @@ export function ScenarioSelector({ value, onChange, scenarios, compact }: {
   compact?: boolean;
 }) {
   const avail = (id: ScenarioId) => scenarios?.find((s) => s.id === id)?.available ?? true;
-  const hoy: ScenarioId[] = ["normal", "nino", "actual"];
+  const hoy: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual"];
   const fut: ScenarioId[] = ["ssp245_2050", "ssp585_2050"];
   if (compact) {
     return (
@@ -27,7 +29,7 @@ export function ScenarioSelector({ value, onChange, scenarios, compact }: {
         label="Escenario"
         value={value}
         onChange={onChange}
-        options={[...hoy, "ssp245_2050" as ScenarioId].map((id) => ({ value: id, label: id === "ssp245_2050" ? "2050" : SHORT[id], disabled: !avail(id) }))}
+        options={[...hoy, "ssp245_2050" as ScenarioId].map((id) => ({ value: id, label: id === "ssp245_2050" ? "2050" : id === "nino_extremo" ? "Extremo" : SHORT[id], disabled: !avail(id) }))}
       />
     );
   }

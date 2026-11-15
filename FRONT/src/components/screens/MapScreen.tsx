@@ -37,6 +37,7 @@ export function MapScreen() {
   const { mock } = useDataSource();
   const { data: scenarios } = useScenarios();
   const { data: geo } = useAreasGeojson("canton");
+  const { data: provGeo } = useAreasGeojson("province");
   const { data: context } = useSWR("geo/contexto", () => fetch("/geo/ecuador-contexto.geojson").then((r) => r.json() as Promise<FeatureCollection>), {
     revalidateOnFocus: false,
   });
@@ -57,10 +58,10 @@ export function MapScreen() {
     (p: AreaProps) => {
       if (st.layer === "zonas") {
         const z = zoneMap.get(p.id);
-        return `<b>${esc(p.name)}</b> · ${esc(p.province)}<br>${z ? `Zona ${ZONE_META[z].label.toLowerCase()}` : "sin datos"}`;
+        return `<b>${esc(p.name)}</b> · ${esc(p.province)}<br>${z ? `Zona ${ZONE_META[z].label.toLowerCase()}` : "sin estimación del modelo"}`;
       }
       const v = values.get(p.id);
-      return `<b>${esc(p.name)}</b> · ${esc(p.province)}<br>${v != null ? `${fmtPct(v)} · pérdida ${RISK_LABEL[riskClassOf(v)].toLowerCase()}` : "sin datos"}`;
+      return `<b>${esc(p.name)}</b> · ${esc(p.province)}<br>${v != null ? `${fmtPct(v)} · pérdida ${RISK_LABEL[riskClassOf(v)].toLowerCase()}` : "sin estimación del modelo"}`;
     },
     [values, zoneMap, st.layer],
   );
@@ -94,6 +95,7 @@ export function MapScreen() {
           <LossMap
             areas={geo}
             context={context}
+            provinces={provGeo}
             mode={st.layer}
             values={values}
             zones={zoneMap}
@@ -128,7 +130,8 @@ export function MapScreen() {
                 ))}
               </div>
             )}
-            <MapLegend mode={st.layer} theme={theme} scenarioLabel={st.layer === "zonas" ? "SSP2-4.5 · aptitud × riesgo" : scLabel} lossCounts={lossCounts} zoneCounts={zones?.counts} />
+            <MapLegend mode={st.layer} theme={theme} scenarioLabel={st.layer === "zonas" ? "SSP2-4.5 · aptitud × riesgo" : scLabel} lossCounts={lossCounts} zoneCounts={zones?.counts}
+              noDataCount={geo ? geo.features.filter((f) => !values.has(f.properties.id)).length : undefined} />
           </div>
 
           {!st.canton && (

@@ -3,15 +3,16 @@ import { cn } from "@/lib/cn";
 import { Icon } from "@/components/atoms/Icon";
 import { Badge } from "@/components/atoms/Badge";
 
-export type NavKey = "panel" | "mapa" | "comparar" | "finca" | "plantillas" | "metodologia";
+export type NavKey = "panel" | "mapa" | "alertas" | "comparar" | "finca" | "plantillas" | "metodologia";
 const ITEMS: { key: NavKey | "enso"; href: string; label: string; long: string; icon: string; badge?: string; mobile?: boolean }[] = [
   { key: "panel", href: "/panel", label: "Panel", long: "Panel general", icon: "dashboard", mobile: true },
   { key: "mapa", href: "/", label: "Mapa", long: "Mapa de pérdidas", icon: "map", mobile: true },
+  { key: "alertas", href: "/alertas", label: "Alertas", long: "Alertas", icon: "notifications_active", mobile: true },
   { key: "comparar", href: "/comparar", label: "Comparar", long: "Comparar climas", icon: "compare", badge: "F2", mobile: true },
   { key: "finca", href: "/finca", label: "Mi finca", long: "Mi finca", icon: "agriculture", mobile: true },
   { key: "plantillas", href: "/plantillas", label: "Compartir", long: "Compartir e imprimir", icon: "ios_share" },
   { key: "enso", href: "/metodologia#enso", label: "El Niño", long: "¿Qué es El Niño?", icon: "waves" },
-  { key: "metodologia", href: "/metodologia", label: "Método", long: "Método y fuentes", icon: "science", mobile: true },
+  { key: "metodologia", href: "/metodologia", label: "Método", long: "Método y fuentes", icon: "science" },
 ];
 
 /**

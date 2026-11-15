@@ -81,7 +81,7 @@ export function FincaScreen() {
   // Pérdida del cantón llevada a la finca: rendimiento y precio implícitos del cantón
   const d = detail.data;
   const farm = useMemo(() => {
-    if (!d || !ha) return null;
+    if (!d || !ha || !d.loss) return null;
     const l = d.loss;
     const yieldT = d.area.cacao_ha && l.loss_pct > 0 && l.loss_t ? l.loss_t / (d.area.cacao_ha * (l.loss_pct / 100)) : 0.54;
     const price = l.loss_t && l.loss_usd ? l.loss_usd / l.loss_t : 2700;
@@ -162,8 +162,10 @@ export function FincaScreen() {
             </div>
             {look.error ? (
               <p className="text-sm text-error">El punto no cae en ningún cantón de la Costa con datos.</p>
-            ) : !d || !farm ? (
+            ) : !d || (!farm && d.loss) ? (
               <Skeleton className="h-40" />
+            ) : !d.loss || !farm ? (
+              <p className="text-sm text-on-surface-variant">El modelo todavía no tiene estimación de pérdida para {d.area.name} en este escenario.</p>
             ) : (
               <>
                 <div className="flex flex-wrap items-center gap-3">

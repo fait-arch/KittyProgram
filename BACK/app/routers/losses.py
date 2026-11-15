@@ -46,7 +46,7 @@ def losses_summary(scenario: str = "nino", province: str | None = None, crop: st
 def compare(area_id: str, scenarios: str = "normal,nino,ssp245_2050", crop: str = "cacao"):
     sc = [s.strip() for s in scenarios.split(",") if s.strip()]
     if not 1 <= len(sc) <= 6:
-        raise bad_request("invalid_scenarios", "Entre 1 y 6 escenarios")
+        raise bad_request("invalid_scenarios", "Entre 1 y 7 escenarios")
     items = []
     for s in sc:
         climate.check_scenario(s)

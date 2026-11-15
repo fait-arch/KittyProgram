@@ -54,7 +54,7 @@ export function ExportDialog({ open, onClose }: { open: boolean; onClose: () => 
   const scenarios = LAYERS.filter((l) => l.id !== "zonas" && sel[l.id]).map((l) => l.id as ScenarioId);
   const withZones = !!sel.zonas;
   const nLayers = scenarios.length + (withZones ? 1 : 0);
-  const browserOnly = mock; // sin backend: se arma en el navegador
+  const browserOnly = api.exportRunsInBrowser(); // el backend aún no tiene /export: se arma en el navegador
   const effectiveFormat: ExportFormat = browserOnly && FORMATS.find((f) => f.id === format)?.backend ? "geojson" : format;
 
   async function run() {

@@ -1,13 +1,13 @@
 "use client";
 /**
- * Estado de la pantalla en la URL (?escenario=nino&canton=los-rios-vinces&provincia=…&capa=zonas)
+ * Estado de la pantalla en la URL (?escenario=nino&canton=<id del cantón>&provincia=…&capa=zonas)
  * para poder compartir un enlace exacto y volver atrás con el navegador.
  */
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ScenarioId } from "@/lib/api/types";
 
-export const SCENARIO_IDS: ScenarioId[] = ["normal", "nino", "actual", "ssp245_2050", "ssp585_2050"];
+export const SCENARIO_IDS: ScenarioId[] = ["normal", "nino", "nino_extremo", "nina", "actual", "ssp245_2050", "ssp585_2050"];
 export const DEFAULT_SCENARIO: ScenarioId = "nino";
 export type MapLayer = "perdida" | "zonas";
 

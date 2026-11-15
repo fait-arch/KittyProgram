@@ -29,7 +29,7 @@ a agricultores a comparar estrategias de rotación de cultivos.
 ```bash
 cd BACK
 python -m venv venv                 # usar Python 3.12 (3.14 no tiene wheels de pydantic 2.8)
-venv\Scripts\activate               # Linux/Mac: source venv/bin/activate
+source venv\Scripts\activate               # Linux/Mac: source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env                # y rellenar (ver 02-configuracion.md)
 earthengine authenticate

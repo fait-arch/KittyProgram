@@ -77,7 +77,7 @@ def scenarios(phase: int | None = Query(None, ge=1, le=3), crop: str = "cacao"):
             if phase is None or s["phase"] == phase]
 
 
-ORDER = ["normal", "nino", "nina", "actual", "ssp245_2050", "ssp585_2050"]
+ORDER = ["normal", "nino", "nino_extremo", "nina", "actual", "ssp245_2050", "ssp585_2050"]
 
 
 @router.get("/strategies", summary="Catálogo de estrategias con sus efectos y supuestos")

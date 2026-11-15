@@ -1,0 +1,892 @@
+{
+  "model": "cacao_loss",
+  "version": "v1",
+  "trained": "2026-11-14",
+  "question": "Anomalía (%) de la producción de cacao de un área respecto a su tendencia, según el clima de la época lluviosa (ene–jun). pérdida % = max(0, −anomalía).",
+  "data": {
+    "rows": 202,
+    "areas": [
+      "El Oro",
+      "Esmeraldas",
+      "Guayas",
+      "Los Rios",
+      "Manabi",
+      "Santo Domingo de los Tsachilas",
+      "national"
+    ],
+    "excluded_areas": [
+      "Sucumbios"
+    ],
+    "years": [
+      1961,
+      2025
+    ],
+    "target_output_by_level": {
+      "national": "sqrt(production_t · export_beq_t)",
+      "province": "production_t / planted_ha"
+    },
+    "panel_sha256": "33b51668d137f98f7e0cbfbb97c6d19f71274105a08333f0daed056f19df6b16"
+  },
+  "features": {
+    "inputs": [
+      "saturated_days",
+      "fav_days_phytophthora",
+      "solar_mean",
+      "rain_total",
+      "evi_jan_jun",
+      "price_vs3_prev"
+    ],
+    "area_anomaly": [
+      "saturated_days",
+      "fav_days_phytophthora",
+      "solar_mean",
+      "rain_total",
+      "evi_jan_jun",
+      "price_vs3_prev"
+    ],
+    "raw": [],
+    "hinges": [
+      [
+        "rain_total",
+        2.0
+      ]
+    ],
+    "signs": {
+      "saturated_days": -1,
+      "fav_days_phytophthora": -1,
+      "solar_mean": 1,
+      "rain_total": -1,
+      "evi_jan_jun": 1,
+      "price_vs3_prev": 1
+    },
+    "factor_groups": {
+      "exceso_de_lluvia": [
+        "rain_total",
+        "rain_anom_pct",
+        "rain_max_1d",
+        "rain_max_5d",
+        "wet_days",
+        "max_wet_spell",
+        "heavy_rain_days",
+        "rain_p95_days",
+        "water_balance"
+      ],
+      "suelo_saturado": [
+        "saturated_days"
+      ],
+      "dias_favorables_enfermedad": [
+        "fav_days_phytophthora",
+        "fav_days_monilia",
+        "rh_mean"
+      ],
+      "temperatura": [
+        "t_mean",
+        "tmax_mean",
+        "tmin_mean"
+      ],
+      "radiacion_solar": [
+        "solar_mean",
+        "et0_total"
+      ],
+      "verdor_satelite": [
+        "evi_jan_jun"
+      ],
+      "precio_cacao": [
+        "price_vs3_prev"
+      ],
+      "el_nino_oceano": [
+        "nino12_jan_jun",
+        "oni_jan_jun",
+        "nino34_jan_jun",
+        "oni_djf"
+      ]
+    }
+  },
+  "formula": {
+    "target": "y = 100·(R − T)/T ; T = tendencia LOWESS de log R sin el propio año",
+    "prediction": "ŷ = b0 + Σ_k coef_k · (clip(t_k, t_min_k, t_max_k) − center_k) / scale_k",
+    "terms": "t_k = (x_k − μ_a,k)/σ_a,k para 'area_anomaly' (normal 1991–2020 del área); t_k = max(0, t_x − umbral) para 'hinges' (umbral en desviaciones estándar)",
+    "loss": "pérdida % = min(100, max(0, −ŷ))",
+    "interval": "[p10, p90] = ŷ + s_a · [q10, q90]_nivel",
+    "t_min": {
+      "saturated_days": -2.0659,
+      "fav_days_phytophthora": -1.927,
+      "solar_mean": -2.4099,
+      "rain_total": -1.7154,
+      "evi_jan_jun": -2.5379,
+      "price_vs3_prev": -2.2652,
+      "rain_total_gt2": 0.0
+    },
+    "t_max": {
+      "saturated_days": 3.0889,
+      "fav_days_phytophthora": 3.9439,
+      "solar_mean": 3.8704,
+      "rain_total": 4.1512,
+      "evi_jan_jun": 2.9186,
+      "price_vs3_prev": 4.2163,
+      "rain_total_gt2": 2.1512
+    },
+    "lambda": 31.622776601683793,
+    "b0": 0.04301859587953298,
+    "coef": {
+      "saturated_days": -3.3225,
+      "fav_days_phytophthora": -2.8841,
+      "solar_mean": 0.0,
+      "rain_total": -1.1566,
+      "evi_jan_jun": 2.7294,
+      "price_vs3_prev": 2.9994,
+      "rain_total_gt2": -2.0608
+    },
+    "center": {
+      "saturated_days": -0.2223,
+      "fav_days_phytophthora": -0.2151,
+      "solar_mean": 0.3756,
+      "rain_total": -0.172,
+      "evi_jan_jun": 0.0518,
+      "price_vs3_prev": 0.3103,
+      "rain_total_gt2": 0.0201
+    },
+    "scale": {
+      "saturated_days": 0.8427,
+      "fav_days_phytophthora": 0.7971,
+      "solar_mean": 1.0577,
+      "rain_total": 0.8114,
+      "evi_jan_jun": 0.9618,
+      "price_vs3_prev": 1.2049,
+      "rain_total_gt2": 0.1916
+    },
+    "area_normal_mean": {
+      "Bolivar": {
+        "saturated_days": 17.3,
+        "fav_days_phytophthora": 42.0667,
+        "solar_mean": 12.6499,
+        "rain_total": 1359.9462,
+        "evi_jan_jun": 0.294,
+        "price_vs3_prev": 0.0348
+      },
+      "Canar": {
+        "saturated_days": 11.6333,
+        "fav_days_phytophthora": 31.0,
+        "solar_mean": 12.5311,
+        "rain_total": 1043.1708,
+        "evi_jan_jun": 0.33,
+        "price_vs3_prev": 0.0348
+      },
+      "Cotopaxi": {
+        "saturated_days": 29.4,
+        "fav_days_phytophthora": 46.5333,
+        "solar_mean": 12.4382,
+        "rain_total": 1457.365,
+        "evi_jan_jun": 0.3101,
+        "price_vs3_prev": 0.0348
+      },
+      "El Oro": {
+        "saturated_days": 35.0333,
+        "fav_days_phytophthora": 12.0333,
+        "solar_mean": 16.6332,
+        "rain_total": 736.246,
+        "evi_jan_jun": 0.4068,
+        "price_vs3_prev": 0.0348
+      },
+      "Esmeraldas": {
+        "saturated_days": 32.0333,
+        "fav_days_phytophthora": 39.8333,
+        "solar_mean": 13.7137,
+        "rain_total": 1581.7288,
+        "evi_jan_jun": 0.4059,
+        "price_vs3_prev": 0.0348
+      },
+      "Guayas": {
+        "saturated_days": 33.4333,
+        "fav_days_phytophthora": 17.2333,
+        "solar_mean": 12.7836,
+        "rain_total": 1065.6551,
+        "evi_jan_jun": 0.3754,
+        "price_vs3_prev": 0.0348
+      },
+      "Los Rios": {
+        "saturated_days": 31.2,
+        "fav_days_phytophthora": 43.4667,
+        "solar_mean": 11.1265,
+        "rain_total": 1495.5197,
+        "evi_jan_jun": 0.3546,
+        "price_vs3_prev": 0.0348
+      },
+      "Manabi": {
+        "saturated_days": 34.3,
+        "fav_days_phytophthora": 15.3667,
+        "solar_mean": 13.4792,
+        "rain_total": 1145.467,
+        "evi_jan_jun": 0.3845,
+        "price_vs3_prev": 0.0348
+      },
+      "Pichincha": {
+        "saturated_days": 30.5667,
+        "fav_days_phytophthora": 39.2,
+        "solar_mean": 12.9343,
+        "rain_total": 1517.2311,
+        "evi_jan_jun": 0.3785,
+        "price_vs3_prev": 0.0348
+      },
+      "Santo Domingo de los Tsachilas": {
+        "saturated_days": 31.9,
+        "fav_days_phytophthora": 45.7,
+        "solar_mean": 12.6941,
+        "rain_total": 1617.6289,
+        "evi_jan_jun": 0.3604,
+        "price_vs3_prev": 0.0348
+      },
+      "Sucumbios": {
+        "saturated_days": 22.8333,
+        "fav_days_phytophthora": 54.9667,
+        "solar_mean": 15.3331,
+        "rain_total": 1774.3406,
+        "evi_jan_jun": 0.4122,
+        "price_vs3_prev": 0.0348
+      },
+      "national": {
+        "saturated_days": 34.3,
+        "fav_days_phytophthora": 23.2333,
+        "solar_mean": 13.6622,
+        "rain_total": 1377.4392,
+        "evi_jan_jun": 0.3897,
+        "price_vs3_prev": 0.0348
+      }
+    },
+    "area_normal_sd": {
+      "Bolivar": {
+        "saturated_days": 10.1137,
+        "fav_days_phytophthora": 15.4873,
+        "solar_mean": 0.5355,
+        "rain_total": 607.3182,
+        "evi_jan_jun": 0.0327,
+        "price_vs3_prev": 0.2471
+      },
+      "Canar": {
+        "saturated_days": 5.8515,
+        "fav_days_phytophthora": 18.5156,
+        "solar_mean": 0.536,
+        "rain_total": 657.821,
+        "evi_jan_jun": 0.0336,
+        "price_vs3_prev": 0.2471
+      },
+      "Cotopaxi": {
+        "saturated_days": 11.193,
+        "fav_days_phytophthora": 14.855,
+        "solar_mean": 0.44,
+        "rain_total": 510.1461,
+        "evi_jan_jun": 0.037,
+        "price_vs3_prev": 0.2471
+      },
+      "El Oro": {
+        "saturated_days": 28.2727,
+        "fav_days_phytophthora": 12.1697,
+        "solar_mean": 0.7254,
+        "rain_total": 455.7487,
+        "evi_jan_jun": 0.0186,
+        "price_vs3_prev": 0.2471
+      },
+      "Esmeraldas": {
+        "saturated_days": 9.3458,
+        "fav_days_phytophthora": 12.3682,
+        "solar_mean": 0.5106,
+        "rain_total": 305.8119,
+        "evi_jan_jun": 0.0326,
+        "price_vs3_prev": 0.2471
+      },
+      "Guayas": {
+        "saturated_days": 20.5824,
+        "fav_days_phytophthora": 15.6154,
+        "solar_mean": 0.7183,
+        "rain_total": 602.7875,
+        "evi_jan_jun": 0.0177,
+        "price_vs3_prev": 0.2471
+      },
+      "Los Rios": {
+        "saturated_days": 13.2519,
+        "fav_days_phytophthora": 15.6376,
+        "solar_mean": 0.5516,
+        "rain_total": 635.7927,
+        "evi_jan_jun": 0.0288,
+        "price_vs3_prev": 0.2471
+      },
+      "Manabi": {
+        "saturated_days": 19.7295,
+        "fav_days_phytophthora": 13.5124,
+        "solar_mean": 0.6369,
+        "rain_total": 447.4823,
+        "evi_jan_jun": 0.0253,
+        "price_vs3_prev": 0.2471
+      },
+      "Pichincha": {
+        "saturated_days": 7.5644,
+        "fav_days_phytophthora": 6.4935,
+        "solar_mean": 0.3621,
+        "rain_total": 254.8025,
+        "evi_jan_jun": 0.0377,
+        "price_vs3_prev": 0.2471
+      },
+      "Santo Domingo de los Tsachilas": {
+        "saturated_days": 8.1805,
+        "fav_days_phytophthora": 13.0467,
+        "solar_mean": 0.4027,
+        "rain_total": 424.0803,
+        "evi_jan_jun": 0.0314,
+        "price_vs3_prev": 0.2471
+      },
+      "Sucumbios": {
+        "saturated_days": 4.8501,
+        "fav_days_phytophthora": 11.8044,
+        "solar_mean": 0.6195,
+        "rain_total": 366.0075,
+        "evi_jan_jun": 0.0374,
+        "price_vs3_prev": 0.2471
+      },
+      "national": {
+        "saturated_days": 23.536,
+        "fav_days_phytophthora": 15.915,
+        "solar_mean": 0.4234,
+        "rain_total": 416.1286,
+        "evi_jan_jun": 0.0187,
+        "price_vs3_prev": 0.2471
+      }
+    },
+    "q10_q90_by_level": {
+      "national": [
+        -0.8402912372505158,
+        1.108274918142798
+      ],
+      "province": [
+        -1.224062658918669,
+        1.337688032622985
+      ]
+    },
+    "noise_scale_s_a": {
+      "El Oro": 31.149,
+      "Esmeraldas": 22.666,
+      "Guayas": 14.249,
+      "Los Rios": 20.364,
+      "Manabi": 28.789,
+      "Santo Domingo de los Tsachilas": 22.528,
+      "national": 18.232
+    },
+    "default_noise_scale": 22.596832861229906
+  },
+  "validation": {
+    "method": "leave-one-year-out: el año de test sale del entrenamiento, de la tendencia del target y de la normal climática; todas las áreas de ese año a la vez",
+    "models": {
+      "base_normal": {
+        "national": {
+          "n": 65,
+          "mae": 12.622514946544477,
+          "rmse": 18.09362605955548,
+          "corr": null,
+          "r2_oos": 0.0,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.0,
+          "false_alarm": 0.0
+        },
+        "province": {
+          "n": 137,
+          "mae": 18.363989288097812,
+          "rmse": 23.5764810777363,
+          "corr": null,
+          "r2_oos": 0.0,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.0,
+          "false_alarm": 0.0
+        }
+      },
+      "base_oni": {
+        "national": {
+          "n": 65,
+          "mae": 12.646878106635258,
+          "rmse": 17.828257074122234,
+          "corr": 0.23000107016932336,
+          "r2_oos": 0.029117765130718065,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.0,
+          "false_alarm": 0.0
+        },
+        "province": {
+          "n": 137,
+          "mae": 18.83463771513432,
+          "rmse": 24.036383377318252,
+          "corr": -0.2549095616519847,
+          "r2_oos": -0.0393941670071023,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.0,
+          "false_alarm": 0.0
+        }
+      },
+      "base_lluvia_extrema": {
+        "national": {
+          "n": 65,
+          "mae": 12.508328786966938,
+          "rmse": 17.164811298541114,
+          "corr": 0.3174779299675821,
+          "r2_oos": 0.10003245981058861,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.4,
+          "false_alarm": 0.016666666666666666
+        },
+        "province": {
+          "n": 137,
+          "mae": 18.532833848868425,
+          "rmse": 23.645934653622607,
+          "corr": 0.06681852664985258,
+          "r2_oos": -0.005900446020105088,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.043478260869565216,
+          "false_alarm": 0.008771929824561403
+        }
+      },
+      "base_escalon_extremo": {
+        "national": {
+          "n": 65,
+          "mae": 11.283747399598484,
+          "rmse": 15.2343584967295,
+          "corr": 0.5428308989434821,
+          "r2_oos": 0.29108017524862184,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.4,
+          "false_alarm": 0.0
+        },
+        "province": {
+          "n": 137,
+          "mae": 18.40578871500636,
+          "rmse": 23.566966995886748,
+          "corr": 0.1459279995827025,
+          "r2_oos": 0.0008069195870328283,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.0,
+          "false_alarm": 0.0
+        }
+      },
+      "ridge": {
+        "national": {
+          "n": 65,
+          "mae": 10.008463955749242,
+          "rmse": 13.91976197469243,
+          "corr": 0.6426934087217451,
+          "r2_oos": 0.40814898475641015,
+          "coverage_80": 0.8,
+          "interval_width": 36.274464372189186,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.8,
+          "false_alarm": 0.0
+        },
+        "province": {
+          "n": 137,
+          "mae": 17.199195830773267,
+          "rmse": 22.3332693348432,
+          "corr": 0.3245044744823394,
+          "r2_oos": 0.1026814672876235,
+          "coverage_80": 0.7591240875912408,
+          "interval_width": 58.728854770712374,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.21739130434782608,
+          "false_alarm": 0.0
+        }
+      },
+      "gbr": {
+        "national": {
+          "n": 65,
+          "mae": 10.979876772691137,
+          "rmse": 15.154375482169756,
+          "corr": 0.5496985855674257,
+          "r2_oos": 0.29850453751806005,
+          "coverage_80": 0.7692307692307693,
+          "interval_width": 36.93232084175172,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.8,
+          "false_alarm": 0.016666666666666666
+        },
+        "province": {
+          "n": 137,
+          "mae": 17.28387449850103,
+          "rmse": 22.599396107711453,
+          "corr": 0.29111706228189144,
+          "r2_oos": 0.08116887332412259,
+          "coverage_80": 0.6204379562043796,
+          "interval_width": 37.93330195516122,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.21739130434782608,
+          "false_alarm": 0.0
+        }
+      },
+      "ensamble": {
+        "national": {
+          "n": 65,
+          "mae": 10.184620560441596,
+          "rmse": 14.159900800351075,
+          "corr": 0.6261911156248353,
+          "r2_oos": 0.38755202837690916,
+          "coverage_80": 0.8,
+          "interval_width": 36.49319689002675,
+          "big_loss_n": 5,
+          "big_loss_hit": 0.8,
+          "false_alarm": 0.0
+        },
+        "province": {
+          "n": 137,
+          "mae": 17.129631235680908,
+          "rmse": 22.339008960043305,
+          "corr": 0.32254918918988873,
+          "r2_oos": 0.10222018830578516,
+          "coverage_80": 0.7445255474452555,
+          "interval_width": 58.56111120349121,
+          "big_loss_n": 23,
+          "big_loss_hit": 0.17391304347826086,
+          "false_alarm": 0.0
+        }
+      }
+    },
+    "final_model": "ridge",
+    "ensemble_weight_full": 0.75,
+    "ridge_skill_vs_baselines": {
+      "base_normal": {
+        "national": {
+          "mae": 0.20709430742332802,
+          "rmse": 0.2306814604836369
+        },
+        "province": {
+          "mae": 0.06342812768244643,
+          "rmse": 0.05273101353819443
+        }
+      },
+      "base_oni": {
+        "national": {
+          "mae": 0.20862177437305707,
+          "rmse": 0.21923035343163166
+        },
+        "province": {
+          "mae": 0.08683160828981151,
+          "rmse": 0.07085566974614743
+        }
+      },
+      "base_lluvia_extrema": {
+        "national": {
+          "mae": 0.19985602183901918,
+          "rmse": 0.18905243217701384
+        },
+        "province": {
+          "mae": 0.07196082525590586,
+          "rmse": 0.05551336151469499
+        }
+      },
+      "base_escalon_extremo": {
+        "national": {
+          "mae": 0.11301949597831484,
+          "rmse": 0.08629155748955808
+        },
+        "province": {
+          "mae": 0.06555507633581326,
+          "rmse": 0.052348597138480724
+        }
+      }
+    },
+    "interval_width_vs_normal": {
+      "national": 0.952007017931242,
+      "province": 0.9538530072876178
+    },
+    "ensemble_weight_by_test_year": {
+      "0.5": 1,
+      "0.75": 41,
+      "1.0": 23
+    },
+    "robustness_ridge_national": {
+      "bloques_3_anios": {
+        "n": 65,
+        "mae": 10.332046394469533,
+        "rmse": 13.985922177515835,
+        "corr": 0.6457084616288276,
+        "r2_oos": 0.412806968027963,
+        "big_loss_n": 6,
+        "big_loss_hit": 0.6666666666666666,
+        "false_alarm": 0.0
+      },
+      "umbral_1.5sd": {
+        "n": 65,
+        "mae": 10.093585275179752,
+        "rmse": 14.061196768482624,
+        "corr": 0.6333298078756554,
+        "r2_oos": 0.39606061789343294,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.8,
+        "false_alarm": 0.0
+      },
+      "umbral_2.5sd": {
+        "n": 65,
+        "mae": 9.955926477031307,
+        "rmse": 13.840633300754895,
+        "corr": 0.6480371277433279,
+        "r2_oos": 0.4148587652446778,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.8,
+        "false_alarm": 0.0
+      },
+      "sin_umbral": {
+        "n": 65,
+        "mae": 10.292162124184522,
+        "rmse": 14.129785468205663,
+        "corr": 0.628049140718626,
+        "r2_oos": 0.3901543715546908,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.8,
+        "false_alarm": 0.016666666666666666
+      },
+      "sin_signos": {
+        "n": 65,
+        "mae": 10.130355294293551,
+        "rmse": 14.079641029903888,
+        "corr": 0.6322444718426863,
+        "r2_oos": 0.39447518789632563,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.8,
+        "false_alarm": 0.016666666666666666
+      },
+      "sin_evi_modis": {
+        "n": 65,
+        "mae": 10.407880256973424,
+        "rmse": 14.071038558830027,
+        "corr": 0.6372173154179611,
+        "r2_oos": 0.39521489686364675,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.6,
+        "false_alarm": 0.0
+      },
+      "prov_target_ha_cosechada": {
+        "n": 65,
+        "mae": 10.086399438347538,
+        "rmse": 13.94556170819221,
+        "corr": 0.6386156530118022,
+        "r2_oos": 0.4059530062197191,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.6,
+        "false_alarm": 0.0
+      },
+      "sin_pesos": {
+        "n": 65,
+        "mae": 10.15284623360777,
+        "rmse": 13.952737029357692,
+        "corr": 0.6421909453978024,
+        "r2_oos": 0.405341546512349,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.8,
+        "false_alarm": 0.0
+      },
+      "solo_nacional": {
+        "n": 65,
+        "mae": 10.451964921664944,
+        "rmse": 14.12710220298385,
+        "corr": 0.6289454541854828,
+        "r2_oos": 0.3903859705685633,
+        "big_loss_n": 5,
+        "big_loss_hit": 0.4,
+        "false_alarm": 0.0
+      },
+      "target_rendimiento": {
+        "n": 65,
+        "mae": 13.90914173147806,
+        "rmse": 17.731279016502953,
+        "corr": 0.46551463107406926,
+        "r2_oos": 0.21488010186520645,
+        "big_loss_n": 8,
+        "big_loss_hit": 0.5,
+        "false_alarm": 0.0
+      },
+      "target_solo_produccion": {
+        "n": 65,
+        "mae": 11.541039478091866,
+        "rmse": 15.001579933722347,
+        "corr": 0.5607558917200672,
+        "r2_oos": 0.315210610535017,
+        "big_loss_n": 6,
+        "big_loss_hit": 0.5,
+        "false_alarm": 0.0
+      },
+      "provincias_con_evi": {
+        "n": 137,
+        "mae": 17.199195830773267,
+        "rmse": 22.3332693348432,
+        "corr": 0.3245044744823394,
+        "r2_oos": 0.1026814672876235,
+        "big_loss_n": 23,
+        "big_loss_hit": 0.21739130434782608,
+        "false_alarm": 0.0
+      },
+      "provincias_sin_evi": {
+        "n": 137,
+        "mae": 18.034216695699683,
+        "rmse": 23.177338413669915,
+        "corr": 0.19332155400677617,
+        "r2_oos": 0.03357277794963298,
+        "big_loss_n": 23,
+        "big_loss_hit": 0.13043478260869565,
+        "false_alarm": 0.0
+      },
+      "provincias_target_ha_cosechada": {
+        "n": 137,
+        "mae": 17.38515771197286,
+        "rmse": 23.02717597092941,
+        "corr": 0.2685905492737657,
+        "r2_oos": 0.07317796039164604,
+        "big_loss_n": 22,
+        "big_loss_hit": 0.13636363636363635,
+        "false_alarm": 0.0
+      },
+      "eval_sin_1983_1998": {
+        "n": 63,
+        "mae": 9.806539468035952,
+        "rmse": 13.674944941098472,
+        "corr": 0.45262172431002995,
+        "r2_oos": 0.19903667693463933,
+        "coverage_80": 0.8095238095238095,
+        "interval_width": 36.17771639119679,
+        "big_loss_n": 3,
+        "big_loss_hit": 0.6666666666666666,
+        "false_alarm": 0.0,
+        "mae_base_normal": 11.217702347190613,
+        "rmse_base_normal": 15.279856357423123
+      },
+      "eval_desde_1999": {
+        "n": 27,
+        "mae": 6.518809886081203,
+        "rmse": 9.709068490728143,
+        "corr": 0.4457572228800201,
+        "r2_oos": 0.15561814319098766,
+        "coverage_80": 0.8888888888888888,
+        "interval_width": 37.08984485371176,
+        "big_loss_n": 1,
+        "big_loss_hit": 1.0,
+        "false_alarm": 0.0,
+        "mae_base_normal": 8.199403171621208,
+        "rmse_base_normal": 10.565939465860877
+      },
+      "eval_vs_produccion": {
+        "n": 65,
+        "mae": 11.536865949860742,
+        "rmse": 14.821364617488106,
+        "corr": 0.5776906238993563,
+        "r2_oos": 0.3315646575141644,
+        "big_loss_n": 6,
+        "big_loss_hit": 0.8333333333333334,
+        "false_alarm": 0.0
+      },
+      "eval_vs_produccion_entrenado_produccion": {
+        "n": 65,
+        "mae": 11.541039478091866,
+        "rmse": 15.001579933722347,
+        "corr": 0.5607558917200672,
+        "r2_oos": 0.315210610535017,
+        "big_loss_n": 6,
+        "big_loss_hit": 0.5,
+        "false_alarm": 0.0
+      },
+      "entrenado_sin_1983_1998": {
+        "1983": -23.427884313424528,
+        "1998": -19.11558734661929
+      },
+      "clima_estricto_extremos": {
+        "1983": -54.34406902588895,
+        "1998": -36.13957195824953
+      }
+    },
+    "permutation_test": {
+      "national": {
+        "n_permutations": 200,
+        "level": "national",
+        "corr_observed": 0.6490182721383284,
+        "corr_null_mean": -0.13046639412956304,
+        "corr_null_p95": 0.16205442352749047,
+        "p_value": 0.004975124378109453
+      },
+      "province": {
+        "n_permutations": 200,
+        "level": "province",
+        "corr_observed": 0.3041874350605084,
+        "corr_null_mean": -0.05344921218142293,
+        "corr_null_p95": 0.1990430211339256,
+        "p_value": 0.009950248756218905
+      }
+    },
+    "nino_events_national": [
+      {
+        "year": 1983,
+        "y_cv": -49.8,
+        "pred": -54.3,
+        "p10": -73.9,
+        "p90": -33.5
+      },
+      {
+        "year": 1987,
+        "y_cv": -27.6,
+        "pred": -12.2,
+        "p10": -31.8,
+        "p90": 8.6
+      },
+      {
+        "year": 1992,
+        "y_cv": -11.1,
+        "pred": -19.5,
+        "p10": -37.2,
+        "p90": -1.6
+      },
+      {
+        "year": 1998,
+        "y_cv": -64.0,
+        "pred": -35.9,
+        "p10": -53.6,
+        "p90": -15.4
+      },
+      {
+        "year": 2012,
+        "y_cv": -4.1,
+        "pred": -12.9,
+        "p10": -28.2,
+        "p90": 8.0
+      },
+      {
+        "year": 2016,
+        "y_cv": -6.3,
+        "pred": -2.1,
+        "p10": -21.6,
+        "p90": 18.8
+      },
+      {
+        "year": 2017,
+        "y_cv": 3.0,
+        "pred": 1.1,
+        "p10": -18.4,
+        "p90": 22.0
+      },
+      {
+        "year": 2023,
+        "y_cv": -5.3,
+        "pred": -2.4,
+        "p10": -20.2,
+        "p90": 18.1
+      },
+      {
+        "year": 2024,
+        "y_cv": -6.9,
+        "pred": 7.6,
+        "p10": -10.2,
+        "p90": 28.1
+      }
+    ]
+  },
+  "limits": [
+    "La señal validada es NACIONAL y es un detector de lluvia extrema: depende casi por completo de 1983 y 1998 (lluvia ene–jun > 3.5 desviaciones). Sin esos dos años la correlación cae a ~0.3 y el MAE no mejora a 'año normal' (ver eval_sin_1983_1998).",
+    "Hacia atrás no se aprende: cada Niño extremo se predice gracias al otro (entrenado_sin_1983_1998). Un tercer evento extremo podría comportarse distinto.",
+    "A nivel de provincia el modelo NO supera a predecir 'año normal' (ruido ESPAC 15–31 %). La salida por zona aplica la respuesta nacional al clima local: evidence = 'indice_subnacional_no_validado'.",
+    "No extrapola: cada término se recorta al rango de entrenamiento (extrapolated = True). La pérdida se acota a [0, 100] %.",
+    "El índice Niño 1+2 no aporta una vez conocida la lluvia local: el modelo no sirve para un escenario 'solo ENSO'; hace falta el clima (observado o pronosticado) de ene–jun.",
+    "El intervalo p10–p90 cubre ~80 % en promedio pero casi no es más estrecho que el de 'año normal' (interval_width_vs_normal); en años de pérdida grande cubre peor.",
+    "Target provincial = producción por hectárea SEMBRADA (ESPAC): incluye el área que se pierde en los años húmedos (antes, con ha cosechada, esa pérdida no se veía).",
+    "Target nacional = media geométrica de producción y exportaciones (FAOSTAT): reduce el error de medición. Contra la producción sola la mejora es pequeña (eval_vs_produccion frente a eval_vs_produccion_entrenado_produccion).",
+    "Decisiones tomadas viendo los datos (target producción, umbral, signos, variables): eligiéndolas dentro de cada pliegue la correlación queda en 0.50–0.56 (auditoría).",
+    "La corrección de sesgo climática (quantile mapping, normal 1991–2020) incluye el año de test; reajustada sin él cambia 1998 unos puntos (clima_estricto_extremos)."
+  ]
+}

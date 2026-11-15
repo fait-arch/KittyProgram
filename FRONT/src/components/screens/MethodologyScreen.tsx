@@ -1,5 +1,7 @@
 "use client";
+import type { Meta } from "@/lib/api/types";
 import { useEnso, useMeta } from "@/lib/api/hooks";
+import { fmtMae, fmtYears } from "@/lib/design/format";
 import { fmt2 } from "@/lib/design/format";
 import { useTheme } from "@/lib/theme";
 import { Icon } from "@/components/atoms/Icon";
@@ -61,9 +63,9 @@ export function MethodologyScreen() {
           <div className="grid gap-3 sm:grid-cols-4">
             {[
               ["Modelo", meta.model.name],
-              ["Error medio (MAE)", `${String(meta.model.mae).replace(".", ",")} pts`],
-              ["Mejora vs línea base", `${Math.round(meta.model.skill_vs_baseline * 100)} %`],
-              ["Cobertura del rango p10–p90", `${Math.round(meta.model.interval_coverage * 100)} %`],
+              ["Error medio (MAE)", fmtMae(meta.model.mae)],
+              ["Mejora vs línea base", meta.model.skill_vs_baseline == null ? "sin dato" : `${Math.round(meta.model.skill_vs_baseline * 100)} %`],
+              ["Cobertura del rango p10–p90", meta.model.interval_coverage == null ? "sin dato" : `${Math.round(meta.model.interval_coverage * 100)} %`],
             ].map(([k, v]) => (
               <div key={k} className="rounded-md bg-surface-high p-4">
                 <span className="block text-xs text-on-surface-variant">{k}</span>
@@ -72,9 +74,11 @@ export function MethodologyScreen() {
             ))}
           </div>
           <p className="text-sm text-on-surface-variant">
-            Validación «dejando un año fuera» ({meta.model.trained_years[0]}–{meta.model.trained_years[1]}): se entrena sin una temporada y se predice esa temporada.
+            {meta.model.note && <><b>{meta.model.note}</b>{" "}</>}
+            Validación «dejando un año fuera» ({fmtYears(meta.model.trained_years)}): se entrena sin una temporada y se predice esa temporada.
             Para 2050 el modelo se aplica fuera del clima con que se entrenó; se muestra como extrapolación.
           </p>
+          {meta.model.validation && <Validation v={meta.model.validation} algorithm={meta.model.algorithm} n={meta.model.n_samples} />}
         </section>
       )}
 
@@ -84,6 +88,34 @@ export function MethodologyScreen() {
           <b>Apoya, no reemplaza, al técnico.</b> Las cifras son estimaciones con datos satelitales y estadísticos; antes de invertir, valide con INIAP o MAG.
         </p>
       </section>
+    </div>
+  );
+}
+
+const f2 = (v: number | null) => (v == null ? "—" : v.toFixed(2).replace(".", ","));
+const pv = (v: number | null) => (v == null ? "—" : v < 0.001 ? "< 0,001" : v.toFixed(3).replace(".", ","));
+
+/** Validación del modelo de ML (ficha model_version_v1): sin ver el año que predice. */
+function Validation({ v, algorithm, n }: { v: NonNullable<Meta["model"]["validation"]>; algorithm?: string | null; n?: number | null }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-lg border border-outline-variant p-4">
+          <b className="text-sm">Nacional · validado</b>
+          <p className="mt-1 text-[15px] leading-[22px]">Correlación <b>{f2(v.corr)}</b> · R² <b>{f2(v.r2)}</b> · prueba de permutación p = <b>{pv(v.p)}</b>.</p>
+          {!!v.nino_years_hit.length && <p className="mt-1 text-[13px] text-on-surface-variant">Anticipó los años Niño {v.nino_years_hit.join(", ")} sin haberlos visto en el entrenamiento.</p>}
+        </div>
+        <div className="rounded-lg border border-outline-variant p-4">
+          <b className="text-sm">Provincias y cantones · índice de riesgo</b>
+          <p className="mt-1 text-[15px] leading-[22px]">R² <b>{f2(v.province_corr)}</b> · p = <b>{pv(v.province_p)}</b> (significativo, pero débil). Por zona es un índice, no una predicción exacta: el mapa lo marca como «Estimación por zona».</p>
+        </div>
+      </div>
+      <ul className="list-disc pl-5 text-sm leading-[21px] text-on-surface-variant">
+        <li>Algoritmo: {algorithm ?? "—"}{n ? `, ${n} años-área de entrenamiento` : ""}. Se valida «dejando un año fuera»: nunca ve el año que predice.</li>
+        <li>La señal fuerte viene de los Niños costeros extremos (1983, 1998). Un «año Niño» por el índice ONI casi no trajo lluvia extrema a la Costa.</li>
+        <li>Los umbrales de enfermedad no están validados por el INIAP: los resultados deben revisarse con técnicos.</li>
+        <li>Fuentes: NASA (GPM IMERG, MODIS EVI, SMAP, GLDAS, SRTM), ERA5-Land (Copernicus), NOAA CPC, FAOSTAT e INEC-ESPAC.</li>
+      </ul>
     </div>
   );
 }

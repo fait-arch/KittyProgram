@@ -26,11 +26,13 @@ export function TemplatesScreen() {
   const sp = useSearchParams();
   const router = useRouter();
   const tipo = (["tarjeta", "ficha", "portada"].includes(sp.get("tipo") ?? "") ? sp.get("tipo") : "tarjeta") as Tipo;
-  const canton = sp.get("canton") ?? "los-rios-vinces";
+  const asked = sp.get("canton");
   const esc = sp.get("escenario") as ScenarioId;
   const scenario = SCENARIO_IDS.includes(esc) ? esc : DEFAULT_SCENARIO;
   const set = (k: string, v: string) => { const q = new URLSearchParams(sp.toString()); q.set(k, v); router.replace(`/plantillas?${q}`, { scroll: false }); };
   const { data: areas } = useAreas("canton");
+  // Cantón pedido en la URL si existe en el backend; si no, Vinces (cantón de ejemplo) o el primero de la lista
+  const canton = (asked && areas?.some((a) => a.id === asked) ? asked : areas?.find((a) => /^vinces$/i.test(a.name))?.id ?? areas?.[0]?.id) ?? "";
   const { data: scenarios } = useScenarios();
   const { mock } = useDataSource();
   const node = useRef<HTMLDivElement>(null);

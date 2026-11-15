@@ -4,7 +4,6 @@ import { cn } from "@/lib/cn";
 import { useMapState } from "@/lib/state/useMapState";
 import { ExportDialog } from "@/components/organisms/ExportDialog";
 import { TopAppBar } from "@/components/organisms/TopAppBar";
-import { EnsoBanner } from "@/components/organisms/EnsoBanner";
 import { OfflineBanner } from "@/components/organisms/OfflineBanner";
 import { NavBar, NavRail, type NavKey } from "@/components/organisms/Navigation";
 
@@ -14,7 +13,6 @@ export function AppShell({ active, children, fullBleed }: { active: NavKey; chil
   return (
     <div className="flex h-dvh flex-col">
       <TopAppBar onExport={() => setExportOpen(true)} />
-      <EnsoBanner />
       <OfflineBanner />
       <div className="flex min-h-0 flex-1">
         <NavRail active={active} />

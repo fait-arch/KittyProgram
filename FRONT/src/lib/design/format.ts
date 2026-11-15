@@ -26,3 +26,11 @@ export function fmtUsd(v: number | null | undefined): string {
 
 export const MONTHS_SHORT = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
 export const MONTHS_NAME = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+/** «6,3 pts» o «sin dato» si el backend aún no tiene un modelo entrenado */
+export const fmtMae = (v: number | null | undefined) => (v == null ? "sin dato" : `${(Math.round(v * 10) / 10).toFixed(1).replace(".", ",")} pts`);
+/** «+1.230 t» / «−1.230 t» frente a otro escenario */
+export const fmtDeltaT = (v: number) => `${v >= 0 ? "+" : "−"}${fmtT(Math.abs(v))}`;
+export const fmtDeltaUsd = (v: number) => `${v >= 0 ? "+" : "−"}${fmtUsd(Math.abs(v))}`;
+/** «2002–2024» o «sin dato» */
+export const fmtYears = (y: [number | null, number | null]) => (y[0] == null || y[1] == null ? "sin dato" : `${y[0]}–${y[1]}`);

@@ -18,8 +18,7 @@ import { Swatch } from "@/components/atoms/Swatch";
 import { ZoneMatrix } from "@/components/organisms/ZoneMatrix";
 
 const LossMap = dynamic(() => import("@/components/organisms/LossMap"), { ssr: false });
-const SCEN: ScenarioId[] = ["normal", "nino", "ssp245_2050", "ssp585_2050"];
-const DEFAULT_ID = "los-rios-vinces";
+const SCEN: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual"];
 
 /** Fase 2: el mismo cantón en cuatro climas + matriz de zonas 2050. */
 export function CompareScreen() {
@@ -29,7 +28,8 @@ export function CompareScreen() {
   const { data: scenarios } = useScenarios();
   const { data: geo } = useAreasGeojson("canton");
   const { data: context } = useSWR("geo/contexto", () => fetch("/geo/ecuador-contexto.geojson").then((r) => r.json() as Promise<FeatureCollection>), { revalidateOnFocus: false });
-  const id = st.canton ?? (areas?.some((a) => a.id === DEFAULT_ID) ? DEFAULT_ID : areas?.[0]?.id ?? null);
+  // Cantón de la URL o, por defecto, Vinces (cantón de ejemplo) o el primero que entregue el backend
+  const id = st.canton ?? areas?.find((a) => /^vinces$/i.test(a.name))?.id ?? areas?.[0]?.id ?? null;
   const { data: cmp } = useCompare(id, SCEN);
   const l0 = useLosses("normal"), l1 = useLosses("nino"), l2 = useLosses("ssp245_2050"), l3 = useLosses("ssp585_2050");
   const lossBy: Record<string, LossesResponse | undefined> = { normal: l0.data, nino: l1.data, ssp245_2050: l2.data, ssp585_2050: l3.data };
@@ -46,8 +46,8 @@ export function CompareScreen() {
             Comparar escenarios
             <Badge>FASE 2</Badge>
           </span>
-          <h1 className="font-display text-[32px] leading-10 font-extrabold">El mismo cantón en cuatro climas</h1>
-          <p className="text-[15px] text-on-surface-variant">Pérdida estimada hoy (año normal y año Niño) y con el clima de 2041–2060 (NEX-GDDP-CMIP6, método delta).</p>
+          <h1 className="font-display text-[32px] leading-10 font-extrabold">El mismo cantón en cuatro escenarios</h1>
+          <p className="text-[15px] text-on-surface-variant">Pérdida estimada por el modelo en un año normal, un año Niño, un Niño costero extremo (1983, 1998) y la temporada actual. El clima de 2041–2060 se agregará cuando estén las proyecciones.</p>
         </div>
         <label className="flex h-14 min-w-[260px] flex-col justify-center rounded-sm border border-outline px-4">
           <span className="text-xs text-on-surface-variant">Cantón</span>
@@ -65,7 +65,7 @@ export function CompareScreen() {
             <article key={s} className={`flex flex-col overflow-hidden rounded-lg border bg-surface-low ${s === "nino" ? "border-primary" : "border-outline-variant"}`}>
               <div className="px-4 pt-3.5">
                 <h2 className="font-display text-base font-bold">{label(s)}</h2>
-                <p className="text-xs text-on-surface-variant">{s.endsWith("2050") ? "Clima 2041–2060" : "Hoy"}</p>
+                <p className="text-xs text-on-surface-variant">{s.endsWith("2050") ? "Clima 2041–2060" : s === "nino_extremo" ? "Como 1983 o 1998" : s === "actual" ? "Temporada 2027" : "Promedio 2001–2025"}</p>
               </div>
               <LossMap className="relative mt-2.5 h-[200px]" interactive={false} decorations={false} focus="selected" areas={geo} context={context}
                 mode="perdida" values={values} selectedId={id} theme={theme} ariaLabel={`Mapa de pérdida, ${label(s)}`} />
@@ -74,15 +74,18 @@ export function CompareScreen() {
                   <>
                     <span className="font-display text-[40px] leading-[48px] font-black tabular">{fmtPct(it.loss.loss_pct)}</span>
                     <span className="text-[13px] text-on-surface-variant">Rango {fmtPctRange(it.loss.loss_pct_low, it.loss.loss_pct_high)}</span>
-                    <span className="text-sm tabular">{fmtT(it.loss.loss_t)} · {fmtUsd(it.loss.loss_usd)}</span>
-                    <span className="inline-flex h-7 items-center gap-1.5 self-start rounded-sm bg-surface-high px-2.5 text-xs font-semibold">
+                    {it.loss.loss_t != null && <span className="text-sm tabular">{fmtT(it.loss.loss_t)} · {fmtUsd(it.loss.loss_usd)}</span>}
+                    {it.loss.evidence === "indice_subnacional_no_validado" && <span className="text-xs text-on-surface-variant">Estimación por zona{it.loss.inherited_from ? ` (índice de ${it.loss.inherited_from})` : ""}</span>}
+                    {it.suitability.score > 0 && <span className="inline-flex h-7 items-center gap-1.5 self-start rounded-sm bg-surface-high px-2.5 text-xs font-semibold">
                       <span style={{ color: it.suitability.class === "apta" ? "var(--color-status-ok)" : it.suitability.class === "marginal" ? "var(--color-status-marginal)" : "var(--color-status-out)" }}>
                         <Icon name={it.suitability.class === "apta" ? "check_circle" : it.suitability.class === "marginal" ? "error" : "dangerous"} fill size={16} />
                       </span>
                       Aptitud {fmt2(it.suitability.score)} · {it.suitability.class.replace("_", " ")}
-                    </span>
-                    {it.extrapolation && <span className="text-xs text-on-surface-muted">Extrapolación: leer como tendencia.</span>}
+                    </span>}
+                    {(it.extrapolation || it.loss.extrapolated) && <span className="text-xs text-on-surface-muted">Extrapolación: leer como tendencia.</span>}
                   </>
+                ) : cmp ? (
+                  <p className="text-sm text-on-surface-variant">Sin estimación del modelo para este cantón en este escenario.</p>
                 ) : (
                   <div className="h-28 animate-pulse rounded-md bg-surface-high" />
                 )}

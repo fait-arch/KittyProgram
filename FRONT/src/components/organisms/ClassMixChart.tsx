@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/atoms/Skeleton";
 import { Swatch } from "@/components/atoms/Swatch";
 
 const EChart = dynamic(() => import("@/components/atoms/EChart").then((m) => m.EChart), { ssr: false, loading: () => <Skeleton className="h-[240px]" /> });
-const IDS: ScenarioId[] = ["normal", "nino", "actual", "ssp245_2050", "ssp585_2050"];
+const IDS: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual"];
 
 /**
  * Organismo · cuántos cantones caen en cada nivel de alerta, por escenario (barras apiladas al 100 %).

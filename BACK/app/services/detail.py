@@ -24,6 +24,9 @@ def build(area_id: str, crop: str, scenario: str) -> dict:
     loss_block = None
     if loss:
         loss_block = {k: loss.get(k) for k in losses.LOSS_FIELDS}
+        for k in losses.MODEL_FIELDS:
+            if loss.get(k) is not None:
+                loss_block[k] = loss[k]
         if normal:
             loss_block["vs_normal"] = {
                 "loss_pct": normal["loss_pct"],
@@ -34,6 +37,10 @@ def build(area_id: str, crop: str, scenario: str) -> dict:
     gaps = []
     if not loss:
         gaps.append("Todavía no hay predicción del modelo para este cantón y escenario.")
+    elif loss.get("inherited_from"):
+        gaps.append(f"El modelo se entrena por provincia: este cantón usa el índice de {loss['inherited_from']}.")
+    if loss and loss.get("extrapolated"):
+        gaps.append("El clima de este escenario es más extremo que cualquier año de entrenamiento (extrapolación).")
     if not risk["months"]:
         gaps.append("Falta el índice de riesgo de enfermedad para este escenario.")
     if any(not t.get("validated") for p in src.pathogens(crop) for t in p.get("disease_thresholds", [])):

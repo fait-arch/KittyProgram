@@ -42,3 +42,6 @@ export const useCompare = (id: string | null, scenarios: ScenarioId[]) =>
 
 export const useZones = (future: ScenarioId | null) =>
   useSWR(future ? ["zones", future] : null, ([, f]) => api.getZones(f), opts);
+
+export const useAlerts = (scenario: ScenarioId, province?: string) =>
+  useSWR(["alerts", scenario, province ?? ""], ([, s, p]) => api.getAlerts(s, p || undefined), opts);

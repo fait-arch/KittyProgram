@@ -4,7 +4,7 @@ from typing import Literal
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from ..services import climate, insights, predictor, strategies, territory
+from ..services import alerts, climate, insights, predictor, strategies, territory
 
 router = APIRouter(tags=["recomendaciones"])
 
@@ -14,6 +14,12 @@ def area_strategies(area_id: str, scenario: str = "nino", crop: str = "cacao", p
     """`priorities` = `ingreso:5,costo:3,suelo:2,agua:4,mano_obra:1` (0–5). Sin prioridades → por beneficio neto."""
     climate.check_scenario(scenario)
     return strategies.evaluate(area_id, crop, scenario, strategies.parse_priorities(priorities))
+
+
+@router.get("/alerts", summary="Alertas en lenguaje natural por provincia (hechos del modelo, redacción con IA)")
+def area_alerts(scenario: str = "actual", province: str | None = None, crop: str = "cacao"):
+    climate.check_scenario(scenario)
+    return alerts.build(crop, scenario, province or None)
 
 
 @router.get("/areas/{area_id}/insights", summary="Insights y recomendaciones generadas por IA (Claude)")

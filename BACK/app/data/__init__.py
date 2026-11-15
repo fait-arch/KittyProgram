@@ -6,8 +6,14 @@ from ..core.config import get_settings
 
 @lru_cache
 def get_source():
-    if get_settings().data_source == "supabase":
+    s = get_settings()
+    if s.data_source == "supabase":
         from .supabase_source import SupabaseSource
-        return SupabaseSource()
+        src = SupabaseSource()
+        if s.ml_artifacts_fallback:
+            # predicciones del modelo entrenado (ml/artifacts) para los escenarios sin filas en la base
+            from .model_artifacts import ArtifactBackedSource
+            return ArtifactBackedSource(src)
+        return src
     from .mock_source import MockSource
     return MockSource()

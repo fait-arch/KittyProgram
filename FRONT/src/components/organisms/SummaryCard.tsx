@@ -1,7 +1,7 @@
 "use client";
 import { useLossSummary } from "@/lib/api/hooks";
 import type { Scenario, ScenarioId } from "@/lib/api/types";
-import { fmtT, fmtUsd } from "@/lib/design/format";
+import { fmtT, fmtUsd, fmtDeltaT } from "@/lib/design/format";
 import { Icon } from "@/components/atoms/Icon";
 import { Skeleton } from "@/components/atoms/Skeleton";
 import { ClassDistribution } from "@/components/molecules/ClassDistribution";
@@ -26,7 +26,7 @@ export function SummaryCard({ scenario, province, scenarios }: { scenario: Scena
             <span className="font-display text-[22px] leading-7 font-bold text-on-surface-variant tabular">{fmtUsd(data.loss_usd)}</span>
           </div>
           <span className="text-sm text-on-surface-variant">
-            {sc?.label ?? scenario} · {data.vs_normal ? `+${fmtT(data.vs_normal.loss_t)} frente a un año normal` : "línea base (años neutros)"}
+            {sc?.label ?? scenario} · {data.vs_normal ? `${fmtDeltaT(data.vs_normal.loss_t)} frente a un año normal` : "línea base (años neutros)"}
           </span>
           {sc?.extrapolation && (
             <p className="flex items-start gap-2 rounded-md bg-surface-container p-3 text-[13px] leading-[18px]">

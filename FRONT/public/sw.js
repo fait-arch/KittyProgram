@@ -6,11 +6,11 @@
  *   con la cabecera x-cr-offline: 1 para que la interfaz lo indique.
  * Para invalidar todo, subir VERSION.
  */
-const VERSION = "cr-v2";
+const VERSION = "cr-v3";
 const PAGES = `${VERSION}-paginas`;
 const STATIC = `${VERSION}-estaticos`;
 const API = `${VERSION}-api`;
-const ROUTES = ["/", "/panel", "/comparar", "/finca", "/metodologia", "/plantillas"];
+const ROUTES = ["/", "/panel", "/alertas", "/comparar", "/finca", "/metodologia", "/plantillas"];
 const CORE = ["/mock/data.json", "/mock/cantones.geojson", "/geo/ecuador-contexto.geojson", "/manifest.webmanifest", "/icons/icon-192.png"];
 
 self.addEventListener("install", (event) => {

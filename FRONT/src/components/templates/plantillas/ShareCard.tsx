@@ -37,7 +37,7 @@ export const ShareCard = forwardRef<HTMLDivElement, { canton: string; scenario: 
         )}
       </header>
 
-      {d ? (
+      {d && d.loss ? (
         <div className="grid flex-1 grid-cols-[1fr_420px] gap-10">
           <div className="flex flex-col gap-5">
             <span className="text-[22px] font-semibold text-on-surface-variant">Pérdida estimada de cacao · {scenarioLabel}</span>
@@ -65,7 +65,7 @@ export const ShareCard = forwardRef<HTMLDivElement, { canton: string; scenario: 
         </div>
       ) : <div className="flex-1 animate-pulse rounded-[28px] bg-surface-high" />}
 
-      {top && d && (
+      {top && d && d.loss && (
         <div className="flex items-start gap-5 rounded-[28px] bg-primary-container p-7 text-on-primary-container">
           <Icon name="agriculture" fill size={44} />
           <div>

@@ -16,6 +16,8 @@ import { Icon } from "@/components/atoms/Icon";
 export interface LossMapProps {
   areas?: AreasGeoJSON;
   context?: FeatureCollection;
+  /** Provincias de la base: se dibujan con un borde iluminado encima de los cantones */
+  provinces?: FeatureCollection;
   mode: "perdida" | "zonas";
   values?: Map<string, number>;
   zones?: Map<string, Zone>;
@@ -37,6 +39,7 @@ export default function LossMap(props: LossMapProps) {
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.GeoJSON | null>(null);
   const ctx = useRef<L.GeoJSON | null>(null);
+  const provLayer = useRef<L.GeoJSON | null>(null);
   const sel = useRef<L.LayerGroup | null>(null);
   const latest = useRef(props);
   latest.current = props;
@@ -59,6 +62,9 @@ export default function LossMap(props: LossMapProps) {
     m.attributionControl.setPrefix(false);
     m.createPane("contexto").style.zIndex = "350";
     m.createPane("grilla").style.zIndex = "360";
+    const pp = m.createPane("provincias");
+    pp.style.zIndex = "430";
+    pp.style.pointerEvents = "none";
     const sp = m.createPane("seleccion");
     sp.style.zIndex = "450";
     sp.style.pointerEvents = "none";
@@ -112,6 +118,14 @@ export default function LossMap(props: LossMapProps) {
     ctx.current = L.geoJSON(props.context, { pane: "contexto", interactive: false, style: () => ctxStyle(latest.current.theme) }).addTo(m);
   }, [props.context]);
 
+  // 2b. Límites de provincia de la base, iluminados
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !props.provinces) return;
+    provLayer.current?.remove();
+    provLayer.current = L.geoJSON(props.provinces, { pane: "provincias", interactive: false, style: () => provStyle(latest.current.theme) }).addTo(m);
+  }, [props.provinces]);
+
   // 3. Cantones
   useEffect(() => {
     const m = map.current;
@@ -141,6 +155,7 @@ export default function LossMap(props: LossMapProps) {
     if (!gj) return;
     gj.setStyle((f) => styleFor(f as Feature<Geometry, AreaProps>, latest.current));
     ctx.current?.setStyle(() => ctxStyle(props.theme));
+    provLayer.current?.setStyle(() => provStyle(props.theme));
     const north = map.current?.getContainer().querySelector<HTMLElement>(".cr-north");
     if (north) north.style.color = MAP_THEME[props.theme].north;
     map.current?.getPane("grilla")?.style.setProperty("--grat", MAP_THEME[props.theme].graticule);
@@ -177,6 +192,10 @@ export default function LossMap(props: LossMapProps) {
       )}
     </div>
   );
+}
+
+function provStyle(theme: Theme): L.PathOptions {
+  return { fill: false, color: MAP_THEME[theme].province, weight: 2.4, opacity: 0.95, lineJoin: "round" };
 }
 
 function ctxStyle(theme: Theme): L.PathOptions {

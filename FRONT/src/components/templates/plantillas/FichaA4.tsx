@@ -1,5 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
+import { fmtMae, fmtYears } from "@/lib/design/format";
 import { forwardRef } from "react";
 import type { ScenarioId } from "@/lib/api/types";
 import { fmtInt } from "@/lib/design/format";
@@ -52,7 +53,7 @@ export const FichaA4 = forwardRef<HTMLDivElement, { canton: string; scenario: Sc
           <div className="break-inside-avoid">{strategies && <StrategyCards data={strategies} />}</div>
           <div className="mt-auto flex gap-3 rounded-md border border-outline-variant p-4 text-[13px] leading-5">
             <Icon name="info" className="text-primary" />
-            <p><b>Apoya, no reemplaza, al técnico.</b> {d.disclaimer} Modelo {d.model.name}, error medio {String(d.model.mae).replace(".", ",")} pts, entrenado {d.model.trained_years[0]}–{d.model.trained_years[1]}.
+            <p><b>Apoya, no reemplaza, al técnico.</b> {d.disclaimer} Modelo {d.model.name}, error medio {fmtMae(d.model.mae)}, entrenado {fmtYears(d.model.trained_years)}.
               {demo && <b className="text-error"> Datos de demostración: no usar para decisiones.</b>}</p>
           </div>
         </div>

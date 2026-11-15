@@ -1,5 +1,5 @@
 import type { RiskClass, Zone } from "@/lib/api/types";
-import { RISK_CLASSES, RISK_LABEL, RISK_RANGE, ZONE_COLORS, ZONE_META, ZONES, type LossLevel, type Theme } from "@/lib/design/colors";
+import { MAP_THEME, RISK_CLASSES, RISK_LABEL, RISK_RANGE, ZONE_COLORS, ZONE_META, ZONES, type LossLevel, type Theme } from "@/lib/design/colors";
 import { Icon } from "@/components/atoms/Icon";
 import { Swatch } from "@/components/atoms/Swatch";
 import { LegendItem } from "@/components/molecules/LegendItem";
@@ -8,12 +8,14 @@ import { LegendItem } from "@/components/molecules/LegendItem";
  * Organismo · leyenda estilo QGIS: título, clases ascendentes, conteo. Nunca solo color.
  * Escala de alerta de 5 niveles (IPC / SNGR); Crítica lleva rayado.
  */
-export function MapLegend({ mode, theme, scenarioLabel, lossCounts, zoneCounts }: {
+export function MapLegend({ mode, theme, scenarioLabel, lossCounts, zoneCounts, noDataCount }: {
   mode: "perdida" | "zonas";
   theme: Theme;
   scenarioLabel: string;
   lossCounts?: Record<RiskClass, number>;
   zoneCounts?: Record<Zone, number>;
+  /** cantones de la base sin estimación del modelo (p. ej. Amazonía) */
+  noDataCount?: number;
 }) {
   return (
     <section aria-label="Leyenda" className="w-[248px] rounded-lg border border-outline-variant bg-surface-low p-4 shadow-lg">
@@ -40,8 +42,13 @@ export function MapLegend({ mode, theme, scenarioLabel, lossCounts, zoneCounts }
         </>
       )}
       <div className="mt-1.5 flex items-center gap-2.5 text-sm text-on-surface-variant">
+        <span className="h-3.5 w-5 rounded-[3px] border-2" style={{ background: MAP_THEME[theme].noData, borderColor: MAP_THEME[theme].province }} />
+        <span className="flex-1">Sin estimación del modelo</span>
+        {noDataCount != null && <span className="tabular">{noDataCount}</span>}
+      </div>
+      <div className="flex items-center gap-2.5 text-sm text-on-surface-variant">
         <span className="h-3.5 w-5 rounded-[3px] border border-outline bg-surface-container" />
-        Fuera del alcance
+        Fuera de la base de datos
       </div>
     </section>
   );

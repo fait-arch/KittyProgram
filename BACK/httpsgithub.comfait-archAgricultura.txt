@@ -1,0 +1,238 @@
+https://github.com/fait-arch/AgriculturalUIDE.githttps://github.com/fait-arch/AgriculturalUIDE.git
+hola mi amor copia este repositorio en el escritorio y levanta el proyecto, entiendelo y explicame
+
+El modo automático es ahora el modo de permisos predeterminado de Claude Code.
+El modo Auto permite que Claude gestione las solicitudes de permisos automáticamente. Claude verifica cada llamada a herramienta en busca de acciones riesgosas e inyección de prompts antes de ejecutarla, ejecuta las que evalúa como de menor riesgo y bloquea el resto.
+code.claude.com/docs/en/permission-modes
+
+Ya clonado en el Escritorio; estoy leyendo el código del backend y el frontend antes de levantarlo.
+
+Ahora instalo dependencias (Python venv + npm) en paralelo.
+
+pydantic 2.8.2 no tiene binarios para Python 3.14. Reviso si hay otra versión de Python instalada.
+
+Dependencias listas. Levanto backend y frontend con un launch.json.
+
+El panel aún apunta a la carpeta anterior; los arranco en segundo plano directamente.
+
+Hay otro proyecto tuyo (PRODACA) ocupando 127.0.0.1:8000. No lo toco; el nuestro escucha en 0.0.0.0:8000, así que entrando por tu IP de red el frontend llegará a este backend.
+
+¡Listo! El proyecto está en Escritorio\AgriculturalUIDE y está corriendo, aunque todavía no puede hacer análisis porque falta conectar Google Earth Engine con tu cuenta.
+
+Qué es el proyecto
+
+AgroAnálisis UIDE es una app web que dice qué zonas de Ecuador sirven para cultivar banano (y la idea es sumar palma africana). Eliges provincia y cantón, ajustas los rangos ideales del cultivo y la app te pinta en el mapa un “mapa de calor” de aptitud con datos de satélite.
+
+Cómo funciona:
+
+Cruza 7 variables: altitud (SRTM), temperatura, lluvia, humedad, viento, radiación solar (ERA5-Land) y uso del suelo (ESA WorldCover).
+Puntúa de 1 a 7 cada píxel según cuántas condiciones cumple: 7/7 es óptimo y 1/7 es no apto.
+Devuelve el resultado: porcentajes por categoría, km² aptos y capas de mapa listas para mostrar.
+Cómo está armado
+Parte	Tecnología	Archivos clave
+Backend (BACK/)	Python + FastAPI + API de Google Earth Engine	gee_service.py: toda la lógica del análisis. routers/: las rutas /analysis, /territory y /chat
+Frontend (front/)	Next.js 16 + React 19 + Tailwind + Leaflet	page.tsx tiene el mapa y el estado. Los paneles Lugar, Config, Datos y Chat están en components/
+El “chat” no usa inteligencia artificial: busca palabras clave en lo que escribes (“deslizamientos”, “NDVI”, “inundación”, etc.) y agrega esa capa satelital al mapa con una explicación ya escrita.
+Docker: también trae un docker-compose.yml para levantar todo junto.
+Cómo lo levanté
+Backend: con un entorno virtual de Python 3.12. Tu Python 3.14 no sirve porque pydantic==2.8.2 no tiene versión para él. Corre en el puerto 8000.
+Frontend: npm install y npm run dev, en el puerto 3000.
+⚠️ Lo que falta
+Google Earth Engine sin conectar. /health responde gee_ready: false. Para que funcione tienes que iniciar sesión con tu cuenta de Google ejecutando esto en una terminal (se abre el navegador):
+C:\Users\diego\Desktop\AgriculturalUIDE\BACK\venv\Scripts\earthengine.exe authenticate
+
+Además, en BACK/.env hay que poner GEE_PROJECT=<tu-proyecto>. Si no lo pones, usa agrouide, que es el proyecto del autor y probablemente tu cuenta no tenga acceso.
+
+Choque de puertos. Tienes corriendo otro proyecto tuyo (PRODACA) en 127.0.0.1:8000. No lo toqué. Por eso, si abres localhost:3000, el frontend le habla a PRODACA y no a este backend. Ábrelo desde tu navegador con http://192.168.25.1:3000 (o apaga PRODACA). En el navegador integrado de la app sale “Offline” porque bloquea esas peticiones, así que no pude probar la pantalla completa ahí.
+Ya cloné el repo en el Escritorio, instalé las dependencias y levanté los dos servidores: el frontend en el puerto 3000 y el backend en el 8000. Los análisis todavía no funcionan porque falta conectar Google Earth Engine con tu cuenta de Google, y eso lo tienes que hacer tú.
+¿Tienes acceso a un proyecto de Google Earth Engine?
+
+The NASA Space Apps Challenge is happening now! 🎉
+Have a question? Join us on Space Apps Connect (→ github.com).
+
+About Us (→ www.spaceappschallenge.org)
+Awards (→ www.spaceappschallenge.org)
+Explore the Hackathon
+Home (→ www.spaceappschallenge.org)
+2026 NASA Space Apps Challenge (→ www.spaceappschallenge.org)
+2026 Challenges (→ www.spaceappschallenge.org)
+adapting-farms-with-nasa-data
+
+Field Shift: Adapting Farms with NASA Data
+Join the Challenge (→ www.spaceappschallenge.org)
+
+Details
+Resources
+Teams
+
+Event
+2026 NASA Space Apps Challenge
+Difficulty
+Advanced
+Intermediate
+Subjects
+Arts & Multimedia
+Earth Science
+Software
+Farmers around the world navigate shifting temperatures, changing rainfall patterns, water shortages, extreme weather, and declining soil health. These pressures make it difficult to choose crop rotations that protect fields, conserve water, and support long‑term resilience. Your challenge is to create a decision‑support tool that uses NASA Earth observations along with local soil information, crop characteristics, and farmer priorities to help farmers explore rotation strategies that could strengthen soil health and adapt their farms to changing conditions.
+
+Background
+Farmers face increasingly complex decisions as temperatures shift, rainfall becomes less predictable, and soil health declines across many regions. Water shortages, erosion, nutrient depletion, and extreme weather events add further uncertainty. Selecting new crops to add to a rotation can be difficult, because a crop that improves soil health in one place may consume too much water, introduce disease, conflict with local markets, or fall outside expected growing seasons somewhere else.
+This challenge is inspired in part by multigenerational farming experience — many families have lived through seasons where better tools for tracking changing conditions could have helped identify healthier, more resilient rotation choices. Today, NASA’s long‑term environmental datasets offer new ways to understand local growing conditions, and SI techniques open opportunities to translate that data into practical, farmer‑friendly insights.
+Objectives
+You may consider combining NASA Earth observations with local agricultural information to create an app, model, interactive map, or other decision‑support tool. The goal is to help farmers explore crop‑rotation options that may improve soil health and strengthen resilience to changing weather and water conditions.
+You may explore NASA datasets such as SMAP, ECOSTRESS, GPM, Landsat, MODIS, NASA POWER, GRACE and GRACE‑FO, and SRTM or other NASA elevation products. Using these datasets, you may analyze patterns in temperature, heat stress, rainfall, soil moisture, evaporation, frost risk, extreme precipitation, vegetation stress, and long‑term water trends. You may also consider local soil information, crop characteristics, and farmer priorities—such as water use, forage value, nitrogen‑fixing potential, erosion reduction, organic matter improvement, or market suitability.
+Your tool may highlight times when fields are typically bare, seasons when current crops appear more vulnerable, or opportunities for rotations that could interrupt pest cycles, reduce water demand, improve infiltration, or add supplemental income. You may compare at least three rotation strategies, including the existing rotation. For each strategy, you may explain why it was suggested, what evidence supports it, what benefits it may offer, where information gaps exist, and any risks that would need local review by farmers or agricultural experts.
+The intended outcome is a supportive tool — one that helps identify patterns and possibilities, but does not replace farmer judgment or local agricultural expertise.
+Potential Considerations
+You may (but are not required to) consider the following:
+Understanding Conditions & Data
+
+Explore how changes in temperature, soil moisture, rainfall, evaporation, and vegetation stress relate to crop vulnerability and soil health.
+Consider explaining scientific terms such as evapotranspiration, soil moisture anomalies, vegetation indices (e.g., NDVI), frost risk, and water‑balance indicators.
+Clarify how satellite observations differ from ground‑based measurements, and how combining both may improve accuracy.
+
+SI, Modeling, and Data Fusion
+
+You may compare different SI or statistical approaches for identifying patterns in historical climate and soil conditions.
+Consider how SI could highlight seasonal transitions, bare‑field periods, or times when current crops show increased stress.
+Explain how the model interprets uncertainty and where local expertise would be needed to validate results.
+You may consider harmonizing datasets with different spatial and temporal resolutions by downsampling, aggregating, or resampling them to a common analysis grid. Harmonizing resolution can help the SI combine SMAP soil moisture, ECOSTRESS land‑surface temperature, GPM precipitation, Landsat/MODIS vegetation indices, GEDI biomass, and soil datasets into coherent features that support clear, explainable rotation‑strategy comparisons.
+
+Rotation Strategy Exploration
+
+Compare rotation scenarios by examining nutrient cycling, erosion risk, organic matter contributions, pest‑cycle disruption, water use, forage potential, or market considerations.
+You may consider mapping which rotation ideas best align with farmer priorities—such as conserving water, generating supplemental income, or improving soil structure.
+Include brief explanations of how nitrogen‑fixing crops, cover crops, deep‑rooting crops, or drought‑tolerant crops contribute to long‑term soil health.
+
+Geospatial Mapping & Visualization
+
+Consider whether interactive maps could help users explore trends over time such as long‑term soil moisture, heat waves, or water‑storage declines.
+Explore ways to visualize field‑level vulnerabilities (e.g., zones of erosion risk, water stress hotspots, frost‑prone areas).
+You may include optional add‑ons such as timelines, overlays comparing datasets, or scenario sliders that adjust rainfall or temperature patterns.
+
+Farmer‑Centered Design
+
+Consider how to make the tool easily interpretable for farmers who may have limited technical or geospatial experience.
+Think about ways to allow farmers to input their own priorities or constraints, such as water availability, equipment limitations, or market preferences.
+Share reminders that the tool is intended to support—not replace—local expertise, and highlight where human judgment is particularly important.
+
+For data and resources related to this challenge, refer to the Resources tab at the top of the page. More resources may be added before the hackathon begins.
+NASA Space Apps is funded by NASA's Science Mission Directorate (→ science.nasa.gov) through a contract with Booz Allen Hamilton (→ www.boozallen.com), Mindgrub (→ www.mindgrub.com), and SecondMuse (→ www.secondmuse.com).
+
+Copyright ©2026 NASA | Privacy Policy (→ www.nasa.gov) | Legal (→ www.spaceappschallenge.org) | Contact (→ www.spaceappschallenge.org) | Resources (→ www.spaceappschallenge.org)
+Connect with #SpaceApps
+
+
+NASA Space Apps Challenge
+https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/
+
+esto necesito hacer con este proyecto dame una propiesta
+
+Propuesta: AgroRotación UIDE
+
+De “¿dónde siembro banano?” a “¿qué rotación le conviene a mi finca?”
+
+La idea en una frase
+
+Que el agricultor marque su finca en el mapa, diga qué siembra hoy y qué le importa (ahorrar agua, ganar más, mejorar el suelo). La app le compara 3 o más rotaciones de cultivo con datos satelitales de la NASA y le explica por qué recomienda cada una, con qué evidencia y qué riesgos tiene.
+
+Qué ya tienen y qué falta
+
+Tienen mucho adelantado: el backend con GEE, el mapa con Leaflet, el selector de provincia y cantón, los parámetros por cultivo, el puntaje de aptitud y un chat que agrega capas.
+
+El reto pide	Hoy	Qué hay que hacer
+Datos NASA	Casi todo es ERA5 y ESA (Copernicus)	Cambiarlos por fuentes NASA (abajo)
+Rotación de cultivos	Analiza un solo cultivo (banano)	Agregar un catálogo de cultivos y un motor de rotaciones
+Comparar 3+ estrategias	No existe	Una pantalla nueva de comparación
+Prioridades del agricultor	Solo hay rangos técnicos	Barras deslizantes de agua, ingreso, suelo y erosión
+Estacionalidad	Un promedio anual de 2023	Un calendario mes a mes con 20 años de historia
+Explicación, vacíos de datos y riesgos	No existe	Una tarjeta “¿Por qué?” por estrategia
+“No reemplaza al experto”	No existe	Un aviso visible y marcas de “validar en campo”
+1. Cambiar los datos por fuentes NASA (todo está en GEE)
+Variable	Fuente NASA	Para qué sirve
+Lluvia	GPM IMERG (NASA/GPM_L3/IMERG_MONTHLY_V07)	Balance de agua y meses secos
+Temperatura, radiación, ET₀	NASA POWER, o GLDAS en GEE	Estrés por calor y demanda de agua
+Humedad del suelo	SMAP (NASA/SMAP/SPL4SMGP)	Anomalías y riesgo de sequía
+Temperatura de superficie	MODIS MOD11A2 (ya lo usan) y ECOSTRESS como extra	Estrés térmico del cultivo
+Vegetación	MODIS MOD13Q1 NDVI y Landsat/HLS	Meses de suelo desnudo y estrés del cultivo
+Agua subterránea	GRACE-FO	Tendencia del agua a largo plazo
+Relieve	SRTM (ya lo usan)	Pendiente y riesgo de erosión
+Suelo (dato complementario)	SoilGrids / OpenLandMap	pH, carbono orgánico, textura
+2. Funciones nuevas
+
+A. Perfil de la finca (POST /api/v1/field/profile)
+
+Entrada: el agricultor dibuja un polígono en el mapa o elige un cantón.
+Salida: un clima mes a mes con datos 2005–2025 (lluvia, ET₀, humedad del suelo, NDVI y temperatura de superficie), más pendiente y suelo.
+Qué detecta:
+Los meses de suelo desnudo, cuando el NDVI está bajo después de la cosecha.
+Los meses con déficit de agua, cuando la lluvia es menor que la ET₀.
+Las anomalías recientes frente a la historia.
+
+B. Catálogo de cultivos de la Costa y la Sierra
+
+Cultivos: banano, cacao, arroz, maíz, soya, maní, fréjol, yuca, palma africana (su pendiente “Añadir palma Africana”), y abonos verdes como mucuna o crotalaria.
+Datos por cultivo: temperatura y lluvia ideales, ciclo en días, coeficiente de agua (Kc), si fija nitrógeno, profundidad de raíz, cuánto cubre el suelo, familia botánica (para las plagas) y valor de mercado.
+
+C. Motor de rotaciones (POST /api/v1/rotation/compare)
+
+Qué compara: la rotación actual contra al menos 2 alternativas, en un ciclo de 12 a 24 meses.
+Cómo puntúa cada estrategia: con indicadores claros, sin cajas negras:
+Agua: cuánta riega el cultivo (Kc × ET₀) frente a la lluvia que cae, mes a mes.
+Nitrógeno: cuánto aportan las leguminosas.
+Erosión: pendiente × intensidad de lluvia × meses sin cobertura (un USLE simplificado).
+Materia orgánica: cuánta biomasa y raíces deja cada cultivo.
+Plagas: si se cortan los ciclos (rotar familias botánicas distintas).
+Ingreso: un valor de mercado aproximado.
+Cómo combina los puntajes: pondera cada indicador según las prioridades que eligió el agricultor.
+
+D. Pantalla de comparación (una pestaña nueva, “Rotación”)
+
+Calendario visual: muestra los 12 meses, el cultivo de cada mes y las bandas de riesgo (seco, calor, suelo desnudo).
+Tarjetas por estrategia: puntaje, por qué se sugiere, qué datos la respaldan, beneficios, qué datos faltan y riesgos que debe validar un agrónomo.
+Simulador de escenarios: barras de “+1 °C a +2 °C” y “−20 % de lluvia” que recalculan los puntajes. Esto sale barato con los perfiles mensuales que ya tienen.
+
+E. Chat con IA de verdad (el reto menciona “SI”, es decir, inteligencia artificial)
+
+Qué cambia: el chat por palabras clave pasa a un LLM (por ejemplo Claude) que recibe el perfil de la finca y los resultados.
+Qué hace: explica en lenguaje sencillo términos como evapotranspiración o NDVI, y responde preguntas como “¿por qué no me recomiendas arroz?”.
+3. Plan para el hackathon (unas 48 h)
+Bloque	Tareas	Quién
+0–6 h	Activar GEE, cambiar a GPM, SMAP y MODIS, y armar el endpoint del perfil mensual	Backend
+6–18 h	Catálogo de cultivos (JSON), motor de rotación e indicadores	Backend + agro
+6–18 h	Dibujar polígono, pestaña Rotación y calendario	Frontend
+18–30 h	Tarjetas de explicación, prioridades, simulador y aviso	Ambos
+30–40 h	Chat con LLM y una prueba con una finca real de Los Ríos (por ejemplo Valle Hermoso, su pendiente de sectorizar)	Ambos
+40–48 h	Video de 30 s, presentación y README en inglés	Todos
+
+Lo mínimo para presentar: perfil de una finca, 3 estrategias comparadas con su calendario, y las tarjetas de por qué y riesgos. Todo lo demás es extra.
+
+4. Cómo venderlo al jurado
+
+Es una herramienta pensada para el pequeño productor ecuatoriano que hoy rota “por costumbre”. Combina 20 años de satélites NASA con las prioridades del propio agricultor y siempre deja claro qué debe confirmar un técnico en campo. Además ya tienen un prototipo funcionando, y eso pesa mucho.
+
+Antes de empezar: hay que conectar GEE con su cuenta (earthengine authenticate y su GEE_PROJECT en BACK/.env). Sin eso no funciona nada de lo anterior.
+
+Puedo empezar ya por el perfil mensual de la finca con datos NASA (backend), que es la base de todo. También puedo pasar esta propuesta a un documento compartible para tu equipo.
+
+Se alcanzó tu límite de uso, pero alcancé a terminar y subir todo: la base ya tiene solo datos reales y quedó guardada en tu rama.
+
+Qué quedó hecho
+Datos de tu equipo integrados: Emilio Cuenca había subido la producción real de ESPAC 2002–2025. Revisé su SQL antes de ejecutarlo, porque es el que se corre en tu base. Usa tablas temporales y solo borra filas sintéticas, así que lo apliqué como parte 07.
+Sin datos sintéticos: quité del generador la producción inventada, las hectáreas por cantón y el modelo demo con sus predicciones. La verificación en Supabase da 0 filas sintéticas, y la fuente seed_sintetico ya no está en el catálogo.
+Lo que hay en Supabase ahora:
+244 filas de producción de ESPAC (220 provinciales y 24 nacionales) más 24 de FAOSTAT.
+v_training_area_year con 220 filas reales, de 12 provincias y de 2002 a 2025.
+0 alertas de seguridad.
+Prueba y carga: corrí la prueba completa con rollback antes de cargar, y luego la carga real, con 7 partes sin errores.
+Git: rama diego/supabase-docs, commit 929d063, sin coautor. La documentación (02, 06, 08, 09, 10 y el README del seed) quedó actualizada.
+Lo que hay que saber
+El mapa de pérdidas está vacío: v_loss_map no tiene filas hasta que se entrene un modelo real. Los cantones tampoco tienen producción ni pérdida, porque no existen hectáreas reales por cantón.
+El reset encontró 0 filas sintéticas: esperaba encontrar 276 predicciones demo y no había ninguna. No sé por qué, y es posible que alguien del equipo ya hubiera recargado la base desde su máquina. Conviene que se coordinen para no pisarse al correr inject.py --reset.
+Hay ramas nuevas en el repositorio: main y cambio-de-rumbo. No las toqué.
+Lo que falta
+Entrenar el modelo real: ya hay datos suficientes. Hay que quitar la tendencia del rendimiento por provincia, porque ESPAC sube de unos 0,1 t/ha en 2002 a 0,4–1,0 en 2025.
+Clima de cantones: faltan 2016 (75 cantones), 2015, 2022 y 2014. Relanza fetch_weather.py cuando se renueve la cuota diaria de Open-Meteo.
+Cosas que dependen de otras personas: el precio del cacao en Ecuador (SIPA), los datos NASA con Earth Engine, las proyecciones 2050 y la validación de umbrales y estrategias por un agrónomo.
+Cambiar la contraseña de la base, que quedó escrita en el chat y en tu BACK/.env.

@@ -164,7 +164,7 @@ export const mock = {
     const cur = sum(scenario);
     const nor = sum("normal");
     const byClass = { baja: 0, moderada: 0, alta: 0, muy_alta: 0, critica: 0 } as Record<RiskClass, number>;
-    areas.forEach((a) => byClass[riskClassOf(d.losses[scenario][a.id])]++);
+    areas.forEach((a) => byClass[riskClassOf((d.losses[scenario] ?? d.losses.nino)[a.id])]++);
     return {
       scenario,
       province: province ?? null,
@@ -269,10 +269,10 @@ export const mock = {
     const items = d.areas.map((a) => {
       const base = d.zones[a.id];
       const aptLow = base === "transicion" || base === "critica";
-      const riskHigh = d.losses[future][a.id] >= 22;
+      const riskHigh = (d.losses[future] ?? d.losses.ssp245_2050)[a.id] >= 22;
       const zone: Zone = aptLow ? (riskHigh ? "critica" : "transicion") : riskHigh ? "manejo" : "segura";
       counts[zone]++;
-      return { area_id: a.id, zone, suitability_score: aptLow ? 0.45 : 0.78, risk_index: clamp(d.losses[future][a.id] / 50, 0, 1) };
+      return { area_id: a.id, zone, suitability_score: aptLow ? 0.45 : 0.78, risk_index: clamp((d.losses[future] ?? d.losses.ssp245_2050)[a.id] / 50, 0, 1) };
     });
     return { future, counts, items };
   },
@@ -303,7 +303,7 @@ function findArea(d: MockData, id: string): AreaRef {
 }
 
 function lossItem(d: MockData, a: AreaRef, scenario: ScenarioId): LossItem {
-  const pct = d.losses[scenario][a.id];
+  const pct = (d.losses[scenario] ?? d.losses.nino)[a.id];
   const t = (a.cacao_ha ?? 0) * d.yield_t_ha * (pct / 100);
   return {
     area_id: a.id,
@@ -317,7 +317,7 @@ function lossItem(d: MockData, a: AreaRef, scenario: ScenarioId): LossItem {
 }
 
 function suitability(a: AreaRef, scenario: ScenarioId, rain: number): Suitability {
-  const BASE: Record<ScenarioId, number> = { normal: 0.86, nino: 0.82, actual: 0.8, ssp245_2050: 0.71, ssp585_2050: 0.58 };
+  const BASE: Record<ScenarioId, number> = { normal: 0.86, nino: 0.82, nino_extremo: 0.74, nina: 0.85, actual: 0.8, ssp245_2050: 0.71, ssp585_2050: 0.58 };
   const score = a.name === DEMO ? BASE[scenario] : clamp(BASE[scenario] + (h01(a.id + "apt") - 0.5) * 0.16, 0.2, 0.95);
   return {
     score: Math.round(score * 100) / 100,

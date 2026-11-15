@@ -6,6 +6,7 @@ import { Button, IconButton } from "@/components/atoms/Button";
 import { Logo } from "@/components/atoms/Logo";
 import { CantonSearch } from "@/components/molecules/CantonSearch";
 import { DataSourceChip } from "@/components/molecules/DataSourceChip";
+import { WhatsAppButton } from "@/components/molecules/WhatsAppButton";
 
 /** Barra superior M3. Siempre Deep Blue (ancla de marca) en los dos temas. */
 export function TopAppBar({ onExport }: { onExport: () => void }) {
@@ -25,6 +26,7 @@ export function TopAppBar({ onExport }: { onExport: () => void }) {
       </div>
       <div className="ml-auto flex items-center gap-1 md:ml-0">
         <DataSourceChip />
+        <WhatsAppButton variant="bar" className="mr-1" />
         {install && (
           <IconButton icon="install_mobile" label="Instalar la app (funciona sin conexión)" onClick={install} className="text-on-appbar-variant hover:bg-white/10" />
         )}

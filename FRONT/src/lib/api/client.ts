@@ -90,7 +90,16 @@ export function resetBackendCheck() {
 }
 
 /** GET tipado con respaldo de demostración según DATA_MODE. */
-export async function apiGet<T>(path: string, params: Params | undefined, mock: () => Promise<T>): Promise<T> {
+/** ¿La última respuesta vino de los datos de demostración? (para rotular exportaciones) */
+export const isUsingMock = () => usingMock;
+
+/**
+ * GET tipado con respaldo de demostración según DATA_MODE.
+ * `adapt` traduce la respuesta del backend al tipo que usa la interfaz (ver adapt.ts);
+ * los datos de demostración ya vienen en ese tipo.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function apiGet<T>(path: string, params: Params | undefined, mock: () => Promise<T>, adapt?: (raw: any) => T | Promise<T>): Promise<T> {
   if (DATA_MODE === "mock") return mock();
   const auto = DATA_MODE === "auto";
   const fallback = () => {
@@ -143,10 +152,19 @@ export async function apiGet<T>(path: string, params: Params | undefined, mock: 
 
   downNotified = false;
   markServedFromCache(!!res.headers.get("x-cr-offline"));
+  let raw: unknown;
   try {
-    return (await res.json()) as T;
+    raw = await res.json();
   } catch {
     if (auto) return fallback();
     throw new ApiError(res.status, "Respuesta no es JSON");
+  }
+  if (!adapt) return raw as T;
+  try {
+    return await adapt(raw);
+  } catch (e) {
+    console.error(`[api] GET ${path}: la respuesta del backend no tiene la forma esperada`, e);
+    if (auto) return fallback();
+    throw new ApiError(res.status, `Respuesta inesperada del backend en ${path}`);
   }
 }

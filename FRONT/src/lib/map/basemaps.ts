@@ -2,7 +2,7 @@
  * Fuentes del mapa satelital, todas gratis y sin clave, cargadas directo desde el navegador.
  * Revisadas: Copernicus Data Space / EOX, NASA Worldview (GIBS), USGS EarthExplorer, OpenFreeMap (OpenStreetMap).
  */
-export type BasemapId = "predeterminado" | "satelite" | "nasa" | "bluemarble";
+export type BasemapId = "predeterminado" | "satelite" | "hidrografico" | "nasa" | "bluemarble";
 
 const day = (back = 1) => new Date(Date.now() - back * 24 * 3600 * 1000).toISOString().slice(0, 10);
 const gibs = (layer: string, time: string, level: number, ext: string) =>
@@ -10,7 +10,7 @@ const gibs = (layer: string, time: string, level: number, ext: string) =>
 const GIBS_ATTR = 'Imágenes: <a href="https://www.earthdata.nasa.gov/gibs" target="_blank" rel="noopener">NASA GIBS</a> (ESDIS)';
 
 /** Tipo de mapa (como «Predeterminado / Satélite» de Google Maps) */
-export const BASEMAPS: Record<BasemapId, { label: string; detail: string; thumb: string; style?: string; tiles?: string[]; maxzoom?: number; attribution?: string }> = {
+export const BASEMAPS: Record<BasemapId, { label: string; detail: string; thumb: string; style?: string; tiles?: string[]; maxzoom?: number; attribution?: string; hydro?: boolean }> = {
   predeterminado: {
     label: "Predeterminado",
     detail: "Calles, ríos, pueblos y nombres · OpenStreetMap (OpenFreeMap)",
@@ -25,6 +25,12 @@ export const BASEMAPS: Record<BasemapId, { label: string; detail: string; thumb:
     maxzoom: 14,
     // Licencia CC BY-NC-SA 4.0: uso no comercial con atribución
     attribution: '<a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless - https://s2maps.eu</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)',
+  },
+  hidrografico: {
+    label: "Hidrográfico",
+    detail: "Relieve sombreado y ríos · AWS Terrain Tiles + OpenStreetMap (OpenFreeMap)",
+    thumb: "linear-gradient(155deg,#26292b 0 38%,#3ff0ff 38% 42%,#1d2022 42% 66%,#5fe08a 66% 69%,#2b2f31 69% 88%,#f2d64b 88% 90%,#1d2022 90%)",
+    hydro: true,
   },
   nasa: {
     label: "NASA hoy",
@@ -105,3 +111,11 @@ export async function resolveOverlay(id: OverlayId): Promise<OverlaySource | nul
   return null; // no se recuerda el fallo: se reintenta la próxima vez
 
 }
+
+/** Ríos y cuerpos de agua (OpenMapTiles de OpenFreeMap, sin clave) para el mapa hidrográfico */
+export const HYDRO = {
+  tilejson: "https://tiles.openfreemap.org/planet",
+  attribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+  /** Color por tipo de curso de agua, como en los mapas de caudal: ríos cian, quebradas verdes, canales amarillos */
+  colors: { river: "#3ff0ff", stream: "#5fe08a", canal: "#f2d64b", other: "#2fc6c9" },
+};

@@ -2,7 +2,7 @@
 /**
  * Organismo · mapa satelital 3D tipo Google Maps (MapLibre GL JS 5, BSD-3).
  * Botón «Capas» abajo a la izquierda: Tipo de mapa (Predeterminado, Satélite, NASA hoy, Blue Marble; Globo y
- * Etiquetas), Detalles del mapa (relieve, columnas 3D, cacao apto y capas NASA: lluvia, vegetación, incendios,
+ * Etiquetas), Detalles del mapa (relieve, cacao apto y capas NASA: lluvia, vegetación, incendios,
  * temperatura, calidad del aire) y Herramientas (medir, mi ubicación, pantalla completa).
  * Misma escala de alerta de 5 niveles que el mapa 2D y QGIS.
  */
@@ -12,10 +12,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Feature, FeatureCollection, LineString, Point, Polygon, MultiPolygon } from "geojson";
 import type { AreasGeoJSON, Zone, ZoneItem } from "@/lib/api/types";
 import { LOSS_RAMP, lossClassIndex, RISK_LABEL, riskClassOf, ZONE_COLORS, ZONE_META, type Theme } from "@/lib/design/colors";
-import { BASEMAPS, LABELS_OVERLAY, OVERLAYS, resolveOverlay, TERRAIN, type BasemapId, type OverlayId, type OverlaySource } from "@/lib/map/basemaps";
+import { BASEMAPS, HYDRO, LABELS_OVERLAY, OVERLAYS, resolveOverlay, TERRAIN, type BasemapId, type OverlayId, type OverlaySource } from "@/lib/map/basemaps";
 import { cacaoIcon, hatchPattern } from "@/lib/map/cacaoIcon";
 import { pointInGeometry, ringAreaHa, ringCentroid, type LonLat } from "@/lib/geo/finca";
 import { fmt1, fmtInt, fmtPct } from "@/lib/design/format";
+import useSWR from "swr";
+import { useAreasGeojson } from "@/lib/api/hooks";
 import { cn } from "@/lib/cn";
 import { Icon } from "@/components/atoms/Icon";
 
@@ -38,7 +40,7 @@ const haversineKm = (a: LonLat, b: LonLat) => {
   return 2 * 6371.0088 * Math.asin(Math.sqrt(h));
 };
 
-type Opts = { base: BasemapId; globe: boolean; labels: boolean; terrain: boolean; columns: boolean; cacao: boolean; overlays: OverlayId[] };
+type Opts = { base: BasemapId; globe: boolean; labels: boolean; terrain: boolean; cacao: boolean; overlays: OverlayId[] };
 
 export default function EarthMap({ areas, values, zones, mode, selectedId, onSelect, theme, ariaLabel }: {
   areas?: AreasGeoJSON;
@@ -54,7 +56,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
   const wrap = useRef<HTMLDivElement>(null);
   const map = useRef<MLMap | null>(null);
   const [ready, setReady] = useState(0); // aumenta en cada carga de estilo
-  const [opts, setOpts] = useState<Opts>({ base: "satelite", globe: true, labels: true, terrain: true, columns: false, cacao: true, overlays: [] });
+  const [opts, setOpts] = useState<Opts>({ base: "satelite", globe: true, labels: true, terrain: true, cacao: true, overlays: [] });
   const [panel, setPanel] = useState(false);
   const [overlayState, setOverlayState] = useState<Partial<Record<OverlayId, "cargando" | "ok" | "no">>>({});
   const overlaySrc = useRef<Partial<Record<OverlayId, OverlaySource>>>({});
@@ -73,8 +75,8 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
       const z = zoneById.get(f.properties.id);
       return { ...f, id: undefined, properties: {
         id: f.properties.id, name: f.properties.name, province: f.properties.province,
-        loss: v ?? null, level: v != null ? lossClassIndex(v) : -1, color: v != null ? LOSS_RAMP[lossClassIndex(v)] : "#5e6b60",
-        zone: z?.zone ?? null, zcolor: z ? ZONE_HEX[z.zone] : "#5e6b60", height: v != null ? Math.max(800, v * 1600) : 0,
+        loss: v ?? null, level: v != null ? lossClassIndex(v) : -1, color: v != null ? LOSS_RAMP[lossClassIndex(v)] : "#9cf59a",
+        zone: z?.zone ?? null, zcolor: z ? ZONE_HEX[z.zone] : "#5e6b60",
       } } as Feature;
     }) };
     const pts: FeatureCollection<Point> = { type: "FeatureCollection", features: [] };
@@ -86,6 +88,13 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
     }
     return { cantons, pts };
   }, [areas, values, zoneById]);
+  // División territorial real (provincias y cantones de todo el país), dibujada debajo de los datos
+  const { data: territory } = useSWR("geo/territorio", () => fetch("/geo/territorio.geojson").then((r) => r.json() as Promise<FeatureCollection>), { revalidateOnFocus: false });
+  const provRef = useRef<FeatureCollection | null>(null);
+  const { data: provDb } = useAreasGeojson("province");
+  const provDbRef = useRef<FeatureCollection | null>(null);
+  provDbRef.current = (provDb as FeatureCollection | undefined) ?? null;
+  provRef.current = territory ?? null;
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -111,6 +120,8 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
       "cr-dem": { type: "raster-dem", tiles: TERRAIN.tiles, encoding: TERRAIN.encoding, tileSize: 256, maxzoom: TERRAIN.maxzoom, attribution: TERRAIN.attribution },
       "cr-cantones": { type: "geojson", data: d?.cantons ?? empty },
       "cr-cacao": { type: "geojson", data: d?.pts ?? empty },
+      "cr-provincias": { type: "geojson", data: provRef.current ?? empty },
+      "cr-prov-db": { type: "geojson", data: provDbRef.current ?? empty },
       "cr-medida": { type: "geojson", data: empty },
       "cr-etiquetas": { type: "raster", tiles: LABELS_OVERLAY.tiles, tileSize: 256, maxzoom: 14, attribution: LABELS_OVERLAY.attribution },
     };
@@ -119,6 +130,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
       for (const part of overlayParts(id)) { sources[part.id] = part.source; overlayLayers.push(part.layer); }
     const vis = (b: boolean) => (b ? "visible" : "none") as "visible" | "none";
     const isRaster = o.base !== "predeterminado";
+    const hydro = !!BASEMAPS[o.base].hydro;
     return {
       ...style,
       projection: { type: o.globe ? "globe" : "mercator" },
@@ -126,15 +138,23 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
       ...(o.terrain ? { terrain: { source: "cr-dem", exaggeration: 1.6 } } : {}),
       sources,
       layers: [
-        ...style.layers.map((l) => (!isRaster && l.type === "symbol" ? { ...l, layout: { ...l.layout, visibility: vis(o.labels) } } : l)),
+        ...style.layers.filter((l) => !l.id.startsWith("hidro-rio")).map((l) => (!isRaster && l.type === "symbol" ? { ...l, layout: { ...l.layout, visibility: vis(o.labels) } } : l)),
         ...overlayLayers,
-        { id: "cr-relieve", type: "hillshade", source: "cr-dem", layout: { visibility: vis(o.terrain && isRaster) }, paint: { "hillshade-exaggeration": 0.35, "hillshade-shadow-color": "#000000" } },
-        { id: "cr-cantones-relleno", type: "fill", source: "cr-cantones", layout: { visibility: vis(!o.columns) }, paint: { "fill-color": ["get", "color"], "fill-opacity": isRaster ? 0.55 : 0.6 } },
+        { id: "cr-relieve", type: "hillshade", source: "cr-dem", layout: { visibility: vis(o.terrain && isRaster && !hydro) }, paint: { "hillshade-exaggeration": 0.35, "hillshade-shadow-color": "#000000" } },
+        { id: "cr-territorio-cantones", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "canton"],
+          paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-opacity": 0.35, "line-width": 0.7 } },
+        { id: "cr-cantones-relleno", type: "fill", source: "cr-cantones", paint: { "fill-color": ["get", "color"], "fill-opacity": ["case", ["<", ["get", "level"], 0], 0.16, hydro ? 0.38 : isRaster ? 0.55 : 0.6] as never } },
         { id: "cr-cantones-critica", type: "fill", source: "cr-cantones", filter: ["==", ["get", "level"], 4], paint: { "fill-pattern": "rayado", "fill-opacity": 0.8 } },
-        { id: "cr-cantones-3d", type: "fill-extrusion", source: "cr-cantones", layout: { visibility: vis(o.columns) },
-          paint: { "fill-extrusion-color": ["get", "color"], "fill-extrusion-height": ["get", "height"], "fill-extrusion-opacity": 0.88 } },
         { id: "cr-cantones-borde", type: "line", source: "cr-cantones", paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-opacity": 0.55, "line-width": 0.6 } },
+        // Límite de provincia: más grueso que el de cantón para que se lea cada provincia
+        { id: "cr-provincias-halo", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "province"], paint: { "line-color": isRaster ? "#000000" : "#ffffff", "line-opacity": 0.35, "line-width": 4.5 } },
+        { id: "cr-provincias-borde", type: "line", source: "cr-provincias", filter: ["==", ["get", "kind"], "province"], paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-opacity": 0.95, "line-width": 2 } },
+        // Provincias que están en la base: borde iluminado (brillo + trazo)
+        { id: "cr-prov-db-brillo", type: "line", source: "cr-prov-db", paint: { "line-color": "#9cf59a", "line-width": 9, "line-blur": 6, "line-opacity": 0.45 } },
+        { id: "cr-prov-db-borde", type: "line", source: "cr-prov-db", paint: { "line-color": "#c9ffc4", "line-width": 1.8, "line-opacity": 0.95 } },
         { id: "cr-cantones-sel", type: "line", source: "cr-cantones", filter: ["==", ["get", "id"], ""], paint: { "line-color": isRaster ? "#ffffff" : "#14261c", "line-width": 3.5 } },
+        // En el hidrográfico los ríos van encima de los cantones para que se lean
+        ...style.layers.filter((l) => l.id.startsWith("hidro-rio")),
         { id: "cr-etiquetas", type: "raster", source: "cr-etiquetas", layout: { visibility: vis(o.labels && isRaster) } },
         { id: "cr-cacao", type: "symbol", source: "cr-cacao", layout: { visibility: vis(o.cacao), "icon-image": ["get", "icon"],
           "icon-size": ["interpolate", ["linear"], ["zoom"], 5, 0.45, 9, 0.9], "icon-allow-overlap": true } },
@@ -149,6 +169,26 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
   /** Estilo raster (satélite, NASA, Blue Marble) ya con las capas propias */
   const rasterStyle = useCallback((id: BasemapId): StyleSpecification => {
     const b = BASEMAPS[id];
+    if (b.hydro) {
+      // Mapa hidrográfico: relieve sombreado oscuro + ríos con brillo, coloreados por tipo
+      const C = HYDRO.colors;
+      const color = ["match", ["get", "class"], "river", C.river, "stream", C.stream, "canal", C.canal, "drain", C.canal, C.other];
+      const width = ["interpolate", ["exponential", 1.6], ["zoom"], 5, ["match", ["get", "class"], "river", 1.1, 0.4], 10, ["match", ["get", "class"], "river", 2.6, 1.1], 14, ["match", ["get", "class"], "river", 5, 2.2]];
+      return addOwn({
+        version: 8,
+        sources: { ofm: { type: "vector", url: HYDRO.tilejson, attribution: HYDRO.attribution } },
+        layers: [
+          { id: "fondo", type: "background", paint: { "background-color": "#1c1f21" } },
+          { id: "hidro-sombras", type: "hillshade", source: "cr-dem",
+            paint: { "hillshade-exaggeration": 0.85, "hillshade-shadow-color": "#000000", "hillshade-highlight-color": "#a8adb0", "hillshade-accent-color": "#2a2d2f", "hillshade-illumination-direction": 315 } },
+          { id: "hidro-agua", type: "fill", source: "ofm", "source-layer": "water", paint: { "fill-color": "#0f6f78", "fill-opacity": 0.85 } },
+          { id: "hidro-rio-brillo", type: "line", source: "ofm", "source-layer": "waterway", layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": color as never, "line-width": ["*", 3.2, width] as never, "line-blur": 3, "line-opacity": 0.35 } },
+          { id: "hidro-rio", type: "line", source: "ofm", "source-layer": "waterway", layout: { "line-cap": "round", "line-join": "round" },
+            paint: { "line-color": color as never, "line-width": width as never, "line-opacity": 0.95 } },
+        ],
+      });
+    }
     return addOwn({
       version: 8,
       sources: { base: { type: "raster", tiles: b.tiles!, tileSize: 256, maxzoom: b.maxzoom, attribution: b.attribution } },
@@ -216,15 +256,15 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
         mm.getCanvas().style.cursor = "pointer";
         const p = f.properties as { name: string; province: string; loss: number | string | null; zone: Zone | null };
         const loss = p.loss == null || p.loss === "null" ? null : Number(p.loss);
-        pop.setLngLat(e.lngLat).setHTML(`<b>${p.name}</b> · ${p.province}<br>${loss != null ? `${fmtPct(loss)} · pérdida ${RISK_LABEL[riskClassOf(loss)].toLowerCase()}` : "sin datos"}${p.zone ? `<br>Zona 2050: ${ZONE_META[p.zone].label}` : ""}`).addTo(mm);
+        pop.setLngLat(e.lngLat).setHTML(`<b>${p.name}</b> · ${p.province}<br>${loss != null ? `${fmtPct(loss)} · pérdida ${RISK_LABEL[riskClassOf(loss)].toLowerCase()}` : "sin estimación del modelo"}${p.zone ? `<br>Zona 2050: ${ZONE_META[p.zone].label}` : ""}`).addTo(mm);
       };
-      for (const l of ["cr-cantones-relleno", "cr-cantones-3d"]) {
+      for (const l of ["cr-cantones-relleno"]) {
         mm.on("mousemove", l, hover);
         mm.on("mouseleave", l, () => { mm.getCanvas().style.cursor = latest.current.measuring ? "crosshair" : ""; pop.remove(); });
       }
       mm.on("click", (e) => {
         if (latest.current.measuring) { setMeasure((p) => [...p, [e.lngLat.lng, e.lngLat.lat]]); return; }
-        const f = mm.queryRenderedFeatures(e.point, { layers: ["cr-cacao", "cr-cantones-3d", "cr-cantones-relleno"].filter((l) => mm.getLayer(l)) })[0];
+        const f = mm.queryRenderedFeatures(e.point, { layers: ["cr-cacao", "cr-cantones-relleno"].filter((l) => mm.getLayer(l)) })[0];
         const id = f?.properties?.id;
         if (id) latest.current.onSelect(String(id));
       });
@@ -252,7 +292,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
     const isRaster = opts.base !== "predeterminado";
     m.setProjection({ type: opts.globe ? "globe" : "mercator" });
     m.setTerrain(opts.terrain ? { source: "cr-dem", exaggeration: 1.6 } : null);
-    if (m.getLayer("cr-relieve")) m.setLayoutProperty("cr-relieve", "visibility", opts.terrain && isRaster ? "visible" : "none");
+    if (m.getLayer("cr-relieve")) m.setLayoutProperty("cr-relieve", "visibility", opts.terrain && isRaster && !BASEMAPS[opts.base].hydro ? "visible" : "none");
     if (m.getLayer("cr-etiquetas")) m.setLayoutProperty("cr-etiquetas", "visibility", opts.labels && isRaster ? "visible" : "none");
     if (!isRaster)
       for (const l of m.getStyle().layers)
@@ -287,18 +327,23 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
     (m.getSource("cr-cacao") as GeoJSONSource).setData(data.pts);
     const col = mode === "zonas" ? ["get", "zcolor"] : ["get", "color"];
     m.setPaintProperty("cr-cantones-relleno", "fill-color", col as never);
-    m.setPaintProperty("cr-cantones-3d", "fill-extrusion-color", col as never);
-    m.setLayoutProperty("cr-cantones-critica", "visibility", mode === "perdida" && !opts.columns ? "visible" : "none");
-    m.setLayoutProperty("cr-cantones-3d", "visibility", opts.columns ? "visible" : "none");
-    m.setLayoutProperty("cr-cantones-relleno", "visibility", opts.columns ? "none" : "visible");
+    m.setLayoutProperty("cr-cantones-critica", "visibility", mode === "perdida" ? "visible" : "none");
     m.setLayoutProperty("cr-cacao", "visibility", opts.cacao ? "visible" : "none");
     m.setFilter("cr-cantones-sel", ["==", ["get", "id"], selectedId ?? ""]);
-  }, [data, mode, selectedId, opts.columns, opts.cacao, ready]);
+  }, [data, mode, selectedId, opts.cacao, ready]);
 
+  // División territorial (provincias y cantones)
   useEffect(() => {
     const m = map.current;
-    if (opts.columns && m && m.getPitch() < 40) m.easeTo({ pitch: 55, duration: 800 });
-  }, [opts.columns]);
+    if (!m || !ready || !styleOk.current || !territory) return;
+    (m.getSource("cr-provincias") as GeoJSONSource | undefined)?.setData(territory);
+  }, [territory, ready]);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready || !styleOk.current || !provDb) return;
+    (m.getSource("cr-prov-db") as GeoJSONSource | undefined)?.setData(provDb as FeatureCollection);
+  }, [provDb, ready]);
+
 
   // Acercar al cantón elegido
   useEffect(() => {
@@ -352,7 +397,7 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
               <span className="font-display text-base font-bold">Tipo de mapa</span>
               <button type="button" aria-label="Cerrar capas" onClick={() => setPanel(false)} className="state-layer grid size-8 place-items-center rounded-full cursor-pointer"><Icon name="close" size={20} /></button>
             </div>
-            <div className="grid grid-cols-4 gap-1" role="radiogroup" aria-label="Tipo de mapa">
+            <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label="Tipo de mapa">
               {(Object.keys(BASEMAPS) as BasemapId[]).map((id) => (
                 <button key={id} type="button" role="radio" aria-checked={opts.base === id} title={BASEMAPS[id].detail} onClick={() => set("base", id)} className={chip(opts.base === id)}>
                   <span className={thumb(opts.base === id)} style={{ backgroundImage: BASEMAPS[id].thumb, backgroundColor: "#12291f" }} />
@@ -371,7 +416,6 @@ export default function EarthMap({ areas, values, zones, mode, selectedId, onSel
             <span className="mt-4 mb-2 block font-display text-base font-bold">Detalles del mapa</span>
             <div className="grid grid-cols-4 gap-1">
               {([["Relieve 3D", "landscape", opts.terrain, () => set("terrain", !opts.terrain)],
-                ["Columnas 3D", "view_in_ar", opts.columns, () => set("columns", !opts.columns)],
                 [`Cacao apto · ${nApt}`, "eco", opts.cacao, () => set("cacao", !opts.cacao)]] as const).map(([lab, ic, on, fn]) => (
                 <button key={lab} type="button" aria-pressed={on} onClick={fn} className={chip(on)}>
                   <span className={cn(thumb(on), "bg-surface-high")}><Icon name={ic} size={26} /></span>{lab}

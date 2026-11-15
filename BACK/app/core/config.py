@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     predictor_mode: Literal["local", "off"] = "local"
     model_path: str = "models/cacao_loss.joblib"
     ml_inference_module: str = "ml.inference"   # módulo opcional de ML (ml/ en la raíz del repo)
+    # Predicciones del modelo entrenado: se usan si loss_predictions no tiene filas de un escenario
+    ml_artifacts_fallback: bool = True
+    ml_predictions_path: str = "../ml/artifacts/loss_predictions_v1.csv"
+    ml_model_card_path: str = "../ml/artifacts/model_version_v1.json"
 
     # ── IA (insights y recomendaciones) ───────────────
     ai_provider: Literal["deepseek", "anthropic"] = "deepseek"

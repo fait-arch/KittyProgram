@@ -91,11 +91,13 @@ export const MAP_THEME: Record<
     halo: string;
     graticule: string;
     noData: string;
+    /** borde iluminado de las provincias que están en la base */
+    province: string;
     north: string;
   }
 > = {
-  mision: { context: "#0e1b10", contextStroke: "#1f2d20", outline: "#050c06", selected: "#ffffff", halo: "#050c06", graticule: "#1f2d20", noData: "#18271a", north: "#edf4ee" },
-  campo: { context: "#d1e0cd", contextStroke: "#bccbb8", outline: LOSS_OUTLINE, selected: "#131e14", halo: "#ffffff", graticule: "#d1e0cd", noData: "#d1e0cd", north: "#131e14" },
+  mision: { context: "#0e1b10", contextStroke: "#1f2d20", outline: "#050c06", selected: "#ffffff", halo: "#050c06", graticule: "#1f2d20", noData: "#2c4b31", north: "#edf4ee", province: "#9cf59a" },
+  campo: { context: "#d1e0cd", contextStroke: "#bccbb8", outline: LOSS_OUTLINE, selected: "#131e14", halo: "#ffffff", graticule: "#d1e0cd", noData: "#b9d6b3", north: "#131e14", province: "#0a5c09" },
 };
 
 export const STATUS = {

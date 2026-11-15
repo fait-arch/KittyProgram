@@ -1,15 +1,20 @@
 /**
  * Exportación en el navegador (modo demostración o sin backend):
  * GeoJSON + estilo .qml con el MISMO nombre de archivo (QGIS lo aplica al abrir la capa),
- * SLD 1.1 y CSV. Con backend, la descarga va a GET /api/v1/export (GeoPackage con estilo).
+ * SLD 1.1 y CSV, con los datos que entrega la API (o los de demostración si no hay backend).
  */
+import { isUsingMock } from "@/lib/api/client";
 import type { AreasGeoJSON, LossesResponse, ScenarioId, ZonesResponse } from "@/lib/api/types";
 
 const FUENTE_DEMO = "DATOS DE DEMOSTRACION - no son resultados del modelo";
+/** Rótulo de la columna «fuente»: demostración o el modelo que respondió en el backend */
+const fuente = (model?: string) => (isUsingMock() ? FUENTE_DEMO : `CacaoResiliente API${model ? ` - modelo ${model}` : ""}`);
 
 export const LAYER_NAME: Record<ScenarioId, string> = {
   normal: "perdida_normal",
   nino: "perdida_nino",
+  nino_extremo: "perdida_nino_extremo",
+  nina: "perdida_nina",
   actual: "perdida_actual",
   ssp245_2050: "perdida_ssp245_2050",
   ssp585_2050: "perdida_ssp585_2050",
@@ -31,7 +36,7 @@ async function saveStyle(style: "perdida_cacao" | "zonas_2050", ext: "qml" | "sl
 }
 
 /** Campos de ≤ 10 caracteres: también sirven al guardar como Shapefile en QGIS. */
-export function lossFeatureCollection(areas: AreasGeoJSON, losses: LossesResponse, zones?: ZonesResponse, fuente = FUENTE_DEMO) {
+export function lossFeatureCollection(areas: AreasGeoJSON, losses: LossesResponse, zones?: ZonesResponse, src = fuente(losses.model)) {
   const byId = new Map(losses.items.map((i) => [i.area_id, i]));
   const zoneById = new Map(zones?.items.map((z) => [z.area_id, z.zone]) ?? []);
   return {
@@ -54,7 +59,7 @@ export function lossFeatureCollection(areas: AreasGeoJSON, losses: LossesRespons
             loss_p90: l.loss_pct_high,
             clase: l.risk_class,
             zona_2050: zoneById.get(f.properties.id) ?? null,
-            fuente,
+            fuente: src,
           },
         };
       }),
@@ -78,7 +83,7 @@ export async function downloadZonesLayer(areas: AreasGeoJSON, zones: ZonesRespon
       .map((f) => ({
         type: "Feature",
         geometry: f.geometry,
-        properties: { canton: f.properties.name, provincia: f.properties.province, zona_2050: byId.get(f.properties.id)!.zone, escenario: zones.future, fuente: FUENTE_DEMO },
+        properties: { canton: f.properties.name, provincia: f.properties.province, zona_2050: byId.get(f.properties.id)!.zone, escenario: zones.future, fuente: fuente() },
       })),
   };
   saveBlob(new Blob([JSON.stringify(fc)], { type: "application/geo+json" }), "zonas_2050.geojson");

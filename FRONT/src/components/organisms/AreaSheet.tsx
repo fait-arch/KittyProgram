@@ -1,5 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { RISK_LABEL } from "@/lib/design/colors";
+import { rememberConsulta, type Consulta } from "@/lib/whatsapp";
+import { WhatsAppButton } from "@/components/molecules/WhatsAppButton";
+import { fmtMae, fmtYears } from "@/lib/design/format";
 import Link from "next/link";
 import { useAreaDetail, useAreaStrategies, useRequirements, useScenarios } from "@/lib/api/hooks";
 import type { ScenarioId } from "@/lib/api/types";
@@ -27,6 +31,19 @@ export function AreaSheet({ id, scenario, onClose }: { id: string; scenario: Sce
   const [copied, setCopied] = useState(false);
   const d = detail.data;
   const scLabel = scenarios?.find((s) => s.id === scenario)?.label ?? scenario;
+
+  // Consulta concreta: el botón de WhatsApp (aquí y en la barra superior) la lleva al chat
+  const consulta: Consulta | null = d ? {
+    tipo: "canton", nombre: d.area.name, provincia: d.area.province, escenario: scLabel,
+    perdidaPct: d.loss?.loss_pct ?? null, rango: d.loss ? [d.loss.loss_pct_low, d.loss.loss_pct_high] : undefined,
+    nivel: d.loss ? RISK_LABEL[d.loss.risk_class] : null,
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+  } : null;
+  const consultaKey = consulta ? `${consulta.nombre}|${consulta.escenario}|${consulta.perdidaPct}` : "";
+  useEffect(() => {
+    if (consulta) rememberConsulta(consulta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consultaKey]);
 
   return (
     <aside
@@ -84,18 +101,29 @@ export function AreaSheet({ id, scenario, onClose }: { id: string; scenario: Sce
         </div>
 
         {d && <LossHero d={d} scenarioLabel={scLabel} />}
+        {d && (
+          <div className="-mt-3 flex flex-col gap-1.5">
+            <WhatsAppButton consulta={consulta} />
+            <span className="text-xs text-on-surface-variant">Abre WhatsApp con su consulta de {d.area.name} ya escrita.</span>
+          </div>
+        )}
         {d && <FactorBars factors={d.top_factors} />}
         {d && <MonthlyRiskChart data={d.monthly_risk} />}
         {d && req.data && <RequirementCheck climate={d.climate} req={req.data} />}
-        {strategies.data ? <StrategyCards data={strategies.data} /> : d && <div className="h-40 animate-pulse rounded-lg bg-surface-high" />}
+        {strategies.data ? <StrategyCards data={strategies.data} /> : d && !strategies.error && d.loss && <div className="h-40 animate-pulse rounded-lg bg-surface-high" />}
 
         {d && (
           <section aria-label="Aviso" className="flex gap-3 rounded-md bg-surface-high p-4">
             <Icon name="info" className="text-primary" />
             <div className="flex flex-col gap-1.5 text-[13px] leading-[19px]">
               <span><b>{d.disclaimer}</b> Apoya, no reemplaza, al técnico.</span>
+              {!!d.data_gaps?.length && (
+                <ul className="list-disc pl-4 text-on-surface-variant">
+                  {d.data_gaps.map((g) => <li key={g}>{g}</li>)}
+                </ul>
+              )}
               <span className="text-on-surface-variant">
-                Modelo {d.model.name} · MAE {String(d.model.mae).replace(".", ",")} pts · entrenado {d.model.trained_years[0]}–{d.model.trained_years[1]}
+                Modelo {d.model.name} · MAE {fmtMae(d.model.mae)} · entrenado {fmtYears(d.model.trained_years)}
               </span>
               <Link href="/metodologia" className="font-bold text-link">Ver metodología y fuentes</Link>
             </div>

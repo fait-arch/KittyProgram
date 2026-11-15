@@ -7,12 +7,12 @@ import * as api from "@/lib/api/endpoints";
 import type { ScenarioId } from "@/lib/api/types";
 import { markCantonSaved } from "@/lib/offline";
 
-const ALL: ScenarioId[] = ["normal", "nino", "actual", "ssp245_2050", "ssp585_2050"];
+const ALL: ScenarioId[] = ["normal", "nino", "nino_extremo", "actual"];
 
 export async function saveCantonOffline(id: string, name: string, onProgress?: (done: number, total: number) => void) {
   const jobs: (() => Promise<unknown>)[] = [
     () => api.getScenarios(), () => api.getEnsoCurrent(), () => api.getMeta(), () => api.getRequirements(),
-    () => api.getAreas("canton"), () => api.getAreasGeojson("canton"), () => api.getCompare(id, ["normal", "nino", "ssp245_2050", "ssp585_2050"]),
+    () => api.getAreas("canton"), () => api.getAreasGeojson("canton"), () => api.getCompare(id, ["normal", "nino", "nino_extremo", "actual"]),
     () => api.getZones("ssp245_2050"),
     ...ALL.flatMap((s) => [() => api.getAreaDetail(id, s), () => api.getAreaStrategies(id, s), () => api.getLosses(s), () => api.getLossSummary(s)]),
     () => fetch("/geo/ecuador-contexto.geojson"),
