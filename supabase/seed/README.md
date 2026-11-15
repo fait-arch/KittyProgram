@@ -48,6 +48,11 @@ Supabase (01 → 06). El 03 pesa ~1,1 MB; si el editor lo rechaza, usa `inject.p
 | 05_produccion_y_precios | `crop_production_stats` (FAOSTAT nacional), `crop_exposure`, `crop_prices` | 24 + 12 + 309 |
 | 06_observaciones | `field_observations`, `etl_runs` | 12 + 1 |
 | 07_espac_real | `crop_production_stats` (ESPAC por provincia y nacional) | 220 + 24 |
+| **08_clima_cantones** | clima ene–jun 2014/2015/2016/2022 de cantones + escenarios normal/Niño/Niña de cantones | ver [docs/11](../../docs/11-datos-nasa-clima-precios.md) |
+| **09_nasa_satelital** | NDVI, LST, ET, SMAP, GLDAS, `precip_gpm` (nueva), `land_cover` (Earth Engine) | ver docs/11 |
+| **10_proyecciones_2050** | clima, riesgo de enfermedad, aptitud y zonas 2050 (NEX-GDDP-CMIP6) | ver docs/11 |
+| **11_precios_ecuador** | precio al productor Ecuador (FAOSTAT) | 129 meses + 34 años |
+| **12_precio_sipa** | precio al productor SIPA (MAG), desde fichas PDF | 130 meses (2014–2024) |
 
 ## Probar después de cargar
 

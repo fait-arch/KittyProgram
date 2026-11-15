@@ -43,6 +43,8 @@ Resumen de lo pendiente, de lo más fácil a lo más difícil:
 
 ## 1. Clima de cantones que falta (2016, 2015, 2022, 2014)
 
+> ✅ **Hecho (2026-11-14):** parte 08 — [11](11-datos-nasa-clima-precios.md) § 08.
+
 **Por qué falta:** el servicio gratuito Open-Meteo tiene un límite diario y se agotó. Lo ya bajado
 está guardado, así que el script retoma donde quedó.
 
@@ -66,6 +68,8 @@ regenerar con `tools/espac_to_sql.py`.
 ---
 
 ## 3. Precio del cacao en Ecuador (SIPA, MAG)
+
+> ✅ **Hecho (2026-11-14):** precio al productor SIPA mensual 2014–2024 desde las fichas (parte 12) + FAOSTAT (parte 11) — [11](11-datos-nasa-clima-precios.md) § 12. Falta el precio **por provincia** (los CSV exportados no traen fecha).
 
 **Hoy:** solo el precio internacional (FMI). **Se necesita:** precio en Ecuador, grano seco.
 
@@ -125,6 +129,8 @@ Con esto se puede generar `strategy_evaluations` (pérdida evitada y beneficio n
 
 ## 6. Datos NASA: GPM, SMAP, MODIS y WorldCover (Earth Engine)
 
+> ✅ **Hecho (2026-11-14):** parte 09 — [11](11-datos-nasa-clima-precios.md) § 09 (`precip_gpm` es variable nueva).
+
 **Qué aportan:** lluvia calibrada (corrige el sesgo de ERA5), humedad del suelo real, NDVI (suelo
 desnudo/estrés), temperatura de superficie y cobertura. Llenan las variables hoy pendientes:
 `ndvi`, `ndvi_anom`, `lst_day`, `soil_moisture_root`, `soil_moisture_long`, `et_actual`, `et0`, `esi`…
@@ -144,6 +150,8 @@ desnudo/estrés), temperatura de superficie y cobertura. Llenan las variables ho
 ---
 
 ## 7. Proyecciones 2050 (NEX-GDDP-CMIP6)
+
+> ✅ **Hecho (2026-11-14):** parte 10, incluye riesgo de enfermedad 2050 — [11](11-datos-nasa-clima-precios.md) § 10.
 
 Misma conexión a Earth Engine que el punto 6. Calcula el cambio de cada mes entre 1995–2014 y
 2041–2060 (4 modelos, `ssp245` y `ssp585`) y se suma al clima observado (método delta).

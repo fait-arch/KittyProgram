@@ -14,6 +14,7 @@
 | 8 | [Informe de datos](08-informe-datos.md) | Qué hay cargado (solo datos reales), hallazgos de calidad y pendientes |
 | 9 | [**Cómo conseguir los datos que faltan**](09-como-conseguir-los-datos-que-faltan.md) | Pasos para ESPAC, SIPA, NASA, CMIP6 y expertos |
 | 10 | [**Producción real ESPAC 2002–2025**](10-espac-produccion-real.md) | De dónde y cómo se bajó, control de cuadre, qué se carga; **no hay datos de 2001** |
+| 11 | [**Clima de cantones, NASA satelital, 2050 y precios**](11-datos-nasa-clima-precios.md) | Partes 08–11 del seed: Open-Meteo, Earth Engine (MODIS, SMAP, GLDAS, GPM, WorldCover, NEX-GDDP-CMIP6), FAOSTAT |
 | — | [**APIs y fuentes de datos**](APIS-DATOS.md) | Endpoints, IDs de Earth Engine y código para sacar cada dato |
 
 Migración de base de datos: [`supabase/migrations/0005_cacaoresiliente.sql`](../supabase/migrations/0005_cacaoresiliente.sql).

@@ -29,6 +29,11 @@ PARTS = {
     1: "01_territorio.sql", 2: "02_el_nino.sql", 3: "03_clima.sql",
     4: "04_riesgo_y_escenarios.sql", 5: "05_produccion_y_precios.sql", 6: "06_observaciones.sql",
     7: "07_espac_real.sql",   # producción REAL ESPAC 2002–2025 (reemplaza la sintética); tools/espac_to_sql.py
+    8: "08_clima_cantones.sql",      # clima de cantones 2014/2015/2016/2022 + escenarios de cantones (tools/build_extra.py)
+    9: "09_nasa_satelital.sql",      # NASA por Earth Engine: NDVI, LST, ET, SMAP, GLDAS, GPM, WorldCover
+    10: "10_proyecciones_2050.sql",  # NASA NEX-GDDP-CMIP6: clima, riesgo, aptitud y zonas 2050
+    11: "11_precios_ecuador.sql",    # precio al productor de cacao en Ecuador (FAOSTAT)
+    12: "12_precio_sipa.sql",        # precio al productor SIPA (MAG) 2014–2024, desde fichas PDF
 }
 COUNT_TABLES = [
     "areas", "area_static_features", "enso_index", "enso_events", "area_monthly_series", "area_monthly_hazard",
@@ -71,6 +76,7 @@ def reset_sql(ids: list[str]) -> list[str]:
         "delete from public.field_observations where source = 'gbif'",
         "delete from public.etl_runs where script = 'seed_pruebas'",
         "delete from public.crop_prices where source_id in ('fred', 'sipa')",
+        "delete from public.crop_prices where source_id = 'faostat' and market like 'productor_faostat%'",
         "delete from public.enso_events",
         "delete from public.enso_index",
         "delete from public.data_sources ds where ds.id = 'seed_sintetico' and not exists (select 1 from public.crop_production_stats where source_id = 'seed_sintetico') and not exists (select 1 from public.crop_exposure where source_id = 'seed_sintetico')",
